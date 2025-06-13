@@ -4,28 +4,28 @@
 
 1. Brand&Art Direction Overview • Dark-mode first, ultra-minimal UI resting on a #0F0F0F canvas. • Large, elegant serif/sans headline pairing, wide line-height. • Neon-grain gradient artwork and rainbow-tinted photography as the only pops of color. • Generous negative space, card-based containers with1px #1D1D1D borders and6px radii. • Overall tone: sophisticated tech → re-messaged as “data-driven academic insight” for TexasA&M.
 
-2. Color Palette (EXACT hex values from reference)| Token | HEX | Usage | Notes |
-|-------|-----|-------|-------|
-| Canvas | #0F0F0F | Global background | Never change |
-| Card BG | #111111 | Section containers | Same radius/shadow |
-| UI Border | #1D1D1D |1px borders/dividers | Same everywhere |
-| Body Text | #E6E6E6 | Paragraphs |80% white |
-| Headline | #FFFFFF | H1–H3 | Pure white |
-| CTA Fill | #FFFFFF | Primary button | Black text inside (#0F0F0F) |
-| CTA Hover | rgba(255,255,255,0.08) | Hover overlay || Accent Green | #35E08F | Gradient sample | Keep for charts/sliders |
-| Accent Blue | #39A8FF | Gradient sample | |
-| Accent Yellow | #FFCF3F | Gradient sample | |
-| Accent Magenta | #FF359F | Gradient sample | |
-| Accent TAMU Maroon (image-only) | #500000 | NEW – appears inside gradient assets only, **never** UI chrome |
+2. | Color Palette (EXACT hex values from reference) | Token                  | HEX                                                            | Usage                       | Notes        |
+   | ----------------------------------------------- | ---------------------- | -------------------------------------------------------------- | --------------------------- | ------------ | ------- | --------------- | ----------------------- |
+   | Canvas                                          | #0F0F0F                | Global background                                              | Never change                |
+   | Card BG                                         | #111111                | Section containers                                             | Same radius/shadow          |
+   | UI Border                                       | #1D1D1D                | 1px borders/dividers                                           | Same everywhere             |
+   | Body Text                                       | #E6E6E6                | Paragraphs                                                     | 80% white                   |
+   | Headline                                        | #FFFFFF                | H1–H3                                                          | Pure white                  |
+   | CTA Fill                                        | #FFFFFF                | Primary button                                                 | Black text inside (#0F0F0F) |
+   | CTA Hover                                       | rgba(255,255,255,0.08) | Hover overlay                                                  |                             | Accent Green | #35E08F | Gradient sample | Keep for charts/sliders |
+   | Accent Blue                                     | #39A8FF                | Gradient sample                                                |                             |
+   | Accent Yellow                                   | #FFCF3F                | Gradient sample                                                |                             |
+   | Accent Magenta                                  | #FF359F                | Gradient sample                                                |                             |
+   | Accent TAMU Maroon (image-only)                 | #500000                | NEW – appears inside gradient assets only, **never** UI chrome |
 
-3. Typography Scale (clone1:1)| Style | Font | Size | Weight | Line-height |
-|-------|------|------|--------|-------------|
-| H1 | Inter, sans-serif |48px |600 |60px |
-| H2 | Inter |32px |600 |44px |
-| H3 | Inter |24px |500 |32px |
-| Body-lg | Inter |18px |400 |30px |
-| Body | Inter |16px |400 |26px |
-| Caption | Inter |14px |400 |22px |
+3. | Typography Scale (clone1:1) | Style             | Font | Size | Weight | Line-height |
+   | --------------------------- | ----------------- | ---- | ---- | ------ | ----------- |
+   | H1                          | Inter, sans-serif | 48px | 600  | 60px   |
+   | H2                          | Inter             | 32px | 600  | 44px   |
+   | H3                          | Inter             | 24px | 500  | 32px   |
+   | Body-lg                     | Inter             | 18px | 400  | 30px   |
+   | Body                        | Inter             | 16px | 400  | 26px   |
+   | Caption                     | Inter             | 14px | 400  | 22px   |
 
 4. Spacing&Layout Grid •12-column grid,72px max content gutter,80px section vertical rhythm (desktop). • Cards:40px internal padding,40px top margin between stacked cards. • Mobile breakpoint @<960px → single column,24px side padding,56px section rhythm.5. Visual Effects & Treatments • Grain overlay on all gradients (same intensity). • Card hover: subtle scale1.02 & shadow rgba(0,0,0,0.6)082432px, transition220ms ease. • Button hover: text color fade to #0F0F0F inside white pill.6. Component Styles (clone100%) • Navigation bar (fixed, dark,64px height). • Primary pill button (20px radius,14px/600 text). • Comparison slider (before/after draggable handle). • Data table rows with play icon on hover. • Horizontally scrollable colored testimonial cards with nav chevrons. • Footer split into mission left / mosaic right +4-column link grid.---
 

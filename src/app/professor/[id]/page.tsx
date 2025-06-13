@@ -1,14 +1,22 @@
 "use client";
 
 import React, { useState, useEffect, use } from "react";
-import { Navigation } from '@/components/navigation';
-import { Footer } from '@/components/footer';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { getProfessor, type ProfessorDetail } from '@/lib/api';
-import { Star, TrendingUp, ArrowLeft, MessageSquare, Loader2, AlertCircle, Eye } from 'lucide-react';
-import Link from 'next/link';
+import { Navigation } from "@/components/navigation";
+import { Footer } from "@/components/footer";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { getProfessor, type ProfessorDetail } from "@/lib/api";
+import {
+  Star,
+  TrendingUp,
+  ArrowLeft,
+  MessageSquare,
+  Loader2,
+  AlertCircle,
+  Eye,
+} from "lucide-react";
+import Link from "next/link";
 
 interface ProfessorPageProps {
   params: Promise<{
@@ -30,7 +38,9 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
         setProfessor(professorData);
         setError(null);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load professor data');
+        setError(
+          err instanceof Error ? err.message : "Failed to load professor data",
+        );
       } finally {
         setLoading(false);
       }
@@ -67,7 +77,9 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
               <h3 className="text-xl font-semibold text-text-heading mb-2">
                 Professor Not Found
               </h3>
-              <p className="text-text-body mb-4">{error || 'Professor profile could not be loaded'}</p>
+              <p className="text-text-body mb-4">
+                {error || "Professor profile could not be loaded"}
+              </p>
               <Link href="/courses">
                 <Button>Browse Courses</Button>
               </Link>
@@ -88,7 +100,10 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
           {/* Breadcrumb */}
           <div>
             <Link href="/courses">
-              <Button variant="outline" className="flex items-center gap-2 mb-4">
+              <Button
+                variant="outline"
+                className="flex items-center gap-2 mb-4"
+              >
                 <ArrowLeft className="w-4 h-4" />
                 Back to Courses
               </Button>
@@ -105,7 +120,12 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                   <div className="flex items-center gap-4">
                     <div className="w-16 h-16 bg-gradient-to-br from-[#500000] to-[#600000] rounded-full flex items-center justify-center flex-shrink-0">
                       <span className="text-white text-xl font-bold">
-                        {(professor.name?.split(' ').map(n => n?.[0] || '').join('') || 'PR').slice(0, 2)}
+                        {(
+                          professor.name
+                            ?.split(" ")
+                            .map((n) => n?.[0] || "")
+                            .join("") || "PR"
+                        ).slice(0, 2)}
                       </span>
                     </div>
                     <div className="min-w-0">
@@ -115,15 +135,22 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                       <div className="flex flex-wrap items-center gap-3 text-text-body">
                         <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-full">
                           <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                          <span className="font-semibold text-yellow-700">{professor.overall_rating.toFixed(1)}</span>
+                          <span className="font-semibold text-yellow-700">
+                            {professor.overall_rating.toFixed(1)}
+                          </span>
                         </div>
                         <div className="flex items-center gap-1">
                           <MessageSquare className="w-4 h-4 text-blue-500" />
-                          <span className="font-medium text-sm">{professor.total_reviews} reviews</span>
+                          <span className="font-medium text-sm">
+                            {professor.total_reviews} reviews
+                          </span>
                         </div>
                         <div className="flex items-center gap-1">
                           <TrendingUp className="w-4 h-4 text-green-500" />
-                          <span className="font-medium text-sm">{professor.would_take_again_percent.toFixed(0)}% would take again</span>
+                          <span className="font-medium text-sm">
+                            {professor.would_take_again_percent.toFixed(0)}%
+                            would take again
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -143,15 +170,21 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                 {/* Departments */}
                 {professor.departments && professor.departments.length > 0 && (
                   <div className="mt-4 pt-4 border-t border-border">
-                    <h3 className="text-xs font-semibold text-text-heading mb-2 uppercase tracking-wide">Departments</h3>
+                    <h3 className="text-xs font-semibold text-text-heading mb-2 uppercase tracking-wide">
+                      Departments
+                    </h3>
                     <div className="flex flex-wrap gap-1">
-                      {professor.departments.map((dept, index) => (
+                      {professor.departments.map((dept, index) =>
                         dept ? (
-                          <Badge key={index} variant="outline" className="bg-gradient-to-r from-[#500000] to-[#600000] text-white border-transparent px-2 py-1 text-xs">
+                          <Badge
+                            key={index}
+                            variant="outline"
+                            className="bg-gradient-to-r from-[#500000] to-[#600000] text-white border-transparent px-2 py-1 text-xs"
+                          >
                             {dept}
                           </Badge>
-                        ) : null
-                      ))}
+                        ) : null,
+                      )}
                     </div>
                   </div>
                 )}
@@ -162,16 +195,23 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
           {/* Courses Section */}
           <div className="mb-12">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-text-heading">Courses Taught</h2>
+              <h2 className="text-2xl font-bold text-text-heading">
+                Courses Taught
+              </h2>
               <div className="text-sm text-text-body border-gray-500 border-2 px-3 py-1 rounded-full">
-                {professor.courses?.filter(course => course.course_id).length || 0} courses
+                {professor.courses?.filter((course) => course.course_id)
+                  .length || 0}{" "}
+                courses
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {professor.courses?.map((course) => (
+              {professor.courses?.map((course) =>
                 course.course_id ? (
-                  <Card key={course.course_id} className="bg-card border-border hover:border-[#500000] hover:scale-105 transition-all duration-300 group">
+                  <Card
+                    key={course.course_id}
+                    className="bg-card border-border hover:border-[#500000] hover:scale-105 transition-all duration-300 group"
+                  >
                     <CardContent className="p-4">
                       <div className="mb-3">
                         <h3 className="text-lg font-bold text-text-heading mb-1 transition-colors">
@@ -191,19 +231,26 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                         </div>
                         <div className="flex items-center gap-1 text-text-body">
                           <MessageSquare className="w-3 h-3" />
-                          <span className="text-xs font-medium">{course.reviews_count} reviews</span>
+                          <span className="text-xs font-medium">
+                            {course.reviews_count} reviews
+                          </span>
                         </div>
                       </div>
 
-                      <Link href={`/course/${course.course_id?.replace(/\s+/g, '') || ''}`}>
-                        <Button variant="default" className="w-full bg-[#500000] hover:bg-[#600000] text-white transition-all duration-200 text-sm py-2">
+                      <Link
+                        href={`/course/${course.course_id?.replace(/\s+/g, "") || ""}`}
+                      >
+                        <Button
+                          variant="default"
+                          className="w-full bg-[#500000] hover:bg-[#600000] text-white transition-all duration-200 text-sm py-2"
+                        >
                           View Course Details
                         </Button>
                       </Link>
                     </CardContent>
                   </Card>
-                ) : null
-              ))}
+                ) : null,
+              )}
             </div>
           </div>
 
@@ -211,9 +258,14 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
           {professor.recent_reviews && professor.recent_reviews.length > 0 && (
             <div className="mb-12">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-text-heading">Recent Reviews</h2>
+                <h2 className="text-2xl font-bold text-text-heading">
+                  Recent Reviews
+                </h2>
                 <Link href={`/professor/${professor.id}/reviews`}>
-                  <Button variant="default" className="bg-[#500000] text-white hover:bg-[#500000] hover:scale-105 transition-all duration-200 text-sm">
+                  <Button
+                    variant="default"
+                    className="bg-[#500000] text-white hover:bg-[#500000] hover:scale-105 transition-all duration-200 text-sm"
+                  >
                     View All Reviews
                   </Button>
                 </Link>
@@ -221,26 +273,38 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {professor.recent_reviews?.slice(0, 4).map((review) => (
-                  <Card key={review.id} className="bg-card border-border hover:shadow-md transition-shadow duration-200">
+                  <Card
+                    key={review.id}
+                    className="bg-card border-border hover:shadow-md transition-shadow duration-200"
+                  >
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-lg">
                           <Star className="w-3 h-3 text-yellow-500 fill-current" />
-                          <span className="font-semibold text-yellow-700 text-sm">{review.overall_rating.toFixed(1)}</span>
+                          <span className="font-semibold text-yellow-700 text-sm">
+                            {review.overall_rating.toFixed(1)}
+                          </span>
                         </div>
-                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
+                        <Badge
+                          variant="outline"
+                          className="bg-blue-50 text-blue-700 border-blue-200 text-xs"
+                        >
                           Grade: {review.grade}
                         </Badge>
                       </div>
 
                       <blockquote className="text-text-body mb-3 leading-relaxed line-clamp-3 italic border-l-4 border-gray-200 pl-3 text-sm">
-                        "{review.review_text}"
+                        `&quot;{review.review_text}&quot;`
                       </blockquote>
 
                       {review.tags && review.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1">
                           {review.tags.slice(0, 3).map((tag, index) => (
-                            <Badge key={index} variant="outline" className="text-xs bg-gray-50 text-gray-700">
+                            <Badge
+                              key={index}
+                              variant="outline"
+                              className="text-xs bg-gray-50 text-gray-700"
+                            >
                               {tag}
                             </Badge>
                           ))}
@@ -258,4 +322,4 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
       <Footer />
     </div>
   );
-} 
+}

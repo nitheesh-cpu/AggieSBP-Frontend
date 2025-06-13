@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { Button } from "@/components/ui/button";
 
 interface NavigationProps {
   className?: string;
@@ -9,17 +8,15 @@ interface NavigationProps {
 
 export const Navigation = ({ className = "" }: NavigationProps) => {
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 bg-canvas border-b border-border ${className}`}>
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 bg-canvas border-b border-border ${className}`}
+    >
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
             <div className="flex items-center space-x-3">
-              <img
-                src="/favicon.ico"
-                alt="AggieRMP Logo"
-                className="w-8 h-8"
-              />
+              <img src="/favicon.ico" alt="AggieRMP Logo" className="w-8 h-8" />
               <span className="text-xl font-semibold text-heading tracking-tight">
                 AggieSB+
               </span>
@@ -32,7 +29,7 @@ export const Navigation = ({ className = "" }: NavigationProps) => {
               { name: "Departments", href: "/departments" },
               { name: "Courses", href: "/courses" },
               { name: "Compare", href: "/compare" },
-              { name: "Support", href: "#" }
+              { name: "Support", href: "#" },
             ].map((item) => (
               <a
                 key={item.name}
@@ -55,8 +52,20 @@ export const Navigation = ({ className = "" }: NavigationProps) => {
           {/* Mobile Menu Button */}
           <div className="md:hidden">
             <button className="text-body hover:text-heading transition-colors duration-normal">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M4 6H20M4 12H20M4 18H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M4 6H20M4 12H20M4 18H20"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             </button>
           </div>

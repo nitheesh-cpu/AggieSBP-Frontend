@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React from "react";
 
 interface HeroSectionProps {
   className?: string;
@@ -8,7 +8,10 @@ interface HeroSectionProps {
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ className = "" }) => {
   return (
-    <section className={`w-full flex justify-center ${className}`} style={{ marginTop: '80px' }}>
+    <section
+      className={`w-full flex justify-center ${className}`}
+      style={{ marginTop: "80px" }}
+    >
       <div className="relative w-full max-w-[1040px] bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg overflow-hidden">
         {/* Content Container */}
         <div className="relative z-10 px-10 py-10">
@@ -19,7 +22,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ className = "" }) => {
 
           {/* Subheading */}
           <p className="text-lg text-[var(--color-text-body)] text-center mb-8 max-w-3xl mx-auto leading-relaxed">
-            Compare teaching quality, research impact, and course workload in one elegant dashboard.
+            Compare teaching quality, research impact, and course workload in
+            one elegant dashboard.
           </p>
 
           {/* Button Group */}
@@ -38,7 +42,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ className = "" }) => {
           <div className="flex justify-center mb-8">
             <div className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg p-6 w-[560px] h-[120px] flex items-center justify-center">
               <p className="text-[var(--color-text-body)] text-center text-sm">
-                Search by course • View grade distributions • Read student insights
+                Search by course • View grade distributions • Read student
+                insights
               </p>
             </div>
           </div>
@@ -54,7 +59,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ className = "" }) => {
                   key={i}
                   className="relative overflow-hidden rounded-t-sm"
                   style={{
-                    width: '12px',
+                    width: "12px",
                     height: `${Math.random() * 80 + 20}%`,
                     background: `linear-gradient(${Math.random() * 360}deg, #500000, #FFCF3F, #35E08F, #39A8FF, #FF359F)`,
                     animation: `pulse ${2 + Math.random() * 3}s infinite ease-in-out`,
@@ -66,7 +71,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ className = "" }) => {
                     className="absolute inset-0 opacity-30"
                     style={{
                       backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-                      mixBlendMode: 'multiply'
+                      mixBlendMode: "multiply",
                     }}
                   />
                 </div>
@@ -80,14 +85,15 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ className = "" }) => {
           className="absolute inset-0 opacity-10 pointer-events-none"
           style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-            mixBlendMode: 'overlay'
+            mixBlendMode: "overlay",
           }}
         />
       </div>
 
       <style jsx>{`
         @keyframes pulse {
-          0%, 100% {
+          0%,
+          100% {
             transform: scaleY(1);
             opacity: 0.8;
           }

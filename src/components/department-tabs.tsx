@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 interface DepartmentTab {
   id: string;
@@ -8,12 +8,12 @@ interface DepartmentTab {
 }
 
 const departments: DepartmentTab[] = [
-  { id: 'csce', label: 'CSCE' },
-  { id: 'ecen', label: 'ECEN' },
-  { id: 'engr', label: 'ENGR' },
-  { id: 'math', label: 'MATH' },
-  { id: 'biol', label: 'BIOL' },
-  { id: 'hist', label: 'HIST' }
+  { id: "csce", label: "CSCE" },
+  { id: "ecen", label: "ECEN" },
+  { id: "engr", label: "ENGR" },
+  { id: "math", label: "MATH" },
+  { id: "biol", label: "BIOL" },
+  { id: "hist", label: "HIST" },
 ];
 
 export const DepartmentTabs = () => {
@@ -27,7 +27,7 @@ export const DepartmentTabs = () => {
             <div
               key={department.id}
               className={`flex-1 relative ${
-                index < departments.length - 1 ? 'border-r border-border' : ''
+                index < departments.length - 1 ? "border-r border-border" : ""
               }`}
               onMouseEnter={() => setHoveredTab(department.id)}
               onMouseLeave={() => setHoveredTab(null)}
@@ -35,8 +35,8 @@ export const DepartmentTabs = () => {
               <div
                 className={`py-6 px-8 text-center transition-all duration-[220ms] ease-out cursor-pointer ${
                   hoveredTab === department.id
-                    ? 'bg-button-hover text-text-heading'
-                    : 'text-text-body'
+                    ? "bg-button-hover text-text-heading"
+                    : "text-text-body"
                 }`}
               >
                 <span className="text-base font-medium tracking-wide">

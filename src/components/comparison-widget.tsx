@@ -1,28 +1,31 @@
 "use client";
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { X, BarChart3, ArrowRight } from 'lucide-react';
-import { useComparison } from '@/contexts/ComparisonContext';
-import { useRouter } from 'next/navigation';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { X, BarChart3, ArrowRight } from "lucide-react";
+import { useComparison } from "@/contexts/ComparisonContext";
+import { useRouter } from "next/navigation";
 
 export function ComparisonWidget() {
   const { selectedCourses, removeCourse, clearAll } = useComparison();
   const router = useRouter();
 
-  console.log('ComparisonWidget - selectedCourses:', selectedCourses);
-  console.log('ComparisonWidget - selectedCourses.length:', selectedCourses.length);
+  console.log("ComparisonWidget - selectedCourses:", selectedCourses);
+  console.log(
+    "ComparisonWidget - selectedCourses.length:",
+    selectedCourses.length,
+  );
 
   // Don't render if no courses selected
   if (selectedCourses.length === 0) {
-    console.log('ComparisonWidget - not rendering, no courses selected');
+    console.log("ComparisonWidget - not rendering, no courses selected");
     return null;
   }
 
   const handleCompare = () => {
-    router.push('/courses/compare');
+    router.push("/courses/compare");
   };
 
   return (
@@ -83,4 +86,4 @@ export function ComparisonWidget() {
       </Card>
     </div>
   );
-} 
+}

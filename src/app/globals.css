@@ -107,7 +107,12 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     margin: 0;
     color: var(--color-text-heading);
     font-weight: var(--font-weight-semibold);
@@ -149,7 +154,8 @@
     cursor: pointer;
   }
 
-  ul, ol {
+  ul,
+  ol {
     margin: 0;
     padding: 0;
     list-style: none;
@@ -167,33 +173,79 @@
 }
 
 @layer utilities {
-  .bg-canvas { background-color: var(--color-canvas); }
-  .bg-card { background-color: var(--color-card); }
-  .bg-border { background-color: var(--color-border); }
-  .bg-button-primary { background-color: var(--color-button-primary); }
-  .bg-button-hover { background-color: var(--color-button-hover); }
-  .bg-maroon { background-color: var(--color-accent-maroon); }
-  .bg-maroon-light { background-color: var(--color-maroon-light); }
-  .bg-maroon-dark { background-color: var(--color-maroon-dark); }
-  
-  .border-maroon { border-color: var(--color-accent-maroon); }
-  .border-maroon-light { border-color: var(--color-maroon-light); }
-  
-  .text-maroon { color: var(--color-accent-maroon); }
-  .text-maroon-light { color: var(--color-maroon-light); }
-  
-  .border-canvas { border-color: var(--color-canvas); }
-  .border-card { border-color: var(--color-card); }
-  .border-border { border-color: var(--color-border); }
-  
-  .text-body { color: var(--color-text-body); }
-  .text-heading { color: var(--color-text-heading); }
-  .text-button-primary { color: var(--color-button-primary-text); }
-  
-  .text-text-body { color: var(--color-text-body); }
-  .text-text-heading { color: var(--color-text-heading); }
-  
-  .duration-normal { transition-duration: var(--animate-duration-normal); }
-  .duration-fast { transition-duration: var(--animate-duration-fast); }
-  .duration-slow { transition-duration: var(--animate-duration-slow); }
+  .bg-canvas {
+    background-color: var(--color-canvas);
+  }
+  .bg-card {
+    background-color: var(--color-card);
+  }
+  .bg-border {
+    background-color: var(--color-border);
+  }
+  .bg-button-primary {
+    background-color: var(--color-button-primary);
+  }
+  .bg-button-hover {
+    background-color: var(--color-button-hover);
+  }
+  .bg-maroon {
+    background-color: var(--color-accent-maroon);
+  }
+  .bg-maroon-light {
+    background-color: var(--color-maroon-light);
+  }
+  .bg-maroon-dark {
+    background-color: var(--color-maroon-dark);
+  }
+
+  .border-maroon {
+    border-color: var(--color-accent-maroon);
+  }
+  .border-maroon-light {
+    border-color: var(--color-maroon-light);
+  }
+
+  .text-maroon {
+    color: var(--color-accent-maroon);
+  }
+  .text-maroon-light {
+    color: var(--color-maroon-light);
+  }
+
+  .border-canvas {
+    border-color: var(--color-canvas);
+  }
+  .border-card {
+    border-color: var(--color-card);
+  }
+  .border-border {
+    border-color: var(--color-border);
+  }
+
+  .text-body {
+    color: var(--color-text-body);
+  }
+  .text-heading {
+    color: var(--color-text-heading);
+  }
+  .text-button-primary {
+    color: var(--color-button-primary-text);
+  }
+
+  .text-text-body {
+    color: var(--color-text-body);
+  }
+  .text-text-heading {
+    color: var(--color-text-heading);
+  }
+
+  .duration-normal {
+    transition-duration: var(--animate-duration-normal);
+  }
+  .duration-fast {
+    transition-duration: var(--animate-duration-fast);
+  }
+  .duration-slow {
+    transition-duration: var(--animate-duration-slow);
+  }
 }

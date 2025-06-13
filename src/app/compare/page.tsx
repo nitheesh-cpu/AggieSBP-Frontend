@@ -9,13 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getCourses, type Course } from "@/lib/api";
-import {
-  Search,
-  Plus,
-  Minus,
-  Star,
-  BookOpen
-} from "lucide-react";
+import { Search, Plus, Minus, Star, BookOpen } from "lucide-react";
 
 export default function ComparePage() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -34,8 +28,8 @@ export default function ComparePage() {
         setFilteredCourses(data);
         setError(null);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load courses');
-        console.error('Failed to load courses:', err);
+        setError(err instanceof Error ? err.message : "Failed to load courses");
+        console.error("Failed to load courses:", err);
       } finally {
         setLoading(false);
       }
@@ -45,21 +39,25 @@ export default function ComparePage() {
   }, []);
 
   useEffect(() => {
-    const filtered = courses.filter(course =>
-      course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const filtered = courses.filter(
+      (course) =>
+        course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        course.name.toLowerCase().includes(searchTerm.toLowerCase()),
     );
     setFilteredCourses(filtered);
   }, [searchTerm, courses]);
 
   const addCourseToComparison = (course: Course) => {
-    if (selectedCourses.length < 4 && !selectedCourses.find(c => c.id === course.id)) {
+    if (
+      selectedCourses.length < 4 &&
+      !selectedCourses.find((c) => c.id === course.id)
+    ) {
       setSelectedCourses([...selectedCourses, course]);
     }
   };
 
   const removeCourseFromComparison = (courseId: string) => {
-    setSelectedCourses(selectedCourses.filter(c => c.id !== courseId));
+    setSelectedCourses(selectedCourses.filter((c) => c.id !== courseId));
   };
 
   if (loading) {
@@ -100,19 +98,18 @@ export default function ComparePage() {
 
       <main className="pt-24 pb-20">
         <div className="max-w-7xl mx-auto px-6">
-
           {/* Header */}
           <div className="text-center mb-12">
             <h1 className="text-3xl font-semibold text-text-heading mb-4">
               Compare Courses
             </h1>
             <p className="text-lg text-text-body max-w-2xl mx-auto">
-              Compare up to 4 courses side by side to make informed decisions about your academic path.
+              Compare up to 4 courses side by side to make informed decisions
+              about your academic path.
             </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
             {/* Course Search */}
             <div className="lg:col-span-1">
               <Card className="p-6 bg-card border-border">
@@ -133,7 +130,7 @@ export default function ComparePage() {
                 </div>
 
                 <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {filteredCourses.map(course => (
+                  {filteredCourses.map((course) => (
                     <div
                       key={course.id}
                       className="p-3 bg-canvas rounded border border-border hover:border-[#500000] transition-colors cursor-pointer"
@@ -151,7 +148,10 @@ export default function ComparePage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          disabled={selectedCourses.length >= 4 || selectedCourses.some(c => c.id === course.id)}
+                          disabled={
+                            selectedCourses.length >= 4 ||
+                            selectedCourses.some((c) => c.id === course.id)
+                          }
                           className="ml-2"
                         >
                           <Plus className="w-4 h-4" />
@@ -173,18 +173,19 @@ export default function ComparePage() {
                       No courses selected
                     </h3>
                     <p className="text-text-body">
-                      Search and add courses from the left panel to start comparing.
+                      Search and add courses from the left panel to start
+                      comparing.
                     </p>
                   </div>
                 </Card>
               ) : (
                 <div className="space-y-6">
-
                   {/* Selected Courses Header */}
                   <Card className="p-4 bg-card border-border">
                     <div className="flex items-center justify-between">
                       <h2 className="text-xl font-semibold text-text-heading">
-                        Comparing {selectedCourses.length} Course{selectedCourses.length > 1 ? 's' : ''}
+                        Comparing {selectedCourses.length} Course
+                        {selectedCourses.length > 1 ? "s" : ""}
                       </h2>
                       <div className="text-sm text-text-body">
                         {4 - selectedCourses.length} more can be added
@@ -202,8 +203,11 @@ export default function ComparePage() {
 
                     <TabsContent value="overview" className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                        {selectedCourses.map(course => (
-                          <Card key={course.id} className="p-4 bg-card border-border">
+                        {selectedCourses.map((course) => (
+                          <Card
+                            key={course.id}
+                            className="p-4 bg-card border-border"
+                          >
                             <div className="flex items-start justify-between mb-3">
                               <div>
                                 <h3 className="font-semibold text-text-heading">
@@ -216,7 +220,9 @@ export default function ComparePage() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => removeCourseFromComparison(course.id)}
+                                onClick={() =>
+                                  removeCourseFromComparison(course.id)
+                                }
                                 className="text-red-500 hover:text-red-600"
                               >
                                 <Minus className="w-4 h-4" />
@@ -225,25 +231,35 @@ export default function ComparePage() {
 
                             <div className="space-y-3">
                               <div className="flex items-center justify-between">
-                                <span className="text-sm text-text-body">GPA</span>
+                                <span className="text-sm text-text-body">
+                                  GPA
+                                </span>
                                 <span className="font-medium text-text-heading">
-                                  {course.avgGPA !== -1 ? course.avgGPA.toFixed(2) : 'N/A'}
+                                  {course.avgGPA !== -1
+                                    ? course.avgGPA.toFixed(2)
+                                    : "N/A"}
                                 </span>
                               </div>
                               <div className="flex items-center justify-between">
-                                <span className="text-sm text-text-body">Credits</span>
+                                <span className="text-sm text-text-body">
+                                  Credits
+                                </span>
                                 <span className="font-medium text-text-heading">
                                   {course.credits}
                                 </span>
                               </div>
                               <div className="flex items-center justify-between">
-                                <span className="text-sm text-text-body">Difficulty</span>
+                                <span className="text-sm text-text-body">
+                                  Difficulty
+                                </span>
                                 <Badge variant="outline">
                                   {course.difficulty}
                                 </Badge>
                               </div>
                               <div className="flex items-center justify-between">
-                                <span className="text-sm text-text-body">Rating</span>
+                                <span className="text-sm text-text-body">
+                                  Rating
+                                </span>
                                 <div className="flex items-center gap-1">
                                   <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                                   <span className="font-medium text-text-heading">
@@ -263,8 +279,11 @@ export default function ComparePage() {
                           GPA Comparison
                         </h3>
                         <div className="space-y-4">
-                          {selectedCourses.map(course => (
-                            <div key={course.id} className="flex items-center justify-between">
+                          {selectedCourses.map((course) => (
+                            <div
+                              key={course.id}
+                              className="flex items-center justify-between"
+                            >
                               <div>
                                 <span className="font-medium text-text-heading">
                                   {course.code}
@@ -275,7 +294,9 @@ export default function ComparePage() {
                               </div>
                               <div className="text-right">
                                 <div className="text-lg font-semibold text-text-heading">
-                                  {course.avgGPA !== -1 ? course.avgGPA.toFixed(2) : 'N/A'}
+                                  {course.avgGPA !== -1
+                                    ? course.avgGPA.toFixed(2)
+                                    : "N/A"}
                                 </div>
                               </div>
                             </div>
@@ -290,8 +311,11 @@ export default function ComparePage() {
                           Difficulty & Workload
                         </h3>
                         <div className="space-y-4">
-                          {selectedCourses.map(course => (
-                            <div key={course.id} className="flex items-center justify-between">
+                          {selectedCourses.map((course) => (
+                            <div
+                              key={course.id}
+                              className="flex items-center justify-between"
+                            >
                               <div>
                                 <span className="font-medium text-text-heading">
                                   {course.code}
@@ -302,7 +326,8 @@ export default function ComparePage() {
                                   {course.difficulty}
                                 </Badge>
                                 <div className="text-sm text-text-body">
-                                  {course.sections} section{course.sections !== 1 ? 's' : ''}
+                                  {course.sections} section
+                                  {course.sections !== 1 ? "s" : ""}
                                 </div>
                               </div>
                             </div>
@@ -313,8 +338,11 @@ export default function ComparePage() {
 
                     <TabsContent value="details" className="space-y-4">
                       <div className="grid gap-4">
-                        {selectedCourses.map(course => (
-                          <Card key={course.id} className="p-4 bg-card border-border">
+                        {selectedCourses.map((course) => (
+                          <Card
+                            key={course.id}
+                            className="p-4 bg-card border-border"
+                          >
                             <h3 className="font-semibold text-text-heading mb-2">
                               {course.code}: {course.name}
                             </h3>
@@ -322,11 +350,17 @@ export default function ComparePage() {
                               {course.department.name}
                             </div>
                             <div className="flex flex-wrap gap-2">
-                              {course.sectionAttributes.slice(0, 3).map((attr, index) => (
-                                <Badge key={index} variant="secondary" className="text-xs">
-                                  {attr}
-                                </Badge>
-                              ))}
+                              {course.sectionAttributes
+                                .slice(0, 3)
+                                .map((attr, index) => (
+                                  <Badge
+                                    key={index}
+                                    variant="secondary"
+                                    className="text-xs"
+                                  >
+                                    {attr}
+                                  </Badge>
+                                ))}
                             </div>
                           </Card>
                         ))}

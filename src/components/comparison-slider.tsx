@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback } from "react";
 
 export const ComparisonSlider = () => {
   const [sliderValue, setSliderValue] = useState(50);
@@ -11,23 +11,29 @@ export const ComparisonSlider = () => {
     setIsDragging(true);
   }, []);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDragging || !sliderRef.current) return;
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      if (!isDragging || !sliderRef.current) return;
 
-    const rect = sliderRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
-    setSliderValue(percentage);
-  }, [isDragging]);
+      const rect = sliderRef.current.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
+      setSliderValue(percentage);
+    },
+    [isDragging],
+  );
 
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!isDragging || !sliderRef.current) return;
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      if (!isDragging || !sliderRef.current) return;
 
-    const rect = sliderRef.current.getBoundingClientRect();
-    const x = e.touches[0].clientX - rect.left;
-    const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
-    setSliderValue(percentage);
-  }, [isDragging]);
+      const rect = sliderRef.current.getBoundingClientRect();
+      const x = e.touches[0].clientX - rect.left;
+      const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
+      setSliderValue(percentage);
+    },
+    [isDragging],
+  );
 
   React.useEffect(() => {
     const handleGlobalMouseUp = () => setIsDragging(false);
@@ -41,13 +47,13 @@ export const ComparisonSlider = () => {
     };
 
     if (isDragging) {
-      document.addEventListener('mouseup', handleGlobalMouseUp);
-      document.addEventListener('mousemove', handleGlobalMouseMove);
+      document.addEventListener("mouseup", handleGlobalMouseUp);
+      document.addEventListener("mousemove", handleGlobalMouseMove);
     }
 
     return () => {
-      document.removeEventListener('mouseup', handleGlobalMouseUp);
-      document.removeEventListener('mousemove', handleGlobalMouseMove);
+      document.removeEventListener("mouseup", handleGlobalMouseUp);
+      document.removeEventListener("mousemove", handleGlobalMouseMove);
     };
   }, [isDragging]);
 
@@ -59,7 +65,8 @@ export const ComparisonSlider = () => {
             Teaching & research at a glance
           </h2>
           <p className="text-lg text-[#e6e6e6] max-w-2xl mx-auto">
-            Drag to compare a professor&apos;s teaching focus against research intensity.
+            Drag to compare a professor&apos;s teaching focus against research
+            intensity.
           </p>
         </div>
 
@@ -83,7 +90,7 @@ export const ComparisonSlider = () => {
               className="absolute inset-0 opacity-20 pointer-events-none"
               style={{
                 backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-                backgroundSize: '256px 256px',
+                backgroundSize: "256px 256px",
               }}
             />
 
@@ -95,7 +102,8 @@ export const ComparisonSlider = () => {
               <div
                 className="w-full h-full"
                 style={{
-                  background: 'linear-gradient(180deg, rgba(139, 69, 69, 0.8) 0%, rgba(80, 0, 0, 1) 100%)',
+                  background:
+                    "linear-gradient(180deg, rgba(139, 69, 69, 0.8) 0%, rgba(80, 0, 0, 1) 100%)",
                 }}
               />
             </div>
@@ -108,7 +116,8 @@ export const ComparisonSlider = () => {
               <div
                 className="w-full h-full"
                 style={{
-                  background: 'linear-gradient(180deg, rgba(255, 182, 193, 0.8) 0%, rgba(255, 207, 63, 1) 100%)',
+                  background:
+                    "linear-gradient(180deg, rgba(255, 182, 193, 0.8) 0%, rgba(255, 207, 63, 1) 100%)",
                 }}
               />
             </div>

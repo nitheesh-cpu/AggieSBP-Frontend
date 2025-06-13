@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface TestimonialCard {
   id: number;
@@ -9,53 +9,56 @@ interface TestimonialCard {
   role: string;
   quote: string;
   link: string;
-  color: 'blue' | 'pink' | 'orange';
+  color: "blue" | "pink" | "orange";
   image: string;
 }
 
 const testimonials: TestimonialCard[] = [
   {
     id: 1,
-    tag: '@Aggie_Engineer',
-    role: 'Sophomore, CSCE',
-    quote: 'Using AggieProf, I quickly saw which CSCE221 sections had the lightest curve. Ended up with Prof. Chen and loved every minute.',
-    link: 'Read the full story',
-    color: 'blue',
-    image: '/api/placeholder/280/320'
+    tag: "@Aggie_Engineer",
+    role: "Sophomore, CSCE",
+    quote:
+      "Using AggieProf, I quickly saw which CSCE221 sections had the lightest curve. Ended up with Prof. Chen and loved every minute.",
+    link: "Read the full story",
+    color: "blue",
+    image: "/api/placeholder/280/320",
   },
   {
     id: 2,
-    tag: '@MathMajorAg',
-    role: 'Junior, MATH',
-    quote: 'The grade distribution data helped me pick the perfect calc professor. Finally understood derivatives for the first time!',
-    link: 'Read the full story',
-    color: 'pink',
-    image: '/api/placeholder/280/320'
+    tag: "@MathMajorAg",
+    role: "Junior, MATH",
+    quote:
+      "The grade distribution data helped me pick the perfect calc professor. Finally understood derivatives for the first time!",
+    link: "Read the full story",
+    color: "pink",
+    image: "/api/placeholder/280/320",
   },
   {
     id: 3,
-    tag: '@BioAggie22',
-    role: 'Senior, BIOL',
-    quote: 'Research ratings showed me which professors actually mentor undergrads. Now I\'m co-author on two papers.',
-    link: 'Read the full story',
-    color: 'orange',
-    image: '/api/placeholder/280/320'
-  }
+    tag: "@BioAggie22",
+    role: "Senior, BIOL",
+    quote:
+      "Research ratings showed me which professors actually mentor undergrads. Now I'm co-author on two papers.",
+    link: "Read the full story",
+    color: "orange",
+    image: "/api/placeholder/280/320",
+  },
 ];
 
 const colorStyles = {
   blue: {
-    gradient: 'linear-gradient(135deg, #39a8ff 0%, #1e40af 100%)',
-    duotone: 'sepia(100%) hue-rotate(200deg) saturate(150%) brightness(0.9)',
+    gradient: "linear-gradient(135deg, #39a8ff 0%, #1e40af 100%)",
+    duotone: "sepia(100%) hue-rotate(200deg) saturate(150%) brightness(0.9)",
   },
   pink: {
-    gradient: 'linear-gradient(135deg, #ff359f 0%, #be185d 100%)',
-    duotone: 'sepia(100%) hue-rotate(300deg) saturate(150%) brightness(0.9)',
+    gradient: "linear-gradient(135deg, #ff359f 0%, #be185d 100%)",
+    duotone: "sepia(100%) hue-rotate(300deg) saturate(150%) brightness(0.9)",
   },
   orange: {
-    gradient: 'linear-gradient(135deg, #ffcf3f 0%, #f97316 100%)',
-    duotone: 'sepia(100%) hue-rotate(30deg) saturate(150%) brightness(0.9)',
-  }
+    gradient: "linear-gradient(135deg, #ffcf3f 0%, #f97316 100%)",
+    duotone: "sepia(100%) hue-rotate(30deg) saturate(150%) brightness(0.9)",
+  },
 };
 
 export const TestimonialCarousel = () => {
@@ -74,8 +77,8 @@ export const TestimonialCarousel = () => {
 
   const goToPrevious = () => {
     setIsAutoPlaying(false);
-    setCurrentIndex((prevIndex) => 
-      prevIndex === 0 ? testimonials.length - 1 : prevIndex - 1
+    setCurrentIndex((prevIndex) =>
+      prevIndex === 0 ? testimonials.length - 1 : prevIndex - 1,
     );
   };
 
@@ -142,7 +145,7 @@ export const TestimonialCarousel = () => {
                     }}
                   />
                   {/* Grain overlay */}
-                  <div 
+                  <div
                     className="absolute inset-0 mix-blend-overlay opacity-20"
                     style={{
                       backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.4'/%3E%3C/svg%3E")`,
@@ -160,10 +163,10 @@ export const TestimonialCarousel = () => {
                       {testimonial.role}
                     </div>
                     <blockquote className="text-base leading-relaxed mb-4">
-                      "{testimonial.quote}"
+                      `&quot;{testimonial.quote}&quot;`
                     </blockquote>
                   </div>
-                  
+
                   <button className="text-sm underline underline-offset-2 hover:no-underline transition-all duration-150 self-start opacity-90 hover:opacity-100">
                     {testimonial.link}
                   </button>
@@ -185,9 +188,9 @@ export const TestimonialCarousel = () => {
                   setIsAutoPlaying(false);
                 }}
                 className={`w-2 h-2 rounded-full transition-all duration-220 ${
-                  index === currentIndex 
-                    ? 'bg-white' 
-                    : 'bg-white/30 hover:bg-white/50'
+                  index === currentIndex
+                    ? "bg-white"
+                    : "bg-white/30 hover:bg-white/50"
                 }`}
               />
             ))}

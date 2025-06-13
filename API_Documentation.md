@@ -21,9 +21,11 @@ All responses are in JSON format. Successful responses return the requested data
 ### 1. Health Check Endpoints
 
 #### `GET /`
+
 **Description**: Root endpoint with welcome message.
 
 **Response**:
+
 ```json
 {
   "message": "Welcome to AggieRMP API"
@@ -31,9 +33,11 @@ All responses are in JSON format. Successful responses return the requested data
 ```
 
 #### `GET /health`
+
 **Description**: Health check with database status.
 
 **Response**:
+
 ```json
 {
   "status": "healthy",
@@ -52,9 +56,11 @@ All responses are in JSON format. Successful responses return the requested data
 ```
 
 #### `GET /db-status`
+
 **Description**: Detailed database connection pool status.
 
 **Response**:
+
 ```json
 {
   "status": "healthy",
@@ -73,14 +79,17 @@ All responses are in JSON format. Successful responses return the requested data
 ### 2. Departments Endpoint
 
 #### `GET /departments`
+
 **Description**: Get all departments with aggregated statistics.
 
 **Parameters**:
+
 - `search` (optional, string): Search by department code or name (case-insensitive)
 - `limit` (optional, integer, default: 30): Number of results to return
 - `skip` (optional, integer, default: 0): Number of results to skip for pagination
 
 **Example Requests**:
+
 ```bash
 # Get all departments (first 30)
 GET /departments
@@ -96,6 +105,7 @@ GET /departments?limit=10&skip=20
 ```
 
 **Response**:
+
 ```json
 [
   {
@@ -114,6 +124,7 @@ GET /departments?limit=10&skip=20
 ```
 
 **Response Fields**:
+
 - `id`: Department ID (lowercase)
 - `code`: Department code (e.g., "CSCE", "MATH")
 - `name`: Full department name
@@ -130,15 +141,18 @@ GET /departments?limit=10&skip=20
 ### 3. Courses Endpoint
 
 #### `GET /courses`
+
 **Description**: Get courses with anex data and difficulty ratings.
 
 **Parameters**:
+
 - `department` (optional, string): Filter by department code
 - `search` (optional, string): Search by course code or name (case-insensitive)
 - `limit` (optional, integer, default: 30): Number of results to return
 - `skip` (optional, integer, default: 0): Number of results to skip for pagination
 
 **Example Requests**:
+
 ```bash
 # Get all courses (first 30)
 GET /courses
@@ -154,6 +168,7 @@ GET /courses?search=CSCE&limit=10&skip=0
 ```
 
 **Response**:
+
 ```json
 [
   {
@@ -177,6 +192,7 @@ GET /courses?search=CSCE&limit=10&skip=0
 ```
 
 **Response Fields**:
+
 - `id`: Course ID (e.g., "csce120")
 - `code`: Course code (e.g., "CSCE120")
 - `name`: Course title
@@ -200,12 +216,15 @@ GET /courses?search=CSCE&limit=10&skip=0
 ### 4. Course Details Endpoint
 
 #### `GET /course/{course_id}`
+
 **Description**: Get detailed information for a specific course.
 
 **Parameters**:
+
 - `course_id` (required, string): Course code (e.g., "CSCE120", "MATH151")
 
 **Example Requests**:
+
 ```bash
 # Get CSCE 120 details
 GET /course/CSCE120
@@ -215,6 +234,7 @@ GET /course/MATH151
 ```
 
 **Response**:
+
 ```json
 {
   "id": "csce120",
@@ -262,6 +282,7 @@ GET /course/MATH151
 ```
 
 **Response Fields**:
+
 - `id`: Course ID
 - `code`: Course code
 - `name`: Course title
@@ -285,15 +306,18 @@ GET /course/MATH151
 ### 5. Course Reviews Endpoint
 
 #### `GET /course/{course_id}/reviews/{professor_id}`
+
 **Description**: Get reviews for a specific course-professor combination.
 
 **Parameters**:
+
 - `course_id` (required, string): Course code (e.g., "CSCE120")
 - `professor_id` (required, string): Professor ID
 - `limit` (optional, integer, default: 50): Number of reviews to return
 - `skip` (optional, integer, default: 0): Number of reviews to skip for pagination
 
 **Example Requests**:
+
 ```bash
 # Get reviews for CSCE 120 with specific professor
 GET /course/CSCE120/reviews/prof123
@@ -303,6 +327,7 @@ GET /course/CSCE120/reviews/prof123?limit=20&skip=0
 ```
 
 **Response**:
+
 ```json
 {
   "course": {
@@ -350,6 +375,7 @@ GET /course/CSCE120/reviews/prof123?limit=20&skip=0
 ```
 
 **Response Fields**:
+
 - `course`: Course information
 - `professor`: Professor information
 - `summary`: Aggregated statistics for all reviews
@@ -369,6 +395,7 @@ All endpoints may return error responses in the following format:
 ```
 
 **Common HTTP Status Codes**:
+
 - `200`: Success
 - `404`: Resource not found (invalid course ID, professor ID, etc.)
 - `422`: Validation error (invalid parameters)
@@ -403,26 +430,31 @@ Currently, no rate limiting is implemented. For production use, consider impleme
 ## Examples
 
 ### Get Computer Science Departments
+
 ```bash
 curl "http://localhost:8000/departments?search=Computer"
 ```
 
 ### Get All CSCE Courses
+
 ```bash
 curl "http://localhost:8000/courses?department=CSCE&limit=10"
 ```
 
 ### Get Course Details
+
 ```bash
 curl "http://localhost:8000/course/CSCE120"
 ```
 
 ### Get Course Reviews
+
 ```bash
 curl "http://localhost:8000/course/CSCE120/reviews/prof123?limit=10"
 ```
 
 ### Check API Health
+
 ```bash
 curl "http://localhost:8000/health"
-``` 
+```

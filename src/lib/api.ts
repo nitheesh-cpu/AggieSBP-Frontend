@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://207.211.177.26:8000';
+const API_BASE_URL = "http://207.211.177.26:8000";
 // const API_BASE_URL = "http://localhost:8000";
 
 // Development mode - set to true to use mock data
@@ -513,23 +513,31 @@ export async function getProfessorReviews(
       const totalReviews = reviews.length;
       const avgOverall =
         totalReviews > 0
-          ? reviews.reduce((sum, r) => sum + (r.overall_rating as number || 0), 0) /
-            totalReviews
+          ? reviews.reduce(
+              (sum, r) => sum + ((r.overall_rating as number) || 0),
+              0,
+            ) / totalReviews
           : 0;
       const avgClarity =
         totalReviews > 0
-          ? reviews.reduce((sum, r) => sum + (r.clarity_rating as number || 0), 0) /
-            totalReviews
+          ? reviews.reduce(
+              (sum, r) => sum + ((r.clarity_rating as number) || 0),
+              0,
+            ) / totalReviews
           : 0;
       const avgDifficulty =
         totalReviews > 0
-          ? reviews.reduce((sum, r) => sum + (r.difficulty_rating as number || 0), 0) /
-            totalReviews
+          ? reviews.reduce(
+              (sum, r) => sum + ((r.difficulty_rating as number) || 0),
+              0,
+            ) / totalReviews
           : 0;
       const avgHelpfulness =
         totalReviews > 0
-          ? reviews.reduce((sum, r) => sum + (r.helpful_rating as number || 0), 0) /
-            totalReviews
+          ? reviews.reduce(
+              (sum, r) => sum + ((r.helpful_rating as number) || 0),
+              0,
+            ) / totalReviews
           : 0;
       const wouldTakeAgainCount = reviews.filter(
         (r) => r.would_take_again === true,

@@ -54,6 +54,7 @@ import {
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { Suspense } from "react";
 import { useComparison } from "@/contexts/ComparisonContext";
 import { ComparisonWidget } from "@/components/comparison-widget";
 
@@ -1169,5 +1170,24 @@ function CoursesPageContent() {
 }
 
 export default function CoursesPage() {
-  return <CoursesPageContent />;
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-canvas">
+          <Navigation />
+          <main className="pt-24 pb-20">
+            <div className="max-w-7xl mx-auto px-6">
+              <div className="text-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-[#500000]" />
+                <div className="text-text-body">Loading courses...</div>
+              </div>
+            </div>
+          </main>
+          <Footer />
+        </div>
+      }
+    >
+      <CoursesPageContent />
+    </Suspense>
+  );
 }

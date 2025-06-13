@@ -483,7 +483,7 @@ export async function getProfessorReviews(
     if (Array.isArray(data)) {
       console.log("Converting array response to ProfessorReviews structure");
 
-      const reviews = data.map((review: any) => {
+      const reviews = data.map((review: Record<string, unknown>) => {
         // Map the actual API fields to the expected structure
         return {
           id: review.id,
@@ -513,22 +513,22 @@ export async function getProfessorReviews(
       const totalReviews = reviews.length;
       const avgOverall =
         totalReviews > 0
-          ? reviews.reduce((sum, r) => sum + (r.overall_rating || 0), 0) /
+          ? reviews.reduce((sum, r) => sum + (r.overall_rating as number || 0), 0) /
             totalReviews
           : 0;
       const avgClarity =
         totalReviews > 0
-          ? reviews.reduce((sum, r) => sum + (r.clarity_rating || 0), 0) /
+          ? reviews.reduce((sum, r) => sum + (r.clarity_rating as number || 0), 0) /
             totalReviews
           : 0;
       const avgDifficulty =
         totalReviews > 0
-          ? reviews.reduce((sum, r) => sum + (r.difficulty_rating || 0), 0) /
+          ? reviews.reduce((sum, r) => sum + (r.difficulty_rating as number || 0), 0) /
             totalReviews
           : 0;
       const avgHelpfulness =
         totalReviews > 0
-          ? reviews.reduce((sum, r) => sum + (r.helpful_rating || 0), 0) /
+          ? reviews.reduce((sum, r) => sum + (r.helpful_rating as number || 0), 0) /
             totalReviews
           : 0;
       const wouldTakeAgainCount = reviews.filter(
@@ -550,7 +550,7 @@ export async function getProfessorReviews(
           avg_overall: avgOverall,
           would_take_again_percent: wouldTakeAgainPercent,
         },
-        reviews,
+        reviews: reviews as unknown as ProfessorReviews["reviews"],
         pagination: {
           total: totalReviews,
           limit: params?.limit || 50,

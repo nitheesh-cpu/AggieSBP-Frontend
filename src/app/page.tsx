@@ -17,10 +17,10 @@ export default function HomePage() {
         <HeroSection />
         <DepartmentTabs />
         <ValueProposition />
-        <ComparisonSlider />
+        {/* <ComparisonSlider /> */}
         <CourseTable />
-        <TestimonialCarousel />
-        <MissionSection />
+        {/* <TestimonialCarousel /> */}
+        {/* <MissionSection /> */}
       </main>
 
       <Footer />

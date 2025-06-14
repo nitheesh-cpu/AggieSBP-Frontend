@@ -17,13 +17,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ className = "" }) => {
         <div className="relative z-10 px-10 py-10">
           {/* Main Heading */}
           <h1 className="text-[48px] font-semibold text-[var(--color-text-heading)] leading-[1.25] text-center mb-6 max-w-4xl mx-auto">
-            The fastest way to choose the right TexasA&M professor
+            The fastest way to choose the best learning experience for you.
           </h1>
 
           {/* Subheading */}
           <p className="text-lg text-[var(--color-text-body)] text-center mb-8 max-w-3xl mx-auto leading-relaxed">
-            Compare teaching quality, research impact, and course workload in
-            one elegant dashboard.
+            Compare teaching quality, course workload, historical data and more
+            in one elegant dashboard.
           </p>
 
           {/* Button Group */}
@@ -43,7 +43,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ className = "" }) => {
             <div className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg p-6 w-[560px] h-[120px] flex items-center justify-center">
               <p className="text-[var(--color-text-body)] text-center text-sm">
                 Search by course • View grade distributions • Read student
-                insights
+                reviews
               </p>
             </div>
           </div>

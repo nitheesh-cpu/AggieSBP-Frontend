@@ -10,7 +10,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-[var(--color-canvas)]">
       <Navigation />
 
-      <main className="flex flex-col justify-center items-center">
+      <main className="flex flex-col justify-center items-center w-full">
         <HeroSection />
         <DepartmentTabs />
         <ValueProposition />

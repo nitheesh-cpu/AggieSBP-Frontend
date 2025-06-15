@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import Image from "next/image";
 
 export const MissionSection = () => {
   return (
@@ -36,220 +37,280 @@ export const MissionSection = () => {
               <div className="h-full grid grid-cols-6 grid-rows-5 gap-0">
                 {/* Row 1 */}
                 <div className="bg-gradient-to-br from-blue-500 to-blue-700 relative overflow-hidden">
-                  <img
+                  <Image
                     src="/api/placeholder/80/80"
                     alt="Campus scene"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover mix-blend-overlay opacity-60"
                   />
                 </div>
                 <div className="bg-gradient-to-br from-pink-500 to-pink-700 relative overflow-hidden">
-                  <img
+                  <Image
                     src="/api/placeholder/80/80"
                     alt="Student life"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover mix-blend-overlay opacity-60"
                   />
                 </div>
                 <div className="bg-gradient-to-br from-green-500 to-green-700 relative overflow-hidden">
-                  <img
+                  <Image
                     src="/api/placeholder/80/80"
                     alt="Academic building"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover mix-blend-overlay opacity-60"
                   />
                 </div>
                 <div className="bg-gradient-to-br from-yellow-500 to-yellow-700 relative overflow-hidden">
-                  <img
+                  <Image
                     src="/api/placeholder/80/80"
                     alt="Library scene"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover mix-blend-overlay opacity-60"
                   />
                 </div>
                 <div className="bg-gradient-to-br from-purple-500 to-purple-700 relative overflow-hidden">
-                  <img
+                  <Image
                     src="/api/placeholder/80/80"
                     alt="Research lab"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover mix-blend-overlay opacity-60"
                   />
                 </div>
                 <div className="bg-gradient-to-br from-orange-500 to-red-500 relative overflow-hidden">
-                  <img
+                  <Image
                     src="/api/placeholder/80/80"
                     alt="Campus quad"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover mix-blend-overlay opacity-60"
                   />
                 </div>
 
                 {/* Row 2 */}
                 <div className="bg-gradient-to-br from-pink-500 to-pink-700 relative overflow-hidden">
-                  <img
+                  <Image
                     src="/api/placeholder/80/80"
                     alt="Graduation ceremony"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover mix-blend-overlay opacity-60"
                   />
                 </div>
                 <div className="bg-gradient-to-br from-red-600 to-red-800 relative overflow-hidden">
-                  <img
+                  <Image
                     src="/api/placeholder/80/80"
                     alt="Kyle Field"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover mix-blend-overlay opacity-60"
                   />
                 </div>
                 <div className="bg-gradient-to-br from-blue-400 to-cyan-500 relative overflow-hidden">
-                  <img
+                  <Image
                     src="/api/placeholder/80/80"
                     alt="Engineering complex"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover mix-blend-overlay opacity-60"
                   />
                 </div>
                 <div className="bg-gradient-to-br from-green-400 to-green-600 relative overflow-hidden">
-                  <img
+                  <Image
                     src="/api/placeholder/80/80"
                     alt="Student center"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover mix-blend-overlay opacity-60"
                   />
                 </div>
                 <div className="bg-gradient-to-br from-yellow-400 to-orange-400 relative overflow-hidden">
-                  <img
+                  <Image
                     src="/api/placeholder/80/80"
                     alt="Classroom scene"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover mix-blend-overlay opacity-60"
                   />
                 </div>
                 <div className="bg-gradient-to-br from-purple-600 to-indigo-600 relative overflow-hidden">
-                  <img
+                  <Image
                     src="/api/placeholder/80/80"
                     alt="Memorial Student Center"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover mix-blend-overlay opacity-60"
                   />
                 </div>
 
                 {/* Row 3 */}
                 <div className="bg-gradient-to-br from-teal-500 to-blue-600 relative overflow-hidden">
-                  <img
+                  <Image
                     src="/api/placeholder/80/80"
                     alt="Reveille mascot"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover mix-blend-overlay opacity-60"
                   />
                 </div>
                 <div className="bg-gradient-to-br from-green-500 to-emerald-500 relative overflow-hidden">
-                  <img
+                  <Image
                     src="/api/placeholder/80/80"
                     alt="Corps of Cadets"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover mix-blend-overlay opacity-60"
                   />
                 </div>
                 <div className="bg-gradient-to-br from-pink-500 to-pink-600 relative overflow-hidden">
-                  <img
+                  <Image
                     src="/api/placeholder/80/80"
                     alt="Bush Library"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover mix-blend-overlay opacity-60"
                   />
                 </div>
                 <div className="bg-gradient-to-br from-orange-400 to-yellow-500 relative overflow-hidden">
-                  <img
+                  <Image
                     src="/api/placeholder/80/80"
                     alt="Aggie Ring"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover mix-blend-overlay opacity-60"
                   />
                 </div>
                 <div className="bg-gradient-to-br from-red-500 to-red-700 relative overflow-hidden">
-                  <img
+                  <Image
                     src="/api/placeholder/80/80"
                     alt="Muster ceremony"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover mix-blend-overlay opacity-60"
                   />
                 </div>
                 <div className="bg-gradient-to-br from-indigo-500 to-purple-600 relative overflow-hidden">
-                  <img
+                  <Image
                     src="/api/placeholder/80/80"
                     alt="Bonfire tradition"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover mix-blend-overlay opacity-60"
                   />
                 </div>
 
                 {/* Row 4 */}
                 <div className="bg-gradient-to-br from-yellow-400 to-amber-500 relative overflow-hidden">
-                  <img
+                  <Image
                     src="/api/placeholder/80/80"
                     alt="Academic Plaza"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover mix-blend-overlay opacity-60"
                   />
                 </div>
                 <div className="bg-gradient-to-br from-emerald-400 to-green-600 relative overflow-hidden">
-                  <img
+                  <Image
                     src="/api/placeholder/80/80"
                     alt="Research facility"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover mix-blend-overlay opacity-60"
                   />
                 </div>
                 <div className="bg-gradient-to-br from-blue-400 to-sky-500 relative overflow-hidden">
-                  <img
+                  <Image
                     src="/api/placeholder/80/80"
                     alt="Gig 'em hand sign"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover mix-blend-overlay opacity-60"
                   />
                 </div>
                 <div className="bg-gradient-to-br from-rose-500 to-pink-600 relative overflow-hidden">
-                  <img
+                  <Image
                     src="/api/placeholder/80/80"
                     alt="Student organizations"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover mix-blend-overlay opacity-60"
                   />
                 </div>
                 <div className="bg-gradient-to-br from-violet-500 to-purple-600 relative overflow-hidden">
-                  <img
+                  <Image
                     src="/api/placeholder/80/80"
-                    alt="Howdy Week"
+                    alt="Aggie traditions"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover mix-blend-overlay opacity-60"
                   />
                 </div>
-                <div className="bg-gradient-to-br from-red-600 to-red-700 relative overflow-hidden">
-                  <img
+                <div className="bg-gradient-to-br from-cyan-400 to-blue-500 relative overflow-hidden">
+                  <Image
                     src="/api/placeholder/80/80"
-                    alt="George H.W. Bush statue"
+                    alt="Campus life"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover mix-blend-overlay opacity-60"
                   />
                 </div>
 
                 {/* Row 5 */}
-                <div className="bg-gradient-to-br from-cyan-400 to-blue-500 relative overflow-hidden">
-                  <img
+                <div className="bg-gradient-to-br from-orange-400 to-red-500 relative overflow-hidden">
+                  <Image
                     src="/api/placeholder/80/80"
-                    alt="Century Tree"
+                    alt="Aggie spirit"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover mix-blend-overlay opacity-60"
                   />
                 </div>
-                <div className="bg-gradient-to-br from-lime-400 to-green-500 relative overflow-hidden">
-                  <img
+                <div className="bg-gradient-to-br from-purple-400 to-indigo-500 relative overflow-hidden">
+                  <Image
                     src="/api/placeholder/80/80"
-                    alt="Fish Camp"
+                    alt="Academic excellence"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover mix-blend-overlay opacity-60"
                   />
                 </div>
-                <div className="bg-gradient-to-br from-amber-400 to-yellow-500 relative overflow-hidden">
-                  <img
+                <div className="bg-gradient-to-br from-green-400 to-teal-500 relative overflow-hidden">
+                  <Image
                     src="/api/placeholder/80/80"
-                    alt="Spirit of Aggieland"
+                    alt="Innovation hub"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover mix-blend-overlay opacity-60"
                   />
                 </div>
-                <div className="bg-gradient-to-br from-fuchsia-500 to-pink-600 relative overflow-hidden">
-                  <img
+                <div className="bg-gradient-to-br from-yellow-500 to-orange-500 relative overflow-hidden">
+                  <Image
                     src="/api/placeholder/80/80"
-                    alt="Big Event volunteer"
+                    alt="Student success"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover mix-blend-overlay opacity-60"
                   />
                 </div>
-                <div className="bg-gradient-to-br from-blue-500 to-indigo-600 relative overflow-hidden">
-                  <img
+                <div className="bg-gradient-to-br from-pink-400 to-rose-500 relative overflow-hidden">
+                  <Image
                     src="/api/placeholder/80/80"
-                    alt="Aggie Network"
+                    alt="Aggie network"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover mix-blend-overlay opacity-60"
                   />
                 </div>
-                <div className="bg-gradient-to-br from-orange-500 to-red-600 relative overflow-hidden">
-                  <img
+                <div className="bg-gradient-to-br from-blue-500 to-purple-500 relative overflow-hidden">
+                  <Image
                     src="/api/placeholder/80/80"
-                    alt="12th Man tradition"
+                    alt="Future leaders"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover mix-blend-overlay opacity-60"
                   />
                 </div>

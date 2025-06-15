@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { X, Menu } from "lucide-react";
+import Image from "next/image";
 
 interface NavigationProps {
   className?: string;
@@ -38,9 +39,11 @@ export const Navigation = ({ className = "" }: NavigationProps) => {
             <div className="flex items-center">
               <Link href="/" onClick={closeMobileMenu}>
                 <div className="flex items-center space-x-3">
-                  <img
+                  <Image
                     src="/favicon.ico"
                     alt="AggieRMP Logo"
+                    width={32}
+                    height={32}
                     className="w-8 h-8"
                   />
                   <span className="text-xl font-semibold text-heading tracking-tight">
@@ -105,7 +108,13 @@ export const Navigation = ({ className = "" }: NavigationProps) => {
           {/* Mobile Menu Header */}
           <div className="flex items-center justify-between p-6 border-b border-border">
             <div className="flex items-center space-x-3">
-              <img src="/favicon.ico" alt="AggieRMP Logo" className="w-6 h-6" />
+              <Image
+                src="/favicon.ico"
+                alt="AggieRMP Logo"
+                width={24}
+                height={24}
+                className="w-6 h-6"
+              />
               <span className="text-lg font-semibold text-heading">
                 AggieSB+
               </span>

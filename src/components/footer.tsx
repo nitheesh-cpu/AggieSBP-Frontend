@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { Github, Linkedin } from "lucide-react";
+import Image from "next/image";
 
 export const Footer = () => {
   return (
@@ -11,7 +12,13 @@ export const Footer = () => {
           {/* Brand section */}
           <div className="lg:col-span-2">
             <div className="flex items-center space-x-3 mb-6">
-              <img src="/favicon.ico" alt="AggieRMP Logo" className="w-6 h-6" />
+              <Image
+                src="/favicon.ico"
+                alt="AggieRMP Logo"
+                width={30}
+                height={30}
+                className="w-8 h-8"
+              />
               <span className="text-xl font-semibold text-text-heading">
                 AggieSB+
               </span>

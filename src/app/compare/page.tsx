@@ -602,7 +602,7 @@ function ComparePageContent() {
                         </TabsList>
 
                         <TabsContent value="overview" className="space-y-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                             {professorDetails.map((professor) => (
                               <Card
                                 key={professor.id}
@@ -620,7 +620,7 @@ function ComparePageContent() {
                                     </div>
                                   </div>
                                   <Button
-                                    size="sm"
+                                    size="icon"
                                     variant="outline"
                                     onClick={() =>
                                       removeProfessorFromComparison(
@@ -629,7 +629,7 @@ function ComparePageContent() {
                                     }
                                     className="text-red-500 hover:text-red-600"
                                   >
-                                    <Minus className="w-4 h-4" />
+                                    <Minus className="w-2 h-2" />
                                   </Button>
                                 </div>
 
@@ -850,7 +850,7 @@ function ComparePageContent() {
 
 export default function ComparePage() {
   return (
-    <Suspense 
+    <Suspense
       fallback={
         <div className="min-h-screen bg-canvas">
           <Navigation />

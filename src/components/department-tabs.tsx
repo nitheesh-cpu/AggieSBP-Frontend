@@ -42,9 +42,40 @@ export const DepartmentTabs = () => {
   const [hoveredTab, setHoveredTab] = useState<string | null>(null);
 
   return (
-    <section className="w-full max-w-6xl mx-auto px-6 py-20">
+    <section className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
       <div className="bg-card border border-border rounded-lg overflow-hidden">
-        <div className="flex">
+        {/* Mobile: Vertical stack */}
+        <div className="block sm:hidden">
+          {departments.map((department, index) => (
+            <div
+              key={department.id}
+              className={`relative ${
+                index < departments.length - 1 ? "border-b border-border" : ""
+              }`}
+              onTouchStart={() => setHoveredTab(department.id)}
+              onTouchEnd={() => setHoveredTab(null)}
+              onMouseEnter={() => setHoveredTab(department.id)}
+              onMouseLeave={() => setHoveredTab(null)}
+            >
+              <Link href={department.href}>
+                <div
+                  className={`py-4 px-6 text-center transition-all duration-[220ms] ease-out cursor-pointer min-h-[60px] flex items-center justify-center ${
+                    hoveredTab === department.id
+                      ? "bg-button-hover text-text-heading"
+                      : "text-text-body"
+                  }`}
+                >
+                  <span className="text-lg font-medium tracking-wide">
+                    {department.label}
+                  </span>
+                </div>
+              </Link>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop: Horizontal flex */}
+        <div className="hidden sm:flex">
           {departments.map((department, index) => (
             <div
               key={department.id}
@@ -56,13 +87,13 @@ export const DepartmentTabs = () => {
             >
               <Link href={department.href}>
                 <div
-                  className={`py-6 px-8 text-center transition-all duration-[220ms] ease-out cursor-pointer ${
+                  className={`py-4 sm:py-6 px-4 sm:px-8 text-center transition-all duration-[220ms] ease-out cursor-pointer ${
                     hoveredTab === department.id
                       ? "bg-button-hover text-text-heading"
                       : "text-text-body"
                   }`}
                 >
-                  <span className="text-base font-medium tracking-wide">
+                  <span className="text-sm sm:text-base font-medium tracking-wide">
                     {department.label}
                   </span>
                 </div>

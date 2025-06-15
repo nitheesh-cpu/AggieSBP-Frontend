@@ -1,26 +1,26 @@
 export const ValueProposition = () => {
   return (
-    <section className="w-full bg-canvas py-20">
-      <div className="container mx-auto max-w-7xl px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 lg:gap-16 items-center">
+    <section className="w-full bg-canvas py-12 sm:py-16 md:py-20">
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12 xl:gap-16 items-center">
           {/* Left Column - Copy (60%) */}
           <div className="lg:col-span-3">
-            <div className="max-w-2xl">
-              <p className="text-lg leading-relaxed text-text-body mb-6">
+            <div className="max-w-2xl mx-auto lg:mx-0 text-center lg:text-left">
+              <p className="text-base sm:text-lg leading-relaxed text-text-body mb-4 sm:mb-6">
                 Aggies love how effortless it is to stack-rank professors by
                 real outcomes—grade distributions, course rigor, and peer
                 reviews.
               </p>
-              <p className="text-lg leading-relaxed text-text-body">
+              <p className="text-base sm:text-lg leading-relaxed text-text-body">
                 Our data engine surfaces the most accurate, up-to-date insights
                 to guide your next semester schedule.
               </p>
             </div>
           </div>
 
-          {/* Right Column - Isometric Graphic (40%) */}
-          <div className="lg:col-span-2 flex justify-center lg:justify-end">
-            <div className="relative w-96 h-96 opacity-20">
+          {/* Right Column - Isometric Graphic (40%) - Hidden on mobile */}
+          <div className="lg:flex lg:col-span-2 justify-center lg:justify-end">
+            <div className="relative w-72 xl:w-96 h-72 xl:h-96 opacity-20">
               <svg
                 viewBox="0 0 400 400"
                 className="w-full h-full"

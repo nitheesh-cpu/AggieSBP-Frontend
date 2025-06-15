@@ -15,6 +15,8 @@ import {
   User,
   GraduationCap,
   BookOpen,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
 import { useProfessorComparison } from "@/contexts/ProfessorComparisonContext";
@@ -29,6 +31,10 @@ export default function ProfessorsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 3 * 8; // 3 columns × 4 rows
+
   const { addProfessor, isSelected, canAddMore } = useProfessorComparison();
 
   // Get unique departments for filter dropdown
@@ -40,7 +46,7 @@ export default function ProfessorsPage() {
     const loadProfessors = async () => {
       try {
         setLoading(true);
-        const data = await getProfessors({ limit: 1000 }); // Get all professors
+        const data = await getProfessors({ limit: 5000 }); // Get all professors
         setProfessors(data);
         setFilteredProfessors(data);
         setError(null);
@@ -80,11 +86,38 @@ export default function ProfessorsPage() {
     }
 
     setFilteredProfessors(filtered);
+    // Reset to first page when filters change
+    setCurrentPage(1);
   }, [searchTerm, departmentFilter, minRating, professors]);
 
   const handleAddProfessor = (professor: Professor) => {
     if (canAddMore() && !isSelected(professor.id)) {
       addProfessor(professor.id);
+    }
+  };
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredProfessors.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentProfessors = filteredProfessors.slice(startIndex, endIndex);
+
+  // Pagination helper functions
+  const goToPage = (page: number) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+    // Scroll to top of results
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      goToPage(currentPage - 1);
+    }
+  };
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      goToPage(currentPage + 1);
     }
   };
 
@@ -186,16 +219,28 @@ export default function ProfessorsPage() {
           </div>
 
           {/* Results Summary */}
-          <div className="mb-6">
+          <div className="mb-6 flex items-center justify-between">
             <p className="text-text-body">
-              Showing {filteredProfessors.length} of {professors.length}{" "}
-              professors
+              Showing {startIndex + 1}-
+              {Math.min(endIndex, filteredProfessors.length)} of{" "}
+              {filteredProfessors.length} professors
+              {filteredProfessors.length !== professors.length && (
+                <span className="text-text-body/70">
+                  {" "}
+                  (filtered from {professors.length} total)
+                </span>
+              )}
             </p>
+            {totalPages > 1 && (
+              <p className="text-sm text-text-body">
+                Page {currentPage} of {totalPages}
+              </p>
+            )}
           </div>
 
           {/* Professor Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {filteredProfessors.map((professor) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {currentProfessors.map((professor) => (
               <Card
                 key={professor.id}
                 className="p-6 bg-card border-border hover:border-[#500000] transition-colors"
@@ -269,18 +314,27 @@ export default function ProfessorsPage() {
 
                   <div className="pt-2">
                     <div className="flex flex-wrap gap-1">
-                      {professor.departments.slice(0, 2).map((dept) => (
-                        <Badge
-                          key={dept}
-                          variant="secondary"
-                          className="text-xs"
-                        >
-                          {dept}
-                        </Badge>
-                      ))}
-                      {professor.departments.length > 2 && (
+                      {professor.departments.slice(0, 4).map((dept) =>
+                        dept && dept.length == 4 ? (
+                          <Link
+                            href={`/professors?department=${dept}`}
+                            key={dept}
+                          >
+                            <Badge
+                              key={dept}
+                              variant="secondary"
+                              className="text-xs bg-[#500000] text-white"
+                            >
+                              {dept}
+                            </Badge>
+                          </Link>
+                        ) : (
+                          <></>
+                        ),
+                      )}
+                      {professor.departments.length > 4 && (
                         <Badge variant="secondary" className="text-xs">
-                          +{professor.departments.length - 2} more
+                          +{professor.departments.length - 4} more
                         </Badge>
                       )}
                     </div>
@@ -290,6 +344,7 @@ export default function ProfessorsPage() {
             ))}
           </div>
 
+          {/* No Results Message */}
           {filteredProfessors.length === 0 && (
             <div className="text-center py-12">
               <GraduationCap className="w-16 h-16 text-text-body mx-auto mb-4" />
@@ -299,6 +354,118 @@ export default function ProfessorsPage() {
               <p className="text-text-body">
                 Try adjusting your search criteria or filters.
               </p>
+            </div>
+          )}
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-8">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={goToPreviousPage}
+                disabled={currentPage === 1}
+                className="border-border"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </Button>
+
+              <div className="flex items-center gap-1">
+                {(() => {
+                  const pages = [];
+                  const maxVisiblePages = 5;
+                  let startPage = Math.max(
+                    1,
+                    currentPage - Math.floor(maxVisiblePages / 2),
+                  );
+                  const endPage = Math.min(
+                    totalPages,
+                    startPage + maxVisiblePages - 1,
+                  );
+
+                  // Adjust start page if we're near the end
+                  if (endPage - startPage + 1 < maxVisiblePages) {
+                    startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                  }
+
+                  // Always show first page
+                  if (startPage > 1) {
+                    pages.push(
+                      <Button
+                        key={1}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => goToPage(1)}
+                        className="border-border"
+                      >
+                        1
+                      </Button>,
+                    );
+                    if (startPage > 2) {
+                      pages.push(
+                        <span key="ellipsis1" className="px-2">
+                          ...
+                        </span>,
+                      );
+                    }
+                  }
+
+                  // Show visible pages
+                  for (let i = startPage; i <= endPage; i++) {
+                    pages.push(
+                      <Button
+                        key={i}
+                        variant={currentPage === i ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => goToPage(i)}
+                        className={
+                          currentPage === i
+                            ? "bg-[#500000] text-white"
+                            : "border-border"
+                        }
+                      >
+                        {i}
+                      </Button>,
+                    );
+                  }
+
+                  // Always show last page
+                  if (endPage < totalPages) {
+                    if (endPage < totalPages - 1) {
+                      pages.push(
+                        <span key="ellipsis2" className="px-2">
+                          ...
+                        </span>,
+                      );
+                    }
+                    pages.push(
+                      <Button
+                        key={totalPages}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => goToPage(totalPages)}
+                        className="border-border"
+                      >
+                        {totalPages}
+                      </Button>,
+                    );
+                  }
+
+                  return pages;
+                })()}
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={goToNextPage}
+                disabled={currentPage === totalPages}
+                className="border-border"
+              >
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </Button>
             </div>
           )}
         </div>

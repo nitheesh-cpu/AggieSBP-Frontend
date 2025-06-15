@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📧 General Questions & Support
+    url: mailto:support@aggiesb.com
+    about: For general questions, account issues, or other support needs
+  - name: 💬 Community Discussions
+    url: https://github.com/your-org/aggiesb-frontend/discussions
+    about: Join the community discussion, ask questions, and share ideas
+  - name: 🔒 Security Issues
+    url: mailto:security@aggiesb.com
+    about: Please report security vulnerabilities privately via email

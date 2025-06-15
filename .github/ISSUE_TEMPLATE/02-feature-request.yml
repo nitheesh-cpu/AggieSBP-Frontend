@@ -1,0 +1,128 @@
+name: Feature Request
+description: Suggest a new feature or improvement for AggieSB+
+title: "[Feature]: "
+labels: ["enhancement", "feature-request"]
+assignees:
+  - maintainer
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature! We appreciate your ideas for improving AggieSB+.
+
+        Please provide as much detail as possible to help us understand your suggestion.
+
+  - type: input
+    id: contact
+    attributes:
+      label: Contact Information (Optional)
+      description: How can we reach you if we need more details about this feature?
+      placeholder: email@tamu.edu or GitHub username
+    validations:
+      required: false
+
+  - type: textarea
+    id: feature-summary
+    attributes:
+      label: Feature Summary
+      description: Provide a brief summary of the feature you'd like to see
+      placeholder: "Example: Add a GPA calculator that shows how taking a course would affect my overall GPA"
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem-statement
+    attributes:
+      label: Problem or Need
+      description: What problem would this feature solve? What need does it address?
+      placeholder: |
+        Example: As a student planning my schedule, I want to know how taking a specific course might impact my GPA before I register for it. Currently, I have to manually calculate this myself.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution
+      description: Describe your ideal solution. How would this feature work?
+      placeholder: |
+        Example: 
+        - Add a "GPA Impact" section to each course detail page
+        - Allow users to input their current GPA and credit hours
+        - Show projected GPA based on different grade scenarios (A, B, C, etc.)
+        - Include this information in the course comparison tool
+    validations:
+      required: true
+
+  - type: dropdown
+    id: feature-area
+    attributes:
+      label: Which area of the site would this feature affect?
+      description: Select the main area where this feature would be implemented
+      options:
+        - Course Search & Browsing
+        - Course Detail Pages
+        - Professor Search & Browsing
+        - Professor Detail Pages
+        - Course/Professor Comparison
+        - Reviews & Ratings
+        - User Interface/Design
+        - Search & Filtering
+        - Data & Analytics
+        - Mobile Experience
+        - Other/Multiple Areas
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: How important is this feature to you?
+      description: Help us understand the priority level
+      options:
+        - Critical - I really need this feature
+        - High - This would significantly improve my experience
+        - Medium - This would be a nice addition
+        - Low - This is just a suggestion
+    validations:
+      required: true
+
+  - type: dropdown
+    id: user-type
+    attributes:
+      label: What type of user are you?
+      description: This helps us understand different user perspectives
+      options:
+        - Current TAMU Student
+        - Prospective TAMU Student
+        - TAMU Faculty/Staff
+        - TAMU Alumni
+        - Parent/Family Member
+        - Other
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternative Solutions
+      description: Have you considered any alternative solutions or workarounds?
+      placeholder: "Example: I currently use a separate GPA calculator app, but it would be much more convenient to have this integrated into AggieSB+"
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add any other context, mockups, examples, or references that might help
+      placeholder: You can include links to similar features on other sites, mockups, or any other relevant information
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Confirmation
+      description: Please confirm the following
+      options:
+        - label: I have searched existing issues to make sure this feature hasn't been requested already
+          required: true
+        - label: I understand that feature requests are suggestions and may not be implemented immediately
+          required: true

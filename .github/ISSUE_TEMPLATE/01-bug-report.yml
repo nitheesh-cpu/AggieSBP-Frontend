@@ -1,0 +1,112 @@
+name: Bug Report
+description: Report a bug or issue with AggieSB+
+title: "[Bug]: "
+labels: ["bug", "triage"]
+assignees:
+  - maintainer
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! This helps us improve AggieSB+ for all Aggies.
+
+        Please fill out the information below to help us understand and reproduce the issue.
+
+  - type: input
+    id: contact
+    attributes:
+      label: Contact Information (Optional)
+      description: How can we reach you if we need more details?
+      placeholder: email@tamu.edu or GitHub username
+    validations:
+      required: false
+
+  - type: dropdown
+    id: page
+    attributes:
+      label: Which page is affected?
+      description: Select the page where you encountered the bug
+      options:
+        - Home Page
+        - Courses Page
+        - Professors Page
+        - Course Detail Page
+        - Professor Detail Page
+        - Professor Reviews Page
+        - Compare Page
+        - About Page
+        - Other (please specify in description)
+    validations:
+      required: true
+
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Bug Description
+      description: What happened? What did you expect to happen instead?
+      placeholder: |
+        Example: When I search for "CSCE 121" on the courses page, no results appear even though the course should exist.
+
+        Expected: The course should appear in the search results.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Please provide step-by-step instructions to reproduce the bug
+      placeholder: |
+        1. Go to the courses page
+        2. Type "CSCE 121" in the search box
+        3. Press Enter or wait for results
+        4. No results appear
+    validations:
+      required: true
+
+  - type: dropdown
+    id: browsers
+    attributes:
+      label: Browser(s)
+      description: Which browser(s) are you seeing the problem on?
+      multiple: true
+      options:
+        - Chrome
+        - Firefox
+        - Safari
+        - Microsoft Edge
+        - Mobile Safari (iOS)
+        - Chrome Mobile (Android)
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: device
+    attributes:
+      label: Device Type
+      description: What type of device are you using?
+      options:
+        - Desktop/Laptop
+        - Mobile Phone
+        - Tablet
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here (screenshots, error messages, etc.)
+      placeholder: You can paste screenshots or error messages here
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Confirmation
+      description: Please confirm the following
+      options:
+        - label: I have searched existing issues to make sure this bug hasn't been reported already
+          required: true
+        - label: I have provided enough information for the maintainers to understand and reproduce the issue
+          required: true

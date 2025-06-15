@@ -19,7 +19,7 @@ const testimonials: TestimonialCard[] = [
     tag: "@Aggie_Engineer",
     role: "Sophomore, CSCE",
     quote:
-      "Using AggieProf, I quickly saw which CSCE221 sections had the lightest curve. Ended up with Prof. Chen and loved every minute.",
+      "Using AggieSB+, I quickly saw which CSCE221 sections had the lightest curve. Ended up with Prof. Chen and loved every minute.",
     link: "Read the full story",
     color: "blue",
     image: "/api/placeholder/280/320",

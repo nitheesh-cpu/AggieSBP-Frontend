@@ -7,9 +7,9 @@ export const ValueProposition = () => {
           <div className="lg:col-span-3">
             <div className="max-w-2xl">
               <p className="text-lg leading-relaxed text-text-body mb-6">
-                Aggie students love how effortless it is to stack-rank
-                professors by real outcomes—grade distributions, course rigor,
-                and peer reviews.
+                Aggies love how effortless it is to stack-rank professors by
+                real outcomes—grade distributions, course rigor, and peer
+                reviews.
               </p>
               <p className="text-lg leading-relaxed text-text-body">
                 Our data engine surfaces the most accurate, up-to-date insights

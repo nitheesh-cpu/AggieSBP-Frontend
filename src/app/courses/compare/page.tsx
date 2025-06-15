@@ -643,7 +643,7 @@ function CourseComparisonPageContent() {
                           {course.professors.map((prof, index) => (
                             <Card
                               key={index}
-                              className="p-4 bg-gradient-to-br from-gray-600/30 to-blue-300/60 border-gray-200"
+                              className="p-4 bg-gradient-to-br from-gray-600/30 to-gray-700/60 border-gray-200"
                             >
                               <div className="flex items-start justify-between mb-3">
                                 <div>
@@ -662,9 +662,6 @@ function CourseComparisonPageContent() {
                                     </span>
                                   </div>
                                 </div>
-                                <Badge variant="outline" className="text-xs">
-                                  #{index + 1}
-                                </Badge>
                               </div>
 
                               {prof.gradeDistribution && (

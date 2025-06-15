@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { Button } from "./ui/button";
 
 interface CourseRow {
@@ -12,7 +13,7 @@ interface CourseRow {
 const courseData: CourseRow[] = [
   {
     icon: "💻",
-    course: "CSCE121",
+    course: "CSCE120",
     avgGPA: "3.18",
     workload: "Medium",
     rating: "4.6/5",
@@ -82,14 +83,14 @@ const courseData: CourseRow[] = [
   },
   {
     icon: "🧬",
-    course: "BIOL212",
+    course: "BIOL213",
     avgGPA: "2.94",
     workload: "High",
     rating: "4.0/5",
   },
   {
     icon: "📚",
-    course: "HIST202",
+    course: "HIST201",
     avgGPA: "3.52",
     workload: "Light",
     rating: "4.6/5",
@@ -111,46 +112,51 @@ export const CourseTable: React.FC = () => {
           <div className="bg-card border border-border rounded-lg p-8 max-w-[740px]">
             <div className="space-y-1 mb-6">
               {courseData.map((course, index) => (
-                <div
+                <Link
                   key={index}
-                  className="flex items-center py-3 px-4 rounded-md hover:bg-white/5 transition-colors duration-200 group cursor-pointer"
+                  href={`/course/${course.course}`}
+                  className="block"
                 >
-                  <div className="flex items-center flex-1 space-x-4">
-                    <span className="text-xl w-8 flex justify-center">
-                      {course.icon}
-                    </span>
-                    <span className="text-white font-medium min-w-[80px]">
-                      {course.course}
-                    </span>
-                    <span className="text-gray-300 min-w-[60px]">
-                      {course.avgGPA}
-                    </span>
-                    <span className="text-gray-300 min-w-[80px]">
-                      {course.workload}
-                    </span>
-                    <span className="text-gray-300 flex-1">
-                      {course.rating}
-                    </span>
-                  </div>
+                  <div className="flex items-center py-3 px-4 rounded-md hover:bg-white/5 transition-colors duration-200 group cursor-pointer">
+                    <div className="flex items-center flex-1 space-x-4">
+                      <span className="text-xl w-8 flex justify-center">
+                        {course.icon}
+                      </span>
+                      <span className="text-white font-medium min-w-[80px]">
+                        {course.course}
+                      </span>
+                      <span className="text-gray-300 min-w-[60px]">
+                        {course.avgGPA}
+                      </span>
+                      <span className="text-gray-300 min-w-[80px]">
+                        {course.workload}
+                      </span>
+                      <span className="text-gray-300 flex-1">
+                        {course.rating}
+                      </span>
+                    </div>
 
-                  <button className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-gray-400 hover:text-white ml-4">
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path d="M8 5V19L19 12L8 5Z" fill="currentColor" />
-                    </svg>
-                  </button>
-                </div>
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-gray-400 hover:text-white ml-4">
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path d="M8 5V19L19 12L8 5Z" fill="currentColor" />
+                      </svg>
+                    </div>
+                  </div>
+                </Link>
               ))}
             </div>
 
-            <Button variant="outline" className="mt-4">
-              Try a sample search
-            </Button>
+            <Link href="/courses">
+              <Button variant="outline" className="mt-4">
+                Try a sample search
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

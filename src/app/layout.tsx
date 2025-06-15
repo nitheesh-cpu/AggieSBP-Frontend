@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ComparisonProvider } from "@/contexts/ComparisonContext";
+import { ProfessorComparisonProvider } from "@/contexts/ProfessorComparisonContext";
 
 export const metadata: Metadata = {
-  title: "AggieProf - Compare Texas A&M Professors",
+  title: "AggieSB+ - Compare Texas A&M Professors",
   description:
     "The fastest way to choose the right Texas A&M professor. Compare teaching quality, research impact, and course workload in one elegant dashboard.",
 };
@@ -16,7 +17,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        <ComparisonProvider>{children}</ComparisonProvider>
+        <ComparisonProvider>
+          <ProfessorComparisonProvider>{children}</ProfessorComparisonProvider>
+        </ComparisonProvider>
       </body>
     </html>
   );

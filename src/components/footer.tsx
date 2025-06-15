@@ -13,7 +13,7 @@ export const Footer = () => {
             <div className="flex items-center space-x-3 mb-6">
               <img src="/favicon.ico" alt="AggieRMP Logo" className="w-6 h-6" />
               <span className="text-xl font-semibold text-text-heading">
-                AggieProf
+                AggieSB+
               </span>
             </div>
             <p className="text-text-body mb-8 max-w-sm">
@@ -22,13 +22,13 @@ export const Footer = () => {
             </p>
             <div className="flex space-x-4">
               <Link
-                href="#"
+                href="https://github.com/nitheesh-cpu"
                 className="w-10 h-10 bg-card border border-border rounded-lg flex items-center justify-center text-text-body hover:text-text-heading hover:border-text-body transition-colors duration-[220ms]"
               >
                 <Github size={18} />
               </Link>
               <Link
-                href="#"
+                href="https://www.linkedin.com/in/nitheesh-kodarapu/"
                 className="w-10 h-10 bg-card border border-border rounded-lg flex items-center justify-center text-text-body hover:text-text-heading hover:border-text-body transition-colors duration-[220ms]"
               >
                 <Linkedin size={18} />
@@ -37,7 +37,7 @@ export const Footer = () => {
           </div>
 
           {/* Features column */}
-          <div>
+          {/* <div>
             <h3 className="text-text-heading font-medium mb-6">Features</h3>
             <div className="space-y-4">
               {["Grade Data", "Reviews"].map((item) => (
@@ -50,37 +50,55 @@ export const Footer = () => {
                 </Link>
               ))}
             </div>
-          </div>
+          </div> */}
 
           {/* Resources column */}
           <div>
-            <h3 className="text-text-heading font-medium mb-6">Resources</h3>
+            <h3 className="text-text-heading font-medium mb-6">Support</h3>
             <div className="space-y-4">
-              {["Docs", "Blog"].map((item) => (
-                <Link
-                  key={item}
-                  href="#"
-                  className="block text-text-body hover:text-text-heading transition-colors duration-[220ms]"
-                >
-                  {item}
-                </Link>
-              ))}
+              {/* {["Report a Bug", "Request a Feature"].map((item) => ( */}
+              <Link
+                key={"Report a Bug"}
+                href="https://github.com/nitheesh-cpu/aggiesbp-frontend/issues/new?assignees=maintainer&labels=bug%2Ctriage&projects=&template=01-bug-report.yml&title=%5BBug%5D%3A+"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-text-body hover:text-text-heading transition-colors duration-[220ms]"
+              >
+                Report a Bug
+              </Link>
+              {/* ))} */}
+              <Link
+                key={"Request a Feature"}
+                href="https://github.com/nitheesh-cpu/aggiesbp-frontend/issues/new?assignees=maintainer&labels=enhancement%2Cfeature-request&projects=&template=02-feature-request.yml&title=%5BFeature%5D%3A+"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-text-body hover:text-text-heading transition-colors duration-[220ms]"
+              >
+                Request a Feature
+              </Link>
             </div>
           </div>
 
           {/* Company column */}
           <div>
-            <h3 className="text-text-heading font-medium mb-6">Company</h3>
+            <h3 className="text-text-heading font-medium mb-6">Website</h3>
             <div className="space-y-4">
-              {["About", "Contact"].map((item) => (
-                <Link
-                  key={item}
-                  href="#"
-                  className="block text-text-body hover:text-text-heading transition-colors duration-[220ms]"
-                >
-                  {item}
-                </Link>
-              ))}
+              {/* {["About", "API Docs"].map((item) => ( */}
+              <Link
+                key={"About"}
+                href="/about"
+                className="block text-text-body hover:text-text-heading transition-colors duration-[220ms]"
+              >
+                About
+              </Link>
+              <Link
+                key={"API Docs"}
+                href="https://api-aggiesbp.servehttp.com/docs"
+                className="block text-text-body hover:text-text-heading transition-colors duration-[220ms]"
+              >
+                API Docs
+              </Link>
+              {/* ))} */}
             </div>
           </div>
         </div>

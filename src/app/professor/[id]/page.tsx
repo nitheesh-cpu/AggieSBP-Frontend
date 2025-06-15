@@ -136,7 +136,9 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                         <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-full">
                           <Star className="w-4 h-4 text-yellow-500 fill-current" />
                           <span className="font-semibold text-yellow-700">
-                            {professor.overall_rating.toFixed(1)}
+                            {professor.overall_rating
+                              ? professor.overall_rating.toFixed(1)
+                              : "N/A"}
                           </span>
                         </div>
                         <div className="flex items-center gap-1">
@@ -148,8 +150,10 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                         <div className="flex items-center gap-1">
                           <TrendingUp className="w-4 h-4 text-green-500" />
                           <span className="font-medium text-sm">
-                            {professor.would_take_again_percent.toFixed(0)}%
-                            would take again
+                            {professor.would_take_again_percent
+                              ? professor.would_take_again_percent.toFixed(0)
+                              : "N/A"}
+                            % would take again
                           </span>
                         </div>
                       </div>
@@ -188,6 +192,29 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                     </div>
                   </div>
                 )}
+
+                {/* Tags */}
+                {professor.tag_frequencies &&
+                  Object.keys(professor.tag_frequencies).length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-border">
+                      <h3 className="text-xs font-semibold text-text-heading mb-2 uppercase tracking-wide">
+                        Student Tags
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {Object.entries(professor.tag_frequencies)
+                          .sort(([, a], [, b]) => b - a) // Sort by frequency, highest first
+                          .map(([tag, frequency]) => (
+                            <Badge
+                              key={tag}
+                              variant="outline"
+                              className="bg-gradient-to-br from-green-700 to-green-900 text-white border-transparent px-3 py-1 text-xs font-medium"
+                            >
+                              {tag} ({frequency})
+                            </Badge>
+                          ))}
+                      </div>
+                    </div>
+                  )}
               </CardContent>
             </Card>
           </div>
@@ -226,7 +253,9 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                         <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-lg">
                           <Star className="w-3 h-3 text-yellow-500 fill-current" />
                           <span className="font-semibold text-yellow-700 text-sm">
-                            {course.avg_rating.toFixed(1)}
+                            {course.avg_rating
+                              ? course.avg_rating.toFixed(1)
+                              : "N/A"}
                           </span>
                         </div>
                         <div className="flex items-center gap-1 text-text-body">
@@ -282,7 +311,9 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                         <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-lg">
                           <Star className="w-3 h-3 text-yellow-500 fill-current" />
                           <span className="font-semibold text-yellow-700 text-sm">
-                            {review.overall_rating.toFixed(1)}
+                            {review.overall_rating
+                              ? review.overall_rating.toFixed(1)
+                              : "N/A"}
                           </span>
                         </div>
                         <Badge

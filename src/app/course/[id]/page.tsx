@@ -20,10 +20,13 @@ import {
   Zap,
   User,
   Check,
+  Plus,
 } from "lucide-react";
 import Link from "next/link";
 import { useComparison } from "@/contexts/ComparisonContext";
+import { useProfessorComparison } from "@/contexts/ProfessorComparisonContext";
 import { ComparisonWidget } from "@/components/comparison-widget";
+import { ProfessorComparisonWidget } from "@/components/professor-comparison-widget";
 
 interface CoursePageProps {
   params: Promise<{
@@ -142,6 +145,13 @@ export default function CoursePage({ params }: CoursePageProps) {
 
   // Comparison context
   const { addCourse, removeCourse, isSelected, canAddMore } = useComparison();
+
+  // Professor comparison context
+  const {
+    addProfessor,
+    isSelected: isProfessorSelected,
+    canAddMore: canAddMoreProfessors,
+  } = useProfessorComparison();
 
   useEffect(() => {
     const loadCourseData = async () => {
@@ -415,12 +425,26 @@ export default function CoursePage({ params }: CoursePageProps) {
 
               {/* Professors Section */}
               <Card className="p-4 bg-card border-border">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-4">
                   <h3 className="text-xl font-bold text-heading">
                     Course Professors
                   </h3>
-                  <div className="text-xs text-text-body border-gray-500 border-2 px-2 py-1 rounded-full">
-                    {courseData.professors?.length || 0} professors
+                  <div className="flex items-center gap-3">
+                    {courseData.professors &&
+                      courseData.professors.length >= 2 && (
+                        <Link href="/compare?tab=professors">
+                          <Button
+                            size="sm"
+                            className="bg-[#500000] hover:bg-[#600000] text-white flex items-center gap-2"
+                          >
+                            <BarChart3 className="w-4 h-4" />
+                            Compare Professors
+                          </Button>
+                        </Link>
+                      )}
+                    <div className="text-xs text-text-body border-gray-500 border-2 px-2 py-1 rounded-full">
+                      {courseData.professors?.length || 0} professors
+                    </div>
                   </div>
                 </div>
                 <div className="space-y-3">
@@ -457,6 +481,30 @@ export default function CoursePage({ params }: CoursePageProps) {
                         <p className="text-text-body leading-relaxed text-sm">
                           {prof.description}
                         </p>
+
+                        {/* Professor Tags */}
+                        {prof.tag_frequencies &&
+                          Object.keys(prof.tag_frequencies).length > 0 && (
+                            <div className="mt-3">
+                              <h5 className="text-xs font-semibold text-heading mb-2 uppercase tracking-wide">
+                                Student Tags
+                              </h5>
+                              <div className="flex flex-wrap gap-1">
+                                {Object.entries(prof.tag_frequencies)
+                                  .sort(([, a], [, b]) => b - a) // Sort by frequency, highest first
+                                  .slice(0, 6) // Show top 6 tags
+                                  .map(([tag, frequency]) => (
+                                    <Badge
+                                      key={tag}
+                                      variant="outline"
+                                      className="bg-gradient-to-br from-blue-500 to-blue-700 text-white border-transparent px-2 py-1 text-xs font-medium"
+                                    >
+                                      {tag} ({frequency})
+                                    </Badge>
+                                  ))}
+                              </div>
+                            </div>
+                          )}
                       </div>
 
                       {/* Grade Distribution for this professor - only show if data exists */}
@@ -568,6 +616,43 @@ export default function CoursePage({ params }: CoursePageProps) {
                               Reviews ({prof.reviews})
                             </Button>
                           </Link>
+                          <Button
+                            variant={
+                              isProfessorSelected(prof.id)
+                                ? "default"
+                                : "outline"
+                            }
+                            onClick={() => {
+                              if (isProfessorSelected(prof.id)) {
+                                // Remove from comparison
+                                // removeProfessor function would be needed here
+                              } else {
+                                // Add to comparison
+                                addProfessor(prof.id);
+                              }
+                            }}
+                            disabled={
+                              !isProfessorSelected(prof.id) &&
+                              !canAddMoreProfessors()
+                            }
+                            className={`flex-1 transition-all duration-200 hover:scale-105 text-xs py-1 ${
+                              isProfessorSelected(prof.id)
+                                ? "bg-green-600 hover:bg-green-700 text-white"
+                                : "border-[#500000] text-[#500000] hover:bg-[#500000] hover:text-white"
+                            }`}
+                          >
+                            {isProfessorSelected(prof.id) ? (
+                              <>
+                                <Check className="w-3 h-3 mr-1" />
+                                Added
+                              </>
+                            ) : (
+                              <>
+                                <Plus className="w-3 h-3 mr-1" />
+                                Compare
+                              </>
+                            )}
+                          </Button>
                         </div>
                       </div>
                     </Card>
@@ -641,6 +726,7 @@ export default function CoursePage({ params }: CoursePageProps) {
 
       <Footer />
       <ComparisonWidget />
+      <ProfessorComparisonWidget />
     </div>
   );
 }

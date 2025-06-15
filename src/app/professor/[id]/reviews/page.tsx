@@ -55,7 +55,7 @@ export default function ProfessorReviewsPage({
   const [minRating, setMinRating] = useState<number | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const itemsPerPage = 10;
+  const itemsPerPage = 25;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -353,7 +353,7 @@ export default function ProfessorReviewsPage({
 
                   <div className="grid grid-cols-4 gap-3 mb-4">
                     <div className="text-center border-2 border-blue-500 bg-blue-400/10 p-2 rounded-lg">
-                      <div className="text-lg font-bold text-white">
+                      <div className="text-md font-bold text-white">
                         {review.clarity_rating.toFixed(1)}
                       </div>
                       <div className="text-xs font-medium text-white">
@@ -361,7 +361,7 @@ export default function ProfessorReviewsPage({
                       </div>
                     </div>
                     <div className="text-center border-2 border-red-500 bg-red-400/10 p-2 rounded-lg">
-                      <div className="text-lg font-bold text-white">
+                      <div className="text-md font-bold text-white">
                         {review.difficulty_rating.toFixed(1)}
                       </div>
                       <div className="text-xs font-medium text-white">
@@ -369,7 +369,7 @@ export default function ProfessorReviewsPage({
                       </div>
                     </div>
                     <div className="text-center border-2 border-green-500 bg-green-400/10 p-2 rounded-lg">
-                      <div className="text-lg font-bold text-white">
+                      <div className="text-md font-bold text-white">
                         {review.helpful_rating.toFixed(1)}
                       </div>
                       <div className="text-xs font-medium text-white">
@@ -377,17 +377,17 @@ export default function ProfessorReviewsPage({
                       </div>
                     </div>
                     <div className="text-center border-2 border-purple-500 bg-purple-400/10 p-2 rounded-lg">
-                      <div className="text-lg font-bold text-white">
+                      <div className="text-md font-bold text-white">
                         {review.would_take_again ? "Yes" : "No"}
-                      </div>
-                      <div className="text-xs font-medium text-white">
-                        Take Again
+                        <div className="text-xs font-medium text-white">
+                          Take Again
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  <blockquote className="text-text-body mb-4 text-sm leading-relaxed bg-[#500000]/10 p-3 rounded-lg border-l-4 border-[#500000] italic">
-                    `&quot;{review.review_text}&quot;`
+                  <blockquote className="text-text-body mb-4 text-md leading-relaxed bg-[#500000]/10 p-3 rounded-lg border-l-4 border-[#500000] italic">
+                    &quot;{review.review_text}&quot;
                   </blockquote>
 
                   <div className="flex items-center justify-between">

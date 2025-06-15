@@ -60,6 +60,7 @@ export interface CourseDetail {
     };
     teachingStyle?: string;
     description?: string;
+    tag_frequencies?: { [tag: string]: number }; // Dictionary of tags and their frequencies
   }>;
   prerequisites?: string[];
   relatedCourses?: Array<{
@@ -172,6 +173,7 @@ export interface ProfessorDetail {
     avg_rating: number;
   }>;
   recent_reviews?: Review[];
+  tag_frequencies?: { [tag: string]: number }; // Dictionary of tags and their frequencies
 }
 
 export interface ProfessorReviews {
@@ -331,40 +333,29 @@ export async function getHealthCheck(): Promise<{
 export async function compareCourses(
   courseIds: string[],
 ): Promise<CourseDetail[]> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/courses/compare`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ course_ids: courseIds }),
-    });
-
-    if (!response.ok) {
-      console.warn(
-        "Course comparison API not available, falling back to individual course fetches",
-      );
-      // Fallback: fetch individual courses
-      const coursePromises = courseIds.map((id) =>
-        getCourseDetail(id.replace(/\s+/g, "")),
-      );
-      return Promise.all(coursePromises);
-    }
-
-    const data = await response.json();
-    console.log("Course comparison response:", data);
-    return data;
-  } catch (error) {
-    console.warn(
-      "Course comparison API failed, falling back to individual course fetches:",
-      error,
-    );
-    // Fallback: fetch individual courses
-    const coursePromises = courseIds.map((id) =>
-      getCourseDetail(id.replace(/\s+/g, "")),
-    );
-    return Promise.all(coursePromises);
+  if (courseIds.length === 0) {
+    return [];
   }
+
+  const params = new URLSearchParams();
+  params.append("ids", courseIds.join(","));
+
+  const response = await fetch(`${API_BASE_URL}/courses/compare?${params}`);
+  return handleResponse<CourseDetail[]>(response);
+}
+
+export async function compareProfessors(
+  professorIds: string[],
+): Promise<ProfessorDetail[]> {
+  if (professorIds.length === 0) {
+    return [];
+  }
+
+  const params = new URLSearchParams();
+  params.append("ids", professorIds.join(","));
+
+  const response = await fetch(`${API_BASE_URL}/professors/compare?${params}`);
+  return handleResponse<ProfessorDetail[]>(response);
 }
 
 // Professors API

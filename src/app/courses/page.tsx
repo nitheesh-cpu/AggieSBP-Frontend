@@ -320,7 +320,7 @@ function CoursesPageContent() {
       localStorage.removeItem(CACHE_TIMESTAMP_KEY);
     }
     return null;
-  }, [isCacheValid]);
+  }, []);
 
   // Save courses to cache
   const saveCachedCourses = (coursesData: Course[]) => {

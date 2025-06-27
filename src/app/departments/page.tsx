@@ -106,48 +106,48 @@ import {
   type DepartmentsInfo,
 } from "@/lib/api";
 
-const categories = [
-  {
-    id: "all",
-    name: "All Departments",
-    count: 0,
-    color: "bg-gradient-to-r from-purple-500 to-pink-500",
-    hoverColor: "hover:from-purple-600 hover:to-pink-600",
-    icon: GraduationCap,
-  },
-  {
-    id: "stem",
-    name: "STEM",
-    count: 0,
-    color: "bg-gradient-to-r from-blue-500 to-cyan-500",
-    hoverColor: "hover:from-blue-600 hover:to-cyan-600",
-    icon: Calculator,
-  },
-  {
-    id: "liberal-arts",
-    name: "Liberal Arts",
-    count: 0,
-    color: "bg-gradient-to-r from-green-500 to-emerald-500",
-    hoverColor: "hover:from-green-600 hover:to-emerald-600",
-    icon: Brain,
-  },
-  {
-    id: "business",
-    name: "Business",
-    count: 0,
-    color: "bg-gradient-to-r from-orange-500 to-red-500",
-    hoverColor: "hover:from-orange-600 hover:to-red-600",
-    icon: DollarSign,
-  },
-  {
-    id: "agriculture",
-    name: "Agriculture",
-    count: 0,
-    color: "bg-gradient-to-r from-yellow-500 to-orange-500",
-    hoverColor: "hover:from-yellow-600 hover:to-orange-600",
-    icon: Activity,
-  },
-];
+// const categories = [
+//   {
+//     id: "all",
+//     name: "All Departments",
+//     count: 0,
+//     color: "bg-gradient-to-r from-purple-500 to-pink-500",
+//     hoverColor: "hover:from-purple-600 hover:to-pink-600",
+//     icon: GraduationCap,
+//   },
+//   {
+//     id: "stem",
+//     name: "STEM",
+//     count: 0,
+//     color: "bg-gradient-to-r from-blue-500 to-cyan-500",
+//     hoverColor: "hover:from-blue-600 hover:to-cyan-600",
+//     icon: Calculator,
+//   },
+//   {
+//     id: "liberal-arts",
+//     name: "Liberal Arts",
+//     count: 0,
+//     color: "bg-gradient-to-r from-green-500 to-emerald-500",
+//     hoverColor: "hover:from-green-600 hover:to-emerald-600",
+//     icon: Brain,
+//   },
+//   {
+//     id: "business",
+//     name: "Business",
+//     count: 0,
+//     color: "bg-gradient-to-r from-orange-500 to-red-500",
+//     hoverColor: "hover:from-orange-600 hover:to-red-600",
+//     icon: DollarSign,
+//   },
+//   {
+//     id: "agriculture",
+//     name: "Agriculture",
+//     count: 0,
+//     color: "bg-gradient-to-r from-yellow-500 to-orange-500",
+//     hoverColor: "hover:from-yellow-600 hover:to-orange-600",
+//     icon: Activity,
+//   },
+// ];
 
 const sortOptions = [
   { value: "name", label: "Name" },
@@ -412,7 +412,7 @@ const departmentIcons = {
 
 export default function DepartmentsPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedCategory] = useState("all"); // Fixed: removed setSelectedCategory since categories are commented out
   const [sortBy, setSortBy] = useState("name");
   const [currentPage, setCurrentPage] = useState(1);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -574,27 +574,27 @@ export default function DepartmentsPage() {
     sortBy,
   ]);
 
-  // Calculate dynamic category counts
-  const categoriesWithCounts = useMemo(() => {
-    const dataToCount = allDepartmentsLoaded ? allDepartments : departments;
+  // TODO: Calculate dynamic category counts
+  // const categoriesWithCounts = useMemo(() => {
+  //   const dataToCount = allDepartmentsLoaded ? allDepartments : departments;
 
-    const counts = {
-      all: dataToCount.length,
-      stem: dataToCount.filter((dept) => dept.category === "stem").length,
-      "liberal-arts": dataToCount.filter(
-        (dept) => dept.category === "liberal-arts",
-      ).length,
-      business: dataToCount.filter((dept) => dept.category === "business")
-        .length,
-      agriculture: dataToCount.filter((dept) => dept.category === "agriculture")
-        .length,
-    };
+  //   const counts = {
+  //     all: dataToCount.length,
+  //     stem: dataToCount.filter((dept) => dept.category === "stem").length,
+  //     "liberal-arts": dataToCount.filter(
+  //       (dept) => dept.category === "liberal-arts",
+  //     ).length,
+  //     business: dataToCount.filter((dept) => dept.category === "business")
+  //       .length,
+  //     agriculture: dataToCount.filter((dept) => dept.category === "agriculture")
+  //       .length,
+  //   };
 
-    return categories.map((category) => ({
-      ...category,
-      count: counts[category.id as keyof typeof counts] || 0,
-    }));
-  }, [departments, allDepartments, allDepartmentsLoaded]);
+  //   return categories.map((category) => ({
+  //     ...category,
+  //     count: counts[category.id as keyof typeof counts] || 0,
+  //   }));
+  // }, [departments, allDepartments, allDepartmentsLoaded]);
 
   // Pagination
   const totalPages = Math.max(
@@ -618,17 +618,17 @@ export default function DepartmentsPage() {
     return <Icon className="w-6 h-6" />;
   };
 
-  const CategoryIcon = ({
-    category,
-  }: {
-    category: {
-      icon: React.ComponentType<{ className?: string }>;
-      color: string;
-    };
-  }) => {
-    const Icon = category.icon;
-    return <Icon className="w-4 h-4 mr-2" />;
-  };
+  // const CategoryIcon = ({
+  //   category,
+  // }: {
+  //   category: {
+  //     icon: React.ComponentType<{ className?: string }>;
+  //     color: string;
+  //   };
+  // }) => {
+  //   const Icon = category.icon;
+  //   return <Icon className="w-4 h-4 mr-2" />;
+  // };
 
   return (
     <div className="min-h-screen bg-canvas">
@@ -768,7 +768,8 @@ export default function DepartmentsPage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col lg:flex-row gap-6 mb-8">
             {/* Category Filters */}
-            <div className="flex-1">
+            {/* TODO: Add category filters back in */}
+            {/* <div className="flex-1">
               <div className="flex flex-wrap gap-3">
                 {categoriesWithCounts.map((category) => (
                   <Button
@@ -789,7 +790,7 @@ export default function DepartmentsPage() {
                   </Button>
                 ))}
               </div>
-            </div>
+            </div> */}
 
             {/* Sort Dropdown */}
             <div className="flex items-center gap-3">
@@ -953,7 +954,7 @@ export default function DepartmentsPage() {
                 className="border-border"
               >
                 <ChevronLeft className="w-4 h-4" />
-                Previous
+                <span className="hidden sm:inline">Previous</span>
               </Button>
 
               <div className="flex items-center gap-1">
@@ -1050,7 +1051,7 @@ export default function DepartmentsPage() {
                 disabled={currentPage === totalPages}
                 className="border-border"
               >
-                Next
+                <span className="hidden sm:inline">Next</span>
                 <ChevronRight className="w-4 h-4" />
               </Button>
             </div>

@@ -34,30 +34,6 @@ interface CoursePageProps {
   }>;
 }
 
-// Helper function to format section attributes
-const formatSectionAttribute = (attr: string) => {
-  const attributeMap: { [key: string]: string } = {
-    KUCD: "Cultural Discourse",
-    KUGW: "Global and Cultural Awareness",
-    KUMT: "Mathematics",
-    KUNS: "Natural Sciences",
-    KUSL: "Social and Behavioral Sciences",
-    KUWL: "Written and Oral Communication",
-    KUCS: "Creative Arts",
-    KUHS: "American History",
-    KUGS: "Government/Political Science",
-    KUPD: "Personal Development",
-    KUEL: "English Language",
-    KUPH: "Physical Education",
-    KUTE: "Technology",
-    KURP: "Research Preparation",
-    KUCP: "Capstone Experience",
-  };
-
-  const description = attributeMap[attr] || attr;
-  return `${description} - ${attr}`;
-};
-
 // Helper function to get department name from course code
 const getDepartmentFromCode = (courseCode: string) => {
   const departmentMap: { [key: string]: string } = {
@@ -246,7 +222,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                 </Badge>
               </div>
 
-              <div className="flex items-start justify-between">
+              <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                 <div className="flex-1">
                   <h1 className="text-3xl font-bold text-heading">
                     {courseData.code}: {courseData.name}
@@ -261,25 +237,14 @@ export default function CoursePage({ params }: CoursePageProps) {
                 <Button
                   variant={isSelected(courseData.code) ? "default" : "outline"}
                   onClick={() => {
-                    console.log(
-                      "Course page button clicked for:",
-                      courseData.code,
-                    );
-                    console.log(
-                      "Is currently selected:",
-                      isSelected(courseData.code),
-                    );
                     if (isSelected(courseData.code)) {
-                      console.log("Removing course:", courseData.code);
                       removeCourse(courseData.code);
                     } else {
-                      console.log("Adding course:", courseData.code);
-                      const success = addCourse(courseData.code);
-                      console.log("Add course success:", success);
+                      addCourse(courseData.code);
                     }
                   }}
                   disabled={!isSelected(courseData.code) && !canAddMore()}
-                  className={`ml-4 ${
+                  className={`w-full lg:w-auto lg:ml-4 ${
                     isSelected(courseData.code)
                       ? "bg-[#500000] text-white hover:bg-[#600000]"
                       : "border-[#500000] text-[#500000] hover:bg-[#500000] bg-[#500000]/30 text-white"
@@ -288,19 +253,21 @@ export default function CoursePage({ params }: CoursePageProps) {
                   {isSelected(courseData.code) ? (
                     <>
                       <Check className="w-4 h-4 mr-2" />
-                      Added to Compare
+                      <span className="hidden sm:inline">Added to Compare</span>
+                      <span className="sm:hidden">Added</span>
                     </>
                   ) : (
                     <>
                       <BarChart3 className="w-4 h-4 mr-2" />
-                      Add to Compare
+                      <span className="hidden sm:inline">Add to Compare</span>
+                      <span className="sm:hidden">Compare</span>
                     </>
                   )}
                 </Button>
               </div>
 
               {/* Key Metrics */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-4 md:grid-cols-2 gap-4">
                 <Card className="p-4 bg-gradient-to-br from-yellow-400 to-yellow-600 border-transparent text-white shadow-md hover:shadow-lg/20 transition-all duration-300 hover:scale-105">
                   <div className="flex items-center gap-2 mb-1">
                     <BarChart3 className="h-4 w-4 text-white/90" />
@@ -397,15 +364,15 @@ export default function CoursePage({ params }: CoursePageProps) {
                     <span className="text-xs font-semibold text-body uppercase tracking-wider">
                       Section Attributes:
                     </span>
-                    <div className="flex flex-wrap gap-1 mt-2">
+                    <div className="flex flex-wrap gap-1 mt-2 max-h-24 overflow-y-auto md:max-h-none md:overflow-visible">
                       {courseData.sectionAttributes?.map(
                         (attr: string, index: number) => (
                           <Badge
                             key={index}
                             variant="outline"
-                            className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-transparent px-2 py-1 text-xs font-medium"
+                            className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-transparent px-2 py-1 text-xs font-medium flex-shrink-0"
                           >
-                            {formatSectionAttribute(attr)}
+                            {attr}
                           </Badge>
                         ),
                       )}
@@ -425,20 +392,26 @@ export default function CoursePage({ params }: CoursePageProps) {
 
               {/* Professors Section */}
               <Card className="p-4 bg-card border-border">
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                   <h3 className="text-xl font-bold text-heading">
                     Course Professors
                   </h3>
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
                     {courseData.professors &&
                       courseData.professors.length >= 2 && (
-                        <Link href="/compare?tab=professors">
+                        <Link
+                          href="/compare?tab=professors"
+                          className="w-full sm:w-auto"
+                        >
                           <Button
                             size="sm"
-                            className="bg-[#500000] hover:bg-[#600000] text-white flex items-center gap-2"
+                            className="bg-[#500000] hover:bg-[#600000] text-white flex items-center gap-2 w-full sm:w-auto"
                           >
                             <BarChart3 className="w-4 h-4" />
-                            Compare Professors
+                            <span className="hidden sm:inline">
+                              Compare Professors
+                            </span>
+                            <span className="sm:hidden">Compare</span>
                           </Button>
                         </Link>
                       )}
@@ -478,9 +451,28 @@ export default function CoursePage({ params }: CoursePageProps) {
                             </div>
                           </div>
                         </div>
-                        <p className="text-text-body leading-relaxed text-sm">
-                          {prof.description}
-                        </p>
+
+                        {/* Professor AI Summary */}
+                        {prof.description && (
+                          <div className="mb-3">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h5 className="text-xs font-semibold text-heading uppercase tracking-wide">
+                                Summary
+                              </h5>
+                              <Badge
+                                variant="outline"
+                                className="text-xs bg-blue-50 text-blue-700 border-blue-200 font-medium"
+                              >
+                                Generated by AI
+                              </Badge>
+                            </div>
+                            <div className="bg-gradient-to-r from-[#500000]/5 to-[#600000]/5 border border-[#500000]/20 rounded-lg p-3">
+                              <p className="text-text-body leading-relaxed text-sm">
+                                {prof.description}
+                              </p>
+                            </div>
+                          </div>
+                        )}
 
                         {/* Professor Tags */}
                         {prof.tag_frequencies &&
@@ -590,32 +582,43 @@ export default function CoursePage({ params }: CoursePageProps) {
                         </div>
                       )}
 
-                      {/* View All Reviews Button */}
+                      {/* Action Buttons */}
                       <div
                         className={`mt-3 pt-2 ${prof.gradeDistribution ? "border-t border-border" : ""}`}
                       >
-                        <div className="flex gap-1">
-                          <Link
-                            href={`/professor/${prof.id}`}
-                            className="flex-1"
-                          >
-                            <Button
-                              variant="default"
-                              className="w-full bg-[#500000] hover:bg-[#600000] text-white transition-all duration-200 hover:scale-105 text-xs py-1"
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          {/* Top row on mobile, left side on desktop */}
+                          <div className="flex gap-2 sm:flex-1">
+                            <Link
+                              href={`/professor/${prof.id}`}
+                              className="flex-1"
                             >
-                              <User className="w-3 h-3 mr-1" />
-                              Professor
-                            </Button>
-                          </Link>
-                          <Link
-                            href={`/professor/${prof.id}/reviews`}
-                            className="flex-1"
-                          >
-                            <Button className="w-full bg-gradient-to-r from-[#500000] to-[#700000] hover:from-[#600000] hover:to-[#800000] text-white transition-all duration-200 hover:scale-105 text-xs py-1">
-                              <Eye className="w-3 h-3 mr-1" />
-                              Reviews ({prof.reviews})
-                            </Button>
-                          </Link>
+                              <Button
+                                variant="default"
+                                className="w-full bg-[#500000] hover:bg-[#600000] text-white transition-all duration-200 hover:scale-105 text-xs py-2"
+                              >
+                                <User className="w-3 h-3 mr-1" />
+                                <span className="sm:hidden">Prof</span>
+                                <span className="hidden sm:inline">
+                                  Professor
+                                </span>
+                              </Button>
+                            </Link>
+                            <Link
+                              href={`/professor/${prof.id}/reviews`}
+                              className="flex-1"
+                            >
+                              <Button className="w-full bg-gradient-to-r from-[#500000] to-[#700000] hover:from-[#600000] hover:to-[#800000] text-white transition-all duration-200 hover:scale-105 text-xs py-2">
+                                <Eye className="w-3 h-3 mr-1" />
+                                <span className="sm:hidden">Reviews</span>
+                                <span className="hidden sm:inline">
+                                  Reviews ({prof.reviews})
+                                </span>
+                              </Button>
+                            </Link>
+                          </div>
+
+                          {/* Bottom row on mobile, right side on desktop */}
                           <Button
                             variant={
                               isProfessorSelected(prof.id)
@@ -635,7 +638,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                               !isProfessorSelected(prof.id) &&
                               !canAddMoreProfessors()
                             }
-                            className={`flex-1 transition-all duration-200 hover:scale-105 text-xs py-1 ${
+                            className={`w-full sm:w-auto sm:min-w-[100px] transition-all duration-200 hover:scale-105 text-xs py-2 ${
                               isProfessorSelected(prof.id)
                                 ? "bg-green-600 hover:bg-green-700 text-white"
                                 : "border-[#500000] text-[#500000] hover:bg-[#500000] hover:text-white"
@@ -644,12 +647,16 @@ export default function CoursePage({ params }: CoursePageProps) {
                             {isProfessorSelected(prof.id) ? (
                               <>
                                 <Check className="w-3 h-3 mr-1" />
-                                Added
+                                <span className="sm:hidden">Added</span>
+                                <span className="hidden sm:inline">Added</span>
                               </>
                             ) : (
                               <>
                                 <Plus className="w-3 h-3 mr-1" />
-                                Compare
+                                <span className="sm:hidden">Compare</span>
+                                <span className="hidden sm:inline">
+                                  Compare
+                                </span>
                               </>
                             )}
                           </Button>

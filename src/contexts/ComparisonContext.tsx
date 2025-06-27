@@ -52,33 +52,21 @@ export function ComparisonProvider({ children }: ComparisonProviderProps) {
   }, [selectedCourses]);
 
   const addCourse = (courseId: string): boolean => {
-    console.log("Adding course to comparison:", courseId);
-    console.log("Current selected courses:", selectedCourses);
-    console.log("Length:", selectedCourses.length, "Max:", MAX_COURSES);
-    console.log("Already includes:", selectedCourses.includes(courseId));
-
     if (
       selectedCourses.length >= MAX_COURSES ||
       selectedCourses.includes(courseId)
     ) {
-      console.log("Cannot add course - either at max or already included");
       return false;
     }
-    setSelectedCourses((prev) => {
-      const newCourses = [...prev, courseId];
-      console.log("Setting new courses:", newCourses);
-      return newCourses;
-    });
+    setSelectedCourses((prev) => [...prev, courseId]);
     return true;
   };
 
   const removeCourse = (courseId: string): void => {
-    console.log("Removing course from comparison:", courseId);
     setSelectedCourses((prev) => prev.filter((id) => id !== courseId));
   };
 
   const clearAll = (): void => {
-    console.log("Clearing all courses from comparison");
     setSelectedCourses([]);
   };
 

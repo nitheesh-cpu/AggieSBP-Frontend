@@ -112,6 +112,20 @@ const quickFilters = [
 
 const sectionAttributeFilters = [
   {
+    id: "DIST",
+    label: "Distance Education",
+    icon: Monitor,
+    color: "bg-gradient-to-r from-slate-500/50 to-gray-500/50",
+    hoverColor: "hover:from-slate-600 hover:to-gray-600",
+  },
+  {
+    id: "HONR",
+    label: "Honors",
+    icon: Trophy,
+    color: "bg-gradient-to-r from-yellow-500/50 to-amber-500/50",
+    hoverColor: "hover:from-yellow-600 hover:to-amber-600",
+  },
+  {
     id: "KHIS",
     label: "Core American History",
     icon: Landmark,
@@ -180,20 +194,6 @@ const sectionAttributeFilters = [
     icon: Clock,
     color: "bg-gradient-to-r from-yellow-600/50 to-orange-500/50",
     hoverColor: "hover:from-yellow-700 hover:to-orange-600",
-  },
-  {
-    id: "DIST",
-    label: "Distance Education",
-    icon: Monitor,
-    color: "bg-gradient-to-r from-slate-500/50 to-gray-500/50",
-    hoverColor: "hover:from-slate-600 hover:to-gray-600",
-  },
-  {
-    id: "HONR",
-    label: "Honors",
-    icon: Trophy,
-    color: "bg-gradient-to-r from-yellow-500/50 to-amber-500/50",
-    hoverColor: "hover:from-yellow-600 hover:to-amber-600",
   },
   {
     id: "KUCD",
@@ -818,7 +818,7 @@ function CoursesPageContent() {
                 <h3 className="text-lg font-semibold text-text-heading mb-3">
                   Section Attributes
                 </h3>
-                <div className="flex flex-wrap gap-3 mb-4">
+                <div className="flex flex-wrap gap-3 mb-4 max-h-48 overflow-y-auto md:max-h-none md:overflow-visible">
                   {sectionAttributeFilters.map((filter) => {
                     const Icon = filter.icon;
                     return (
@@ -831,7 +831,7 @@ function CoursesPageContent() {
                           selectedSectionAttributes.includes(filter.id)
                             ? `${filter.color} ${filter.hoverColor} text-white border-transparent`
                             : "border-border hover:bg-button-hover"
-                        } transition-all duration-200`}
+                        } transition-all duration-200 flex-shrink-0`}
                       >
                         <Icon className="w-4 h-4 mr-2" />
                         {filter.label}
@@ -846,12 +846,12 @@ function CoursesPageContent() {
                 <h3 className="text-lg font-semibold text-text-heading mb-3">
                   Departments
                 </h3>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto md:max-h-none md:overflow-visible">
                   {departmentNames.map((deptName) => (
                     <Badge
                       key={deptName}
                       variant="outline"
-                      className={`cursor-pointer transition-all duration-200 ${
+                      className={`cursor-pointer transition-all duration-200 flex-shrink-0 ${
                         selectedDepartment === deptName
                           ? `${getDepartmentColor(deptName)} text-white border-transparent hover:opacity-90`
                           : "border-border hover:bg-button-hover"

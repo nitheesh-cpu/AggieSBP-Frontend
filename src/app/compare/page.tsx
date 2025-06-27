@@ -368,7 +368,7 @@ function ComparePageContent() {
                       </Card>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                        {selectedCoursesDetails.map((course) => (
+                        {selectedCoursesDetails.map((course, index) => (
                           <Card
                             key={course.code}
                             className="p-4 bg-card border-border"
@@ -387,9 +387,7 @@ function ComparePageContent() {
                                 variant="outline"
                                 onClick={() =>
                                   removeCourseFromComparison(
-                                    course.code
-                                      .toLowerCase()
-                                      .replace(/\s+/g, ""),
+                                    selectedCourses[index],
                                   )
                                 }
                                 className="text-red-500 hover:text-red-600"
@@ -788,34 +786,40 @@ function ComparePageContent() {
                                             key={review.id}
                                             className="p-3 bg-canvas rounded border"
                                           >
-                                            <div className="flex items-center gap-2 mb-2">
-                                              <div className="flex items-center gap-1">
-                                                <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                                                <span className="text-sm font-medium text-text-heading">
-                                                  {review.overall_rating
-                                                    ? review.overall_rating.toFixed(
-                                                        1,
-                                                      )
-                                                    : "N/A"}
-                                                </span>
-                                              </div>
-                                              <Badge
-                                                variant="secondary"
-                                                className="text-xs"
-                                              >
-                                                {review.grade}
-                                              </Badge>
-                                              {Object.entries(
-                                                review.tags || [],
-                                              ).map(([index, tag]) => (
+                                            <div className="mb-2">
+                                              <div className="flex items-center gap-2 mb-2">
+                                                <div className="flex items-center gap-1">
+                                                  <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                                                  <span className="text-sm font-medium text-text-heading">
+                                                    {review.overall_rating
+                                                      ? review.overall_rating.toFixed(
+                                                          1,
+                                                        )
+                                                      : "N/A"}
+                                                  </span>
+                                                </div>
                                                 <Badge
-                                                  key={index}
-                                                  variant="outline"
-                                                  className="bg-gradient-to-br from-green-700 to-green-900 text-white border-transparent px-3 py-1 text-xs font-medium"
+                                                  variant="secondary"
+                                                  className="text-xs flex-shrink-0"
                                                 >
-                                                  {tag}
+                                                  {review.grade}
                                                 </Badge>
-                                              ))}
+                                              </div>
+                                              <div className="flex flex-wrap gap-1 max-w-full">
+                                                {Object.entries(
+                                                  review.tags || [],
+                                                )
+                                                  .slice(0, 4)
+                                                  .map(([index, tag]) => (
+                                                    <Badge
+                                                      key={index}
+                                                      variant="outline"
+                                                      className="bg-gradient-to-br from-green-700 to-green-900 text-white border-transparent px-2 py-0.5 text-xs font-medium flex-shrink-0"
+                                                    >
+                                                      {tag}
+                                                    </Badge>
+                                                  ))}
+                                              </div>
                                             </div>
                                             <p className="text-sm text-text-body line-clamp-3">
                                               {review.review_text}

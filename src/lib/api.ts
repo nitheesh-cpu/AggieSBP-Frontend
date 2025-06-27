@@ -59,7 +59,7 @@ export interface CourseDetail {
       F: number;
     };
     teachingStyle?: string;
-    description?: string;
+    description?: string; // AI-generated summary of reviews for this professor in this course
     tag_frequencies?: { [tag: string]: number }; // Dictionary of tags and their frequencies
   }>;
   prerequisites?: string[];
@@ -174,6 +174,7 @@ export interface ProfessorDetail {
   }>;
   recent_reviews?: Review[];
   tag_frequencies?: { [tag: string]: number }; // Dictionary of tags and their frequencies
+  overall_summary?: string; // AI-generated summary of reviews
 }
 
 export interface ProfessorReviews {
@@ -337,10 +338,15 @@ export async function compareCourses(
     return [];
   }
 
-  const params = new URLSearchParams();
-  params.append("ids", courseIds.join(","));
-
-  const response = await fetch(`${API_BASE_URL}/courses/compare?${params}`);
+  const response = await fetch(`${API_BASE_URL}/courses/compare`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      course_ids: courseIds,
+    }),
+  });
   return handleResponse<CourseDetail[]>(response);
 }
 

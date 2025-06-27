@@ -291,24 +291,30 @@ function CourseComparisonPageContent() {
             className="w-full"
           >
             <TabsList className="grid w-full grid-cols-4 mb-8 h-12 bg-card border border-border">
-              <TabsTrigger value="overview" className="flex items-center gap-2">
+              <TabsTrigger
+                value="overview"
+                className="flex items-center gap-2 data-[state=active]:bg-[#500000] data-[state=active]:text-white data-[state=active]:border-[#500000] transition-all duration-200"
+              >
                 <BarChart3 className="w-4 h-4" />
                 Overview
               </TabsTrigger>
-              <TabsTrigger value="detailed" className="flex items-center gap-2">
+              <TabsTrigger
+                value="detailed"
+                className="flex items-center gap-2 data-[state=active]:bg-[#500000] data-[state=active]:text-white data-[state=active]:border-[#500000] transition-all duration-200"
+              >
                 <Target className="w-4 h-4" />
                 Detailed
               </TabsTrigger>
               <TabsTrigger
                 value="professors"
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 data-[state=active]:bg-[#500000] data-[state=active]:text-white data-[state=active]:border-[#500000] transition-all duration-200"
               >
                 <User className="w-4 h-4" />
                 Professors
               </TabsTrigger>
               <TabsTrigger
                 value="analytics"
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 data-[state=active]:bg-[#500000] data-[state=active]:text-white data-[state=active]:border-[#500000] transition-all duration-200"
               >
                 <TrendingUp className="w-4 h-4" />
                 Analytics
@@ -701,6 +707,30 @@ function CourseComparisonPageContent() {
                                   </p>
                                 </div>
                               )}
+
+                              {prof.tag_frequencies &&
+                                Object.keys(prof.tag_frequencies).length >
+                                  0 && (
+                                  <div className="mt-3">
+                                    <h5 className="text-xs font-medium text-body mb-2">
+                                      Student Tags
+                                    </h5>
+                                    <div className="flex flex-wrap gap-1 max-w-full overflow-hidden">
+                                      {Object.entries(prof.tag_frequencies)
+                                        .sort(([, a], [, b]) => b - a) // Sort by frequency, highest first
+                                        .slice(0, 4) // Show top 4 tags only on mobile
+                                        .map(([tag, frequency]) => (
+                                          <Badge
+                                            key={tag}
+                                            variant="outline"
+                                            className="bg-gradient-to-br from-blue-500 to-blue-700 text-white border-transparent px-2 py-1 text-xs font-medium flex-shrink-0 truncate max-w-[120px]"
+                                          >
+                                            {tag} ({frequency})
+                                          </Badge>
+                                        ))}
+                                    </div>
+                                  </div>
+                                )}
                             </Card>
                           ))}
                         </div>

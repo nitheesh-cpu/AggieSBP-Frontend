@@ -324,7 +324,7 @@ export default function ProfessorReviewsPage({
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1 bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-2 py-1 rounded-full shadow-md">
+                      <div className="flex items-center gap-1 bg-yellow-600 dark:bg-yellow-500 text-white px-2 py-1 rounded-full shadow-md">
                         <Star className="w-4 h-4 fill-current" />
                         <span className="text-sm font-bold">
                           {review.overall_rating.toFixed(1)}
@@ -332,13 +332,13 @@ export default function ProfessorReviewsPage({
                       </div>
                       <Badge
                         variant="outline"
-                        className="bg-gradient-to-r from-[#500000] to-[#600000] text-white border-transparent px-2 py-1 text-xs font-medium"
+                        className="bg-button-primary dark:bg-button-primary text-white border-transparent px-2 py-1 text-xs font-medium"
                       >
                         {review.course.code}
                       </Badge>
                       <Badge
                         variant="outline"
-                        className="bg-gradient-to-r from-green-500 to-green-600 text-white border-transparent px-2 py-1 text-xs font-medium"
+                        className="bg-emerald-600 dark:bg-emerald-500 text-white border-transparent px-2 py-1 text-xs font-medium"
                       >
                         Grade: {review.grade}
                       </Badge>
@@ -396,7 +396,7 @@ export default function ProfessorReviewsPage({
                         <Badge
                           key={index}
                           variant="outline"
-                          className="bg-gradient-to-r from-gray-500 to-gray-700 text-white border-transparent px-2 py-0.5 text-xs font-medium"
+                          className="bg-gray-600 dark:bg-gray-500 text-white border-transparent px-2 py-0.5 text-xs font-medium"
                         >
                           {tag}
                         </Badge>
@@ -404,15 +404,15 @@ export default function ProfessorReviewsPage({
                     </div>
 
                     <div className="flex items-center gap-3 text-text-body">
-                      <div className="flex items-center gap-1 bg-green-100 px-2 py-1 rounded-full">
-                        <ThumbsUp className="w-3 h-3 text-green-600" />
-                        <span className="font-medium text-green-600 text-xs">
+                      <div className="flex items-center gap-1 bg-emerald-600 dark:bg-emerald-500 px-2 py-1 rounded-full">
+                        <ThumbsUp className="w-3 h-3 text-white" />
+                        <span className="font-medium text-white text-xs">
                           {review.thumbs_up}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1 bg-red-100 px-2 py-1 rounded-full">
-                        <ThumbsDown className="w-3 h-3 text-red-600" />
-                        <span className="font-medium text-red-600 text-xs">
+                      <div className="flex items-center gap-1 bg-red-600 dark:bg-red-500 px-2 py-1 rounded-full">
+                        <ThumbsDown className="w-3 h-3 text-white" />
+                        <span className="font-medium text-white text-xs">
                           {review.thumbs_down}
                         </span>
                       </div>

@@ -80,37 +80,40 @@ const getDepartmentFromCode = (courseCode: string) => {
 // Helper function to get department gradient colors
 const getDepartmentColor = (courseCode: string) => {
   const colorMap: { [key: string]: string } = {
-    CSCE: "bg-gradient-to-r from-blue-500 to-cyan-500",
-    MATH: "bg-gradient-to-r from-indigo-500 to-purple-500",
-    MEEN: "bg-gradient-to-r from-gray-500 to-slate-600",
-    CVEN: "bg-gradient-to-r from-orange-500 to-red-500",
-    ECEN: "bg-gradient-to-r from-yellow-500 to-amber-500",
-    AERO: "bg-gradient-to-r from-sky-500 to-blue-500",
-    BMEN: "bg-gradient-to-r from-rose-500 to-pink-500",
-    CHEN: "bg-gradient-to-r from-green-500 to-emerald-500",
-    INEN: "bg-gradient-to-r from-purple-500 to-violet-500",
-    NUEN: "bg-gradient-to-r from-red-500 to-orange-500",
-    PETE: "bg-gradient-to-r from-amber-500 to-yellow-500",
-    PHYS: "bg-gradient-to-r from-purple-600 to-indigo-600",
-    CHEM: "bg-gradient-to-r from-green-600 to-teal-500",
-    BIOL: "bg-gradient-to-r from-emerald-500 to-green-500",
-    STAT: "bg-gradient-to-r from-violet-500 to-purple-500",
-    ENGR: "bg-gradient-to-r from-slate-500 to-gray-500",
-    ENGL: "bg-gradient-to-r from-pink-500 to-rose-500",
-    HIST: "bg-gradient-to-r from-amber-600 to-orange-500",
-    POLS: "bg-gradient-to-r from-red-600 to-rose-500",
-    ECON: "bg-gradient-to-r from-yellow-600 to-amber-500",
-    ACCT: "bg-gradient-to-r from-yellow-500 to-orange-500",
-    FINC: "bg-gradient-to-r from-green-600 to-emerald-500",
-    MGMT: "bg-gradient-to-r from-blue-600 to-indigo-500",
-    MKTG: "bg-gradient-to-r from-pink-600 to-purple-500",
-    PHAR: "bg-gradient-to-r from-blue-600 to-purple-500",
-    NURS: "bg-gradient-to-r from-red-500 to-pink-500",
-    LAW: "bg-gradient-to-r from-purple-600 to-indigo-600",
+    CSCE: "bg-gradient-to-r from-blue-600 to-cyan-600 dark:from-blue-500 dark:to-cyan-500",
+    MATH: "bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-500 dark:to-purple-500",
+    MEEN: "bg-gradient-to-r from-gray-600 to-slate-700 dark:from-gray-500 dark:to-slate-600",
+    CVEN: "bg-gradient-to-r from-orange-600 to-red-600 dark:from-orange-500 dark:to-red-500",
+    ECEN: "bg-gradient-to-r from-yellow-600 to-amber-600 dark:from-yellow-500 dark:to-amber-500",
+    AERO: "bg-gradient-to-r from-sky-600 to-blue-600 dark:from-sky-500 dark:to-blue-500",
+    BMEN: "bg-gradient-to-r from-rose-600 to-pink-600 dark:from-rose-500 dark:to-pink-500",
+    CHEN: "bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-500 dark:to-emerald-500",
+    INEN: "bg-gradient-to-r from-purple-600 to-violet-600 dark:from-purple-500 dark:to-violet-500",
+    NUEN: "bg-gradient-to-r from-red-600 to-orange-600 dark:from-red-500 dark:to-orange-500",
+    PETE: "bg-gradient-to-r from-amber-600 to-yellow-600 dark:from-amber-500 dark:to-yellow-500",
+    PHYS: "bg-gradient-to-r from-purple-700 to-indigo-700 dark:from-purple-600 dark:to-indigo-600",
+    CHEM: "bg-gradient-to-r from-green-700 to-teal-600 dark:from-green-600 dark:to-teal-500",
+    BIOL: "bg-gradient-to-r from-emerald-600 to-green-600 dark:from-emerald-500 dark:to-green-500",
+    STAT: "bg-gradient-to-r from-violet-600 to-purple-600 dark:from-violet-500 dark:to-purple-500",
+    ENGR: "bg-gradient-to-r from-slate-600 to-gray-600 dark:from-slate-500 dark:to-gray-500",
+    ENGL: "bg-gradient-to-r from-pink-600 to-rose-600 dark:from-pink-500 dark:to-rose-500",
+    HIST: "bg-gradient-to-r from-amber-700 to-orange-600 dark:from-amber-600 dark:to-orange-500",
+    POLS: "bg-gradient-to-r from-red-700 to-rose-600 dark:from-red-600 dark:to-rose-500",
+    ECON: "bg-gradient-to-r from-yellow-700 to-amber-600 dark:from-yellow-600 dark:to-amber-500",
+    ACCT: "bg-gradient-to-r from-yellow-600 to-orange-600 dark:from-yellow-500 dark:to-orange-500",
+    FINC: "bg-gradient-to-r from-green-700 to-emerald-600 dark:from-green-600 dark:to-emerald-500",
+    MGMT: "bg-gradient-to-r from-blue-700 to-indigo-600 dark:from-blue-600 dark:to-indigo-500",
+    MKTG: "bg-gradient-to-r from-pink-700 to-purple-600 dark:from-pink-600 dark:to-purple-500",
+    PHAR: "bg-gradient-to-r from-blue-700 to-purple-600 dark:from-blue-600 dark:to-purple-500",
+    NURS: "bg-gradient-to-r from-red-600 to-pink-600 dark:from-red-500 dark:to-pink-500",
+    LAW: "bg-gradient-to-r from-purple-700 to-indigo-700 dark:from-purple-600 dark:to-indigo-600",
   };
 
   const deptCode = courseCode.split(/\s+/)[0];
-  return colorMap[deptCode] || "bg-gradient-to-r from-gray-500 to-slate-500";
+  return (
+    colorMap[deptCode] ||
+    "bg-gradient-to-r from-gray-600 to-slate-600 dark:from-gray-500 dark:to-slate-500"
+  );
 };
 
 export default function CoursePage({ params }: CoursePageProps) {
@@ -247,7 +250,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                   className={`w-full lg:w-auto lg:ml-4 ${
                     isSelected(courseData.code)
                       ? "bg-[#500000] text-white hover:bg-[#600000]"
-                      : "border-[#500000] text-[#500000] hover:bg-[#500000] bg-[#500000]/30 text-white"
+                      : "border-[#500000] text-[#500000] hover:bg-[#500000] bg-[#500000]/60 dark:bg-[#500000]/30 text-white"
                   } transition-all duration-200`}
                 >
                   {isSelected(courseData.code) ? (
@@ -424,7 +427,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                   {courseData.professors?.map((prof, index: number) => (
                     <Card
                       key={index}
-                      className="p-4 gap-0 bg-gradient-to-br from-canvas to-canvas/50 border-border hover:border-[#500000] hover:scale-105 transition-all duration-300 hover:shadow-lg/20 group"
+                      className="p-4 gap-0 bg-gradient-to-br from-canvas to-canvas/50 border-border hover:border-[#500000] transition-all duration-300 group"
                     >
                       {/* Decorative gradient accent */}
                       <div className="absolute top-0 right-0 w-8 h-8 bg-gradient-to-bl from-[#500000]/10 to-transparent rounded-bl-3xl group-hover:from-[#500000]/20 transition-all duration-200"></div>

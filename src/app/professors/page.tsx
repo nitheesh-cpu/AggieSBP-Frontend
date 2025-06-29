@@ -180,7 +180,7 @@ export default function ProfessorsPage() {
                     placeholder="Search professors by name..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 bg-card border-border"
+                    className="pl-10 py-5 bg-card border-border"
                   />
                 </div>
               </div>
@@ -323,7 +323,7 @@ export default function ProfessorsPage() {
                             <Badge
                               key={dept}
                               variant="secondary"
-                              className="text-xs bg-[#500000] text-white"
+                              className="text-xs bg-button-primary dark:bg-button-primary text-white"
                             >
                               {dept}
                             </Badge>

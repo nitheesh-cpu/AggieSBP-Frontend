@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { X, Menu } from "lucide-react";
 import Image from "next/image";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface NavigationProps {
   className?: string;
@@ -67,8 +68,9 @@ export const Navigation = ({ className = "" }: NavigationProps) => {
               ))}
             </nav>
 
-            {/* Desktop CTA Button */}
-            <div className="hidden md:flex items-center">
+            {/* Desktop CTA Button and Theme Toggle */}
+            <div className="hidden md:flex items-center space-x-3">
+              <ThemeToggle />
               <Link href="/compare">
                 <button className="bg-button-primary text-button-primary-text hover:bg-maroon-light transition-colors duration-normal font-medium px-6 py-2 text-sm rounded-full">
                   Start comparing
@@ -76,8 +78,9 @@ export const Navigation = ({ className = "" }: NavigationProps) => {
               </Link>
             </div>
 
-            {/* Mobile Menu Button */}
-            <div className="md:hidden">
+            {/* Mobile Menu Button and Theme Toggle */}
+            <div className="md:hidden flex items-center space-x-2">
+              <ThemeToggle />
               <button
                 onClick={toggleMobileMenu}
                 className="text-body hover:text-heading transition-colors duration-normal p-2"

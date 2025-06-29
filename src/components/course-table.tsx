@@ -102,10 +102,10 @@ export const CourseTable: React.FC = () => {
     <section className="py-12 sm:py-16 md:py-20">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="max-w-3xl">
-          <h2 className="text-xl sm:text-2xl font-semibold text-white mb-3 sm:mb-4">
+          <h2 className="text-xl sm:text-2xl font-semibold dark:text-white text-black mb-3 sm:mb-4">
             Compare courses before you enroll
           </h2>
-          <p className="text-base sm:text-lg text-gray-300 mb-6 sm:mb-8">
+          <p className="text-base sm:text-lg dark:text-gray-300 text-gray-700 mb-6 sm:mb-8">
             Credit hours, average GPA, and professor rating—all side by side.
           </p>
 
@@ -122,7 +122,7 @@ export const CourseTable: React.FC = () => {
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-3">
                         <span className="text-xl">{course.icon}</span>
-                        <span className="text-white font-medium text-lg">
+                        <span className="dark:text-white text-black font-medium text-lg">
                           {course.course}
                         </span>
                       </div>
@@ -141,7 +141,7 @@ export const CourseTable: React.FC = () => {
                     <div className="grid grid-cols-3 gap-4 text-center">
                       <div>
                         <div className="text-gray-400 text-xs mb-1">GPA</div>
-                        <div className="text-white font-medium">
+                        <div className="dark:text-white text-black font-medium">
                           {course.avgGPA}
                         </div>
                       </div>
@@ -149,13 +149,13 @@ export const CourseTable: React.FC = () => {
                         <div className="text-gray-400 text-xs mb-1">
                           Workload
                         </div>
-                        <div className="text-white font-medium">
+                        <div className="dark:text-white text-black font-medium">
                           {course.workload}
                         </div>
                       </div>
                       <div>
                         <div className="text-gray-400 text-xs mb-1">Rating</div>
-                        <div className="text-white font-medium">
+                        <div className="dark:text-white text-black font-medium">
                           {course.rating}
                         </div>
                       </div>
@@ -180,21 +180,21 @@ export const CourseTable: React.FC = () => {
                           <span className="text-xl w-8 flex justify-center">
                             {course.icon}
                           </span>
-                          <span className="text-white font-medium min-w-[80px]">
+                          <span className="dark:text-white text-black font-medium min-w-[80px]">
                             {course.course}
                           </span>
-                          <span className="text-gray-300 min-w-[60px]">
+                          <span className="dark:text-gray-300 text-gray-700 min-w-[60px]">
                             {course.avgGPA}
                           </span>
-                          <span className="text-gray-300 min-w-[80px]">
+                          <span className="dark:text-gray-300 text-gray-700 min-w-[80px]">
                             {course.workload}
                           </span>
-                          <span className="text-gray-300 flex-1">
+                          <span className="dark:text-gray-300 text-gray-700 flex-1">
                             {course.rating}
                           </span>
                         </div>
 
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-gray-400 hover:text-white ml-4">
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 dark:text-gray-400 text-gray-700 hover:text-white ml-4">
                           <svg
                             width="16"
                             height="16"

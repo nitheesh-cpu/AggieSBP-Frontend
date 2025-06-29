@@ -1,18 +1,22 @@
 @import "tailwindcss";
 
+/* Configure dark mode for Tailwind CSS v4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
-  --color-canvas: #0f0f0f;
-  --color-card: #111111;
-  --color-border: #1d1d1d;
-  --color-text-body: #e6e6e6;
-  --color-text-heading: #ffffff;
+  /* Light mode colors (default) */
+  --color-canvas: #ffffff;
+  --color-card: #f8f9fa;
+  --color-border: #e5e7eb;
+  --color-text-body: #374151;
+  --color-text-heading: #111827;
   --color-button-primary: #500000;
   --color-button-primary-text: #ffffff;
   --color-button-hover: rgba(80, 0, 0, 0.08);
-  --color-accent-green: #35e08f;
-  --color-accent-blue: #39a8ff;
-  --color-accent-yellow: #ffcf3f;
-  --color-accent-magenta: #ff359f;
+  --color-accent-green: #10b981;
+  --color-accent-blue: #3b82f6;
+  --color-accent-yellow: #f59e0b;
+  --color-accent-magenta: #ec4899;
   --color-accent-maroon: #500000;
   --color-maroon-light: #722f37;
   --color-maroon-dark: #330000;
@@ -58,7 +62,7 @@
 
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 8px 24px 32px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 8px 24px 32px rgba(0, 0, 0, 0.1);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 
   --ease-out: cubic-bezier(0, 0, 0.2, 1);
@@ -86,6 +90,17 @@
   --aspect-portrait: 3 / 4;
 }
 
+/* Dark mode override */
+.dark {
+  --color-canvas: #0f0f0f;
+  --color-card: #111111;
+  --color-border: #1d1d1d;
+  --color-text-body: #e6e6e6;
+  --color-text-heading: #ffffff;
+  --color-button-hover: rgba(80, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px 32px rgba(0, 0, 0, 0.6);
+}
+
 @layer base {
   * {
     box-sizing: border-box;
@@ -105,6 +120,9 @@
     line-height: var(--leading-normal);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    transition:
+      background-color var(--animate-duration-normal) ease-in-out,
+      color var(--animate-duration-normal) ease-in-out;
   }
 
   h1,

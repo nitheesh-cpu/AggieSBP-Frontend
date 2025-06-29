@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ComparisonProvider } from "@/contexts/ComparisonContext";
 import { ProfessorComparisonProvider } from "@/contexts/ProfessorComparisonContext";
+import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata: Metadata = {
   title: "AggieSB+ - Compare Texas A&M Professors",
@@ -15,11 +16,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className="antialiased">
-        <ComparisonProvider>
-          <ProfessorComparisonProvider>{children}</ProfessorComparisonProvider>
-        </ComparisonProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ComparisonProvider>
+            <ProfessorComparisonProvider>
+              {children}
+            </ProfessorComparisonProvider>
+          </ComparisonProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

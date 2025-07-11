@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+# Block crawling of admin or sensitive areas (adjust as needed)
+Disallow: /api/
+Disallow: /_next/
+Disallow: /admin/
+
+# Sitemap locations - Next.js automatically generates these
+Sitemap: https://aggiermp.com/sitemap.xml
+Sitemap: https://aggiermp.com/courses/sitemap.xml
+Sitemap: https://aggiermp.com/professors/sitemap.xml 

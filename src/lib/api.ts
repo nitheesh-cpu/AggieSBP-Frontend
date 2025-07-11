@@ -219,6 +219,11 @@ export interface CoursesParams {
   max_rating?: number;
 }
 
+export interface SitemapEntry {
+  id: string;
+  lastModified: Date;
+}
+
 // Helper function to handle API errors
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
@@ -611,4 +616,85 @@ export async function searchProfessors(params: {
 
   const response = await fetch(url.toString());
   return handleResponse<Professor[]>(response);
+}
+
+// Sitemap-specific API functions for efficient bulk data fetching
+export async function getAllDepartmentIds(): Promise<SitemapEntry[]> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/departments?limit=1000`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    
+    const departments = await handleResponse<Department[]>(response);
+    return departments.map(dept => ({
+      id: dept.id,
+      lastModified: new Date() // Use current date as fallback, or get from API if available
+    }));
+  } catch (error) {
+    console.error("Error fetching department IDs for sitemap:", error);
+    return [];
+  }
+}
+
+export async function getAllCourseIds(): Promise<SitemapEntry[]> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/courses?limit=10000`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    
+    const courses = await handleResponse<Course[]>(response);
+    return courses.map(course => ({
+      id: course.id,
+      lastModified: new Date() // Use current date as fallback
+    }));
+  } catch (error) {
+    console.error("Error fetching course IDs for sitemap:", error);
+    return [];
+  }
+}
+
+export async function getAllProfessorIds(): Promise<SitemapEntry[]> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/professors?limit=10000`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    
+    const professors = await handleResponse<Professor[]>(response);
+    return professors.map(prof => ({
+      id: prof.id,
+      lastModified: new Date() // Use current date as fallback
+    }));
+  } catch (error) {
+    console.error("Error fetching professor IDs for sitemap:", error);
+    return [];
+  }
+}
+
+export async function getSitemapCounts(): Promise<{
+  courses: number;
+  professors: number;
+  departments: number;
+}> {
+  try {
+    const [courses, professors, departments] = await Promise.all([
+      getAllCourseIds(),
+      getAllProfessorIds(), 
+      getAllDepartmentIds()
+    ]);
+
+    return {
+      courses: courses.length,
+      professors: professors.length,
+      departments: departments.length
+    };
+  } catch (error) {
+    console.error("Error getting sitemap counts:", error);
+    return { courses: 0, professors: 0, departments: 0 };
+  }
 }

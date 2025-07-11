@@ -1,5 +1,5 @@
-const API_BASE_URL = "https://api-aggiesbp.servehttp.com";
-// const API_BASE_URL = "http://localhost:8000";
+// const API_BASE_URL = "https://api-aggiesbp.servehttp.com";
+const API_BASE_URL = "http://localhost:8000";
 
 // Development mode - set to true to use mock data
 // const USE_MOCK_DATA = false; // Set to true if you want to use mock data
@@ -47,10 +47,10 @@ export interface CourseDetail {
   sections?: number;
   rating?: number;
   professors?: Array<{
-    id: string;
+    id?: string; // Optional for ANEX-only data
     name: string;
-    rating: number;
-    reviews: number;
+    rating?: number; // Optional for ANEX-only data
+    reviews?: number; // Optional for ANEX-only data
     gradeDistribution?: {
       A: number;
       B: number;

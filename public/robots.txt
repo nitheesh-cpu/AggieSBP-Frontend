@@ -7,6 +7,6 @@ Disallow: /_next/
 Disallow: /admin/
 
 # Sitemap locations - Next.js automatically generates these
-Sitemap: https://aggiermp.com/sitemap.xml
-Sitemap: https://aggiermp.com/courses/sitemap.xml
-Sitemap: https://aggiermp.com/professors/sitemap.xml 
+Sitemap: https://aggieschedulebuilderplus.vercel.app/sitemap.xml
+Sitemap: https://aggieschedulebuilderplus.vercel.app/courses/sitemap.xml
+Sitemap: https://aggieschedulebuilderplus.vercel.app/professors/sitemap.xml 

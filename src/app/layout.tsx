@@ -5,9 +5,12 @@ import { ProfessorComparisonProvider } from "@/contexts/ProfessorComparisonConte
 import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata: Metadata = {
-  title: "AggieSB+ - Compare Texas A&M Professors",
+  title: "Aggie Schedule Builder Plus - A&M Course Planner",
   description:
-    "The fastest way to choose the right Texas A&M professor. Compare teaching quality, research impact, and course workload in one elegant dashboard.",
+    "The fastest way to choose the right Texas A&M courses. Compare course difficulty, workload, and professor quality in one elegant dashboard.",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({

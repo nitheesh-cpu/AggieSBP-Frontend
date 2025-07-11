@@ -66,7 +66,7 @@ export const Footer = () => {
               {/* {["Report a Bug", "Request a Feature"].map((item) => ( */}
               <Link
                 key={"Report a Bug"}
-                href="https://github.com/nitheesh-cpu/aggiesbp-frontend/issues/new?assignees=maintainer&labels=bug%2Ctriage&projects=&template=01-bug-report.yml&title=%5BBug%5D%3A+"
+                href="https://tally.so/r/nWb6re"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block text-text-body hover:text-text-heading transition-colors duration-[220ms]"
@@ -76,13 +76,36 @@ export const Footer = () => {
               {/* ))} */}
               <Link
                 key={"Request a Feature"}
-                href="https://github.com/nitheesh-cpu/aggiesbp-frontend/issues/new?assignees=maintainer&labels=enhancement%2Cfeature-request&projects=&template=02-feature-request.yml&title=%5BFeature%5D%3A+"
+                href="https://tally.so/r/nWb6re"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block text-text-body hover:text-text-heading transition-colors duration-[220ms]"
               >
                 Request a Feature
               </Link>
+            </div>
+          </div>
+
+          {/* Company column */}
+          <div>
+            <h3 className="text-text-heading font-medium mb-6">Tools</h3>
+            <div className="space-y-4">
+              {/* {["About", "API Docs"].map((item) => ( */}
+              <Link
+                key={"Chrome Extension"}
+                href="https://chromewebstore.google.com/detail/aggie-schedule-builder-pl/glckdcnecomhlmlegmjdceblibmaljpm?hl=en"
+                className="block text-text-body hover:text-text-heading transition-colors duration-[220ms]"
+              >
+                Chrome Extension
+              </Link>
+              <Link
+                key={"API Docs"}
+                href="https://api-aggiesbp.servehttp.com/docs"
+                className="block text-text-body hover:text-text-heading transition-colors duration-[220ms]"
+              >
+                API Docs
+              </Link>
+              {/* ))} */}
             </div>
           </div>
 
@@ -97,13 +120,6 @@ export const Footer = () => {
                 className="block text-text-body hover:text-text-heading transition-colors duration-[220ms]"
               >
                 About
-              </Link>
-              <Link
-                key={"API Docs"}
-                href="https://api-aggiesbp.servehttp.com/docs"
-                className="block text-text-body hover:text-text-heading transition-colors duration-[220ms]"
-              >
-                API Docs
               </Link>
               {/* ))} */}
             </div>

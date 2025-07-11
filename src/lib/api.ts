@@ -1,5 +1,5 @@
-// const API_BASE_URL = "https://api-aggiesbp.servehttp.com";
-const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL = "https://api-aggiesbp.servehttp.com";
+// const API_BASE_URL = "http://localhost:8000";
 
 // Development mode - set to true to use mock data
 // const USE_MOCK_DATA = false; // Set to true if you want to use mock data

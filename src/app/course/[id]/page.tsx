@@ -602,10 +602,10 @@ export default function CoursePage({ params }: CoursePageProps) {
                       )}
 
                       {/* Action Buttons */}
-                        {prof.id ? (
                       <div
                         className={`mt-3 pt-2 ${prof.gradeDistribution ? "border-t border-border" : ""}`}
                       >
+                        {prof.id ? (
                           <div className="flex flex-col sm:flex-row gap-2">
                             {/* Top row on mobile, left side on desktop */}
                             <div className="flex gap-2 sm:flex-1">
@@ -641,30 +641,30 @@ export default function CoursePage({ params }: CoursePageProps) {
                             {/* Bottom row on mobile, right side on desktop */}
                             <Button
                               variant={
-                                isProfessorSelected(prof.id)
+                                isProfessorSelected(prof.id!)
                                   ? "default"
                                   : "outline"
                               }
                               onClick={() => {
-                                if (isProfessorSelected(prof.id || "")) {
+                                if (isProfessorSelected(prof.id!)) {
                                   // Remove from comparison
                                   // removeProfessor function would be needed here
                                 } else {
                                   // Add to comparison
-                                  addProfessor(prof.id || "");
+                                  addProfessor(prof.id!);
                                 }
                               }}
                               disabled={
-                                !isProfessorSelected(prof.id) &&
+                                !isProfessorSelected(prof.id!) &&
                                 !canAddMoreProfessors()
                               }
                               className={`w-full sm:w-auto sm:min-w-[100px] transition-all duration-200 hover:scale-105 text-xs py-2 ${
-                                isProfessorSelected(prof.id)
+                                isProfessorSelected(prof.id!)
                                   ? "bg-green-600 hover:bg-green-700 text-white"
                                   : "border-[#500000] text-[#500000] hover:bg-[#500000] hover:text-white"
                               }`}
                             >
-                              {isProfessorSelected(prof.id) ? (
+                              {isProfessorSelected(prof.id!) ? (
                                 <>
                                   <Check className="w-3 h-3 mr-1" />
                                   <span className="sm:hidden">Added</span>
@@ -683,8 +683,20 @@ export default function CoursePage({ params }: CoursePageProps) {
                               )}
                             </Button>
                           </div>
+                        ) : (
+                          <div className="flex justify-center">
+                            <div className="text-xs text-text-body bg-gray-50 border border-gray-200 px-3 py-2 rounded-lg">
+                              <span className="font-medium">
+                                Limited data available
+                              </span>
+                              <br />
+                              <span className="text-gray-500">
+                                Grade distribution only
+                              </span>
+                            </div>
+                          </div>
+                        )}
                       </div>
-                        ) : null}
                     </Card>
                   ))}
                 </div>

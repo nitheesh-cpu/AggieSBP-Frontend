@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { Github, Linkedin } from "lucide-react";
+// import { Github, Linkedin } from "lucide-react";
 import Image from "next/image";
 
 export const Footer = () => {
@@ -27,7 +27,7 @@ export const Footer = () => {
               Real-time, multidimensional professor intelligence for every
               Aggie.
             </p>
-            <div className="flex space-x-4">
+{/*             <div className="flex space-x-4">
               <Link
                 href="https://github.com/nitheesh-cpu"
                 className="w-10 h-10 bg-card border border-border rounded-lg flex items-center justify-center text-text-body hover:text-text-heading hover:border-text-body transition-colors duration-[220ms]"
@@ -40,7 +40,7 @@ export const Footer = () => {
               >
                 <Linkedin size={18} />
               </Link>
-            </div>
+            </div> */}
           </div>
 
           {/* Features column */}

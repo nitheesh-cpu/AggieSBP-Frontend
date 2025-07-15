@@ -127,6 +127,20 @@ export const Footer = () => {
         </div>
 
         {/* Bottom section */}
+        <div className="border-t border-border pt-8 mt-12 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+          <div className="text-text-body text-sm">
+            © 2025 Nitheesh Kodarapu. All rights reserved.
+          </div>
+          <div className="flex space-x-6 text-sm">
+            <Link
+              href="/terms"
+              className="text-text-body hover:text-text-heading transition-colors duration-[220ms]"
+            >
+              Terms of Service
+            </Link>
+            
+          </div>
+        </div>
       </div>
     </footer>
   );

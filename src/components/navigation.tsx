@@ -19,6 +19,7 @@ export const Navigation = ({ className = "" }: NavigationProps) => {
     { name: "Professors", href: "/professors" },
     { name: "Compare", href: "/compare" },
     { name: "About", href: "/about" },
+    { name: "Terms", href: "/terms" },
   ];
 
   const toggleMobileMenu = () => {

@@ -92,7 +92,7 @@ export default function TermsPage() {
 
               <div className="mt-8 pt-6 border-t border-border">
                 <p className="text-text-muted text-sm">
-                  Last updated: December 2024
+                  Last updated: June 2025
                 </p>
               </div>
             </div>

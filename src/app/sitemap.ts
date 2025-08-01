@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next'
 import { getCachedCourseIds, getCachedProfessorIds, getCachedDepartmentIds, getBaseUrl, logSitemapGeneration } from '@/lib/sitemap-utils'
 
-const BASE_URL = getBaseUrl()
+const BASE_URL = "https://aggieschedulebuilderplus.vercel.app/"
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Static pages

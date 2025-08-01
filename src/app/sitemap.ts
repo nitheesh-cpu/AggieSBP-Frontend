@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next'
-import { getCachedCourseIds, getCachedProfessorIds, getCachedDepartmentIds, getBaseUrl, logSitemapGeneration } from '@/lib/sitemap-utils'
+import { getCachedCourseIds, getCachedProfessorIds, getCachedDepartmentIds, logSitemapGeneration } from '@/lib/sitemap-utils'
 
 const BASE_URL = "https://aggieschedulebuilderplus.vercel.app/"
 

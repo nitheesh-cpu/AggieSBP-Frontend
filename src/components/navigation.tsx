@@ -56,6 +56,7 @@ export const Navigation = ({
   const navItems = [
     { name: "Departments", href: "/departments" },
     { name: "Courses", href: "/courses" },
+    { name: "Professors", href: "/professors" },
     { name: "Compare", href: "/compare" },
   ] as const;
 

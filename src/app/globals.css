@@ -108,12 +108,14 @@
 
   html {
     font-family: var(--font-sans);
+    position: relative;
     line-height: 1.5;
     -webkit-text-size-adjust: 100%;
   }
 
   body {
     margin: 0;
+    position: relative;
     background-color: var(--color-canvas);
     color: var(--color-text-body);
     font-size: var(--text-base);

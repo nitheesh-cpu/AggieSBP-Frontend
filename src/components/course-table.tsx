@@ -1,6 +1,8 @@
+"use client";
+
 import React from "react";
-import Link from "next/link";
 import { Button } from "./ui/button";
+import { motion, useReducedMotion } from "motion/react";
 
 interface CourseRow {
   icon: string;
@@ -13,7 +15,7 @@ interface CourseRow {
 const courseData: CourseRow[] = [
   {
     icon: "💻",
-    course: "CSCE120",
+    course: "CSCE121",
     avgGPA: "3.18",
     workload: "Medium",
     rating: "4.6/5",
@@ -83,14 +85,14 @@ const courseData: CourseRow[] = [
   },
   {
     icon: "🧬",
-    course: "BIOL213",
+    course: "BIOL212",
     avgGPA: "2.94",
     workload: "High",
     rating: "4.0/5",
   },
   {
     icon: "📚",
-    course: "HIST201",
+    course: "HIST202",
     avgGPA: "3.52",
     workload: "Light",
     rating: "4.6/5",
@@ -98,126 +100,102 @@ const courseData: CourseRow[] = [
 ];
 
 export const CourseTable: React.FC = () => {
-  return (
-    <section className="py-12 sm:py-16 md:py-20">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="max-w-3xl">
-          <h2 className="text-xl sm:text-2xl font-semibold dark:text-white text-black mb-3 sm:mb-4">
-            Compare courses before you enroll
-          </h2>
-          <p className="text-base sm:text-lg dark:text-gray-300 text-gray-700 mb-6 sm:mb-8">
-            Credit hours, average GPA, and professor rating—all side by side.
-          </p>
+  const shouldReduceMotion = useReducedMotion();
 
-          <div className="bg-card border border-border rounded-lg p-4 sm:p-6 md:p-8 max-w-full">
-            {/* Mobile: Card Layout */}
-            <div className="block sm:hidden space-y-3 mb-6">
-              {courseData.slice(0, 6).map((course, index) => (
-                <Link
+  return (
+    <section className="py-20" data-oid="u1aosgq">
+      <div className="max-w-6xl mx-auto px-6" data-oid="7-_xf5i">
+        <div className="max-w-md mx-auto" data-oid="qopl6by">
+          <motion.h2
+            className="text-[20px] sm:text-[24px] md:text-[26px] text-white leading-[1.4] mb-2"
+            data-oid="dez3r-n"
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.35 }}
+            transition={{ duration: 0.5 }}
+          >
+            Compare courses before you enroll
+          </motion.h2>
+          <motion.p
+            className="text-[11px] sm:text-[12px] text-white/80 mb-6"
+            data-oid="pjvgnwu"
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.35 }}
+            transition={{ duration: 0.5, delay: 0.05 }}
+          >
+            Credit hours, average GPA, and professor rating—all side by side.
+          </motion.p>
+
+          <motion.div
+            className="relative rounded-2xl border border-[#4B5563] bg-black/60 px-4 pt-6 pb-4 shadow-[0_20px_40px_rgba(0,0,0,0.7)]"
+            data-oid="dpyv23t"
+          >
+            <motion.div
+              className="space-y-3 mb-6"
+              data-oid="90fk0ub"
+              initial={shouldReduceMotion ? false : "hidden"}
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.35 }}
+              variants={{
+                hidden: { opacity: 0 },
+                visible: { opacity: 1, transition: { staggerChildren: 0.05 } },
+              }}
+            >
+              {courseData.map((course, index) => (
+                <motion.div
                   key={index}
-                  href={`/course/${course.course}`}
-                  className="block"
+                  className="flex items-center justify-between px-4 py-3 rounded-xl border border-[#4B5563] bg-black/70 hover:border-[#FFCF3F] transition-all duration-200 group cursor-pointer"
+                  data-oid="wi27n:e"
+                  variants={{
+                    hidden: { opacity: 0, y: 12 },
+                    visible: { opacity: 1, y: 0 },
+                  }}
+                  whileHover={
+                    shouldReduceMotion ? undefined : { y: -2, scale: 1.01 }
+                  }
+                  whileTap={shouldReduceMotion ? undefined : { scale: 0.99 }}
                 >
-                  <div className="bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors duration-200 cursor-pointer border border-white/10">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center space-x-3">
-                        <span className="text-xl">{course.icon}</span>
-                        <span className="dark:text-white text-black font-medium text-lg">
-                          {course.course}
-                        </span>
+                  <div className="flex items-center gap-3" data-oid="p997bve">
+                    <span
+                      className="text-xl w-8 flex justify-center"
+                      data-oid="414ly32"
+                    >
+                      {course.icon}
+                    </span>
+                    <div>
+                      <div className="text-white" data-oid="v2lkzkk">
+                        {course.course}
                       </div>
-                      <div className="text-gray-400">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path d="M8 5V19L19 12L8 5Z" fill="currentColor" />
-                        </svg>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4 text-center">
-                      <div>
-                        <div className="text-gray-400 text-xs mb-1">GPA</div>
-                        <div className="dark:text-white text-black font-medium">
-                          {course.avgGPA}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-gray-400 text-xs mb-1">
-                          Workload
-                        </div>
-                        <div className="dark:text-white text-black font-medium">
-                          {course.workload}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-gray-400 text-xs mb-1">Rating</div>
-                        <div className="dark:text-white text-black font-medium">
-                          {course.rating}
-                        </div>
+                      <div className="flex gap-4 mt-1 text-[10px] text-white/70">
+                        <span data-oid="its91ip">GPA {course.avgGPA}</span>
+                        <span data-oid="4gzf_j4">LOAD {course.workload}</span>
                       </div>
                     </div>
                   </div>
-                </Link>
+
+                  <span className="text-[#FFCF3F]" data-oid="2np2d31">
+                    {course.rating}
+                  </span>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
 
-            {/* Desktop: Table Layout */}
-            <div className="hidden sm:block">
-              <div className="overflow-x-auto">
-                <div className="space-y-1 mb-6 min-w-[600px]">
-                  {courseData.map((course, index) => (
-                    <Link
-                      key={index}
-                      href={`/course/${course.course}`}
-                      className="block"
-                    >
-                      <div className="flex items-center py-3 px-4 rounded-md hover:bg-white/5 transition-colors duration-200 group cursor-pointer">
-                        <div className="flex items-center flex-1 space-x-4">
-                          <span className="text-xl w-8 flex justify-center">
-                            {course.icon}
-                          </span>
-                          <span className="dark:text-white text-black font-medium min-w-[80px]">
-                            {course.course}
-                          </span>
-                          <span className="dark:text-gray-300 text-gray-700 min-w-[60px]">
-                            {course.avgGPA}
-                          </span>
-                          <span className="dark:text-gray-300 text-gray-700 min-w-[80px]">
-                            {course.workload}
-                          </span>
-                          <span className="dark:text-gray-300 text-gray-700 flex-1">
-                            {course.rating}
-                          </span>
-                        </div>
-
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 dark:text-gray-400 text-gray-700 hover:text-white ml-4">
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path d="M8 5V19L19 12L8 5Z" fill="currentColor" />
-                          </svg>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <Link href="/courses">
-              <Button variant="outline" className="mt-4 w-full sm:w-auto">
+            <motion.div
+              initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.35 }}
+              transition={{ duration: 0.5, delay: 0.06 }}
+            >
+              <Button
+                variant="outline"
+                className="mt-2 w-full border-dashed border-[#4B5563] bg-transparent text-white hover:bg-black/60"
+                data-oid="y197u7a"
+              >
                 Try a sample search
               </Button>
-            </Link>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </div>
     </section>

@@ -263,11 +263,11 @@ function CoursesPageContent() {
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState(
-    searchParams?.get("search") || "",
+    searchParams?.get("search") || ""
   );
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState(
-    searchParams?.get("department") || "All",
+    searchParams?.get("department") || "All"
   );
   const [selectedDifficulty] = useState(searchParams?.get("difficulty") || "");
   const [minGpa] = useState<string>(searchParams?.get("min_gpa") || "");
@@ -277,7 +277,7 @@ function CoursesPageContent() {
   const [sortBy, setSortBy] = useState("code");
   const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [selectedQuickFilters, setSelectedQuickFilters] = useState<string[]>(
-    [],
+    []
   );
   const [selectedSectionAttributes, setSelectedSectionAttributes] = useState<
     string[]
@@ -397,7 +397,7 @@ function CoursesPageContent() {
         // Load all courses in background
         setIsLoadingAll(true);
         console.log("Loading all courses in background...");
-        const allCoursesData = await getCourses({ limit: 5000 });
+        const allCoursesData = await getCourses({ limit: 50000 });
         console.log("Loaded all courses:", allCoursesData.length);
 
         // Update with all courses
@@ -457,15 +457,15 @@ function CoursesPageContent() {
           switch (filterId) {
             case "undergraduate":
               return course.tags.some((tag) =>
-                tag.toLowerCase().includes("undergraduate"),
+                tag.toLowerCase().includes("undergraduate")
               );
             case "advanced":
               return course.tags.some((tag) =>
-                tag.toLowerCase().includes("advanced"),
+                tag.toLowerCase().includes("advanced")
               );
             case "graduate":
               return course.tags.some(
-                (tag) => tag.toLowerCase() === "graduate",
+                (tag) => tag.toLowerCase() === "graduate"
               );
             case "core":
               return course.sectionAttributes.some(
@@ -479,7 +479,7 @@ function CoursesPageContent() {
                   attr.includes("KPLL") ||
                   attr.includes("KMTH") ||
                   attr.includes("KSOC") ||
-                  attr.includes("KHTX"),
+                  attr.includes("KHTX")
               );
             case "highgpa":
               return course.avgGPA !== -1 && course.avgGPA >= 3.5;
@@ -497,7 +497,7 @@ function CoursesPageContent() {
       let matchesSectionAttributes = true;
       if (selectedSectionAttributes.length > 0) {
         matchesSectionAttributes = selectedSectionAttributes.some((attrId) =>
-          course.sectionAttributes.some((attr) => attr.includes(attrId)),
+          course.sectionAttributes.some((attr) => attr.includes(attrId))
         );
       }
 
@@ -567,13 +567,13 @@ function CoursesPageContent() {
 
   const totalPages = Math.max(
     1,
-    Math.ceil(filteredCourses.length / coursesPerPage),
+    Math.ceil(filteredCourses.length / coursesPerPage)
   );
 
   // Pagination
   const paginatedCourses = filteredCourses.slice(
     (currentPage - 1) * coursesPerPage,
-    currentPage * coursesPerPage,
+    currentPage * coursesPerPage
   );
 
   const getDifficultyBadgeColor = (difficulty: string) => {
@@ -995,7 +995,7 @@ function CoursesPageContent() {
                       ))}
                       {course.sectionAttributes.map((attr, index) => {
                         const filter = sectionAttributeFilters.find(
-                          (f) => f.id === attr.split(" - ")[1],
+                          (f) => f.id === attr.split(" - ")[1]
                         );
                         return filter ? (
                           <Badge
@@ -1075,7 +1075,7 @@ function CoursesPageContent() {
                   let startPage = Math.max(1, currentPage - halfVisible);
                   const endPage = Math.min(
                     totalPages,
-                    startPage + maxVisible - 1,
+                    startPage + maxVisible - 1
                   );
 
                   // Adjust start if we're near the end
@@ -1096,7 +1096,7 @@ function CoursesPageContent() {
                         className="border-border"
                       >
                         1
-                      </Button>,
+                      </Button>
                     );
                     if (startPage > 2) {
                       pages.push(
@@ -1105,7 +1105,7 @@ function CoursesPageContent() {
                           className="px-2 text-text-body"
                         >
                           ...
-                        </span>,
+                        </span>
                       );
                     }
                   }
@@ -1125,7 +1125,7 @@ function CoursesPageContent() {
                         }
                       >
                         {page}
-                      </Button>,
+                      </Button>
                     );
                   }
 
@@ -1138,7 +1138,7 @@ function CoursesPageContent() {
                           className="px-2 text-text-body"
                         >
                           ...
-                        </span>,
+                        </span>
                       );
                     }
                     pages.push(
@@ -1150,7 +1150,7 @@ function CoursesPageContent() {
                         className="border-border"
                       >
                         {totalPages}
-                      </Button>,
+                      </Button>
                     );
                   }
 

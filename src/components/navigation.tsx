@@ -1,163 +1,218 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { X, Menu } from "lucide-react";
-import Image from "next/image";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { AnimatePresence, motion } from "motion/react";
+import { usePathname } from "next/navigation";
 
 interface NavigationProps {
   className?: string;
+  variant?: "default" | "transparent" | "glass";
 }
 
-export const Navigation = ({ className = "" }: NavigationProps) => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+export const Navigation = ({
+  className = "",
+  variant = "default",
+}: NavigationProps) => {
+  const pathname = usePathname();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+  const isOverlay = variant === "transparent" || variant === "glass";
+  const style =
+    variant === "transparent"
+      ? { backgroundColor: "transparent", borderBottom: "none" }
+      : variant === "glass"
+        ? {
+            backgroundColor: "rgba(0, 0, 0, 0.82)",
+            borderBottom: "1px solid rgba(255, 207, 63, 0.5)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+          }
+        : { backgroundColor: "#000000", borderBottom: "2px solid #FFCF3F" };
 
-  const navigationItems = [
+  const linkClassName = isOverlay
+    ? "relative text-white/90 text-sm font-medium transition-all duration-normal ease-in-out hover:text-white group"
+    : "relative text-body text-sm font-medium transition-all duration-normal ease-in-out hover:text-heading group";
+
+  const underlineClassName = isOverlay
+    ? "absolute -bottom-1 left-0 w-0 h-px bg-white transition-all duration-normal ease-in-out group-hover:w-full"
+    : "absolute -bottom-1 left-0 w-0 h-px bg-heading transition-all duration-normal ease-in-out group-hover:w-full";
+
+  // Close the mobile menu on route change.
+  React.useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
+
+  // Lock body scroll while menu is open.
+  React.useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isMobileMenuOpen]);
+
+  const navItems = [
     { name: "Departments", href: "/departments" },
     { name: "Courses", href: "/courses" },
-    { name: "Professors", href: "/professors" },
     { name: "Compare", href: "/compare" },
-    { name: "About", href: "/about" },
-    { name: "Terms", href: "/terms" },
-  ];
-
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-
-  const closeMobileMenu = () => {
-    setIsMobileMenuOpen(false);
-  };
+  ] as const;
 
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 bg-canvas border-b border-border ${className}`}
+        className={`fixed top-0 left-0 right-0 z-50 ${className}`}
+        style={style}
+        data-oid="ilaa0s3"
       >
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center justify-between h-16">
+        <div className="max-w-7xl mx-auto px-6" data-oid="6.rinbi">
+          <div
+            className="flex items-center justify-between h-16"
+            data-oid="l4-iau1"
+          >
             {/* Logo */}
-            <div className="flex items-center">
-              <Link href="/" onClick={closeMobileMenu}>
-                <div className="flex items-center space-x-3">
-                  <Image
-                    src="/favicon.ico"
-                    alt="AggieRMP Logo"
-                    width={32}
-                    height={32}
-                    className="w-8 h-8"
-                  />
-                  <span className="text-xl font-semibold text-heading tracking-tight">
-                    AggieSB+
-                  </span>
-                </div>
-              </Link>
-            </div>
+            <Link href="/" className="flex items-center" data-oid="h31:j-4">
+              <div className="flex items-center space-x-3" data-oid="p5rzkzk">
+                <img
+                  src="/favicon.ico"
+                  alt="AggieRMP Logo"
+                  className="w-8 h-8"
+                  data-oid="bybc6ok"
+                />
+
+                <span
+                  className={`text-xl font-semibold tracking-tight ${isOverlay ? "text-white" : "text-heading"}`}
+                  data-oid="riswfct"
+                >
+                  AggieSB+
+                </span>
+              </div>
+            </Link>
 
             {/* Desktop Navigation Items */}
-            <nav className="hidden md:flex items-center space-x-8 ml-16">
-              {navigationItems.map((item) => (
-                <a
+            <nav
+              className="hidden md:flex items-center space-x-8 ml-16"
+              data-oid="sjsqv.s"
+            >
+              {navItems.map((item) => (
+                <Link
                   key={item.name}
                   href={item.href}
-                  className="relative text-body text-sm font-medium transition-all duration-normal ease-in-out hover:text-heading group"
+                  className={linkClassName}
+                  data-oid="hxkolsn"
                 >
                   {item.name}
-                  <span className="absolute -bottom-1 left-0 w-0 h-px bg-heading transition-all duration-normal ease-in-out group-hover:w-full" />
-                </a>
+                  <span className={underlineClassName} data-oid="m-f3_qo" />
+                </Link>
               ))}
             </nav>
 
-            {/* Desktop CTA Button and Theme Toggle */}
-            <div className="hidden md:flex items-center space-x-3">
-              <ThemeToggle />
+            {/* Desktop CTA */}
+            <div className="hidden md:flex items-center" data-oid="llrkwuz">
               <Link href="/compare">
-                <button className="bg-button-primary text-button-primary-text hover:bg-maroon-light transition-colors duration-normal font-medium px-6 py-2 text-sm rounded-full">
+                <Button className="bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966] rounded-full px-6">
                   Start comparing
-                </button>
+                </Button>
               </Link>
             </div>
 
-            {/* Mobile Menu Button and Theme Toggle */}
-            <div className="md:hidden flex items-center space-x-2">
-              <ThemeToggle />
+            {/* Mobile Menu Button */}
+            <div className="md:hidden" data-oid="xc2k1nn">
               <button
-                onClick={toggleMobileMenu}
-                className="text-body hover:text-heading transition-colors duration-normal p-2"
-                aria-label="Toggle mobile menu"
+                type="button"
+                aria-label="Toggle menu"
+                aria-expanded={isMobileMenuOpen}
+                aria-controls="mobile-menu"
+                onClick={() => setIsMobileMenuOpen((v) => !v)}
+                className={`${isOverlay ? "text-white/90 hover:text-white" : "text-body hover:text-heading"} transition-colors duration-normal p-2`}
+                data-oid="u5.szs3"
               >
-                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  data-oid="1b7bsr2"
+                >
+                  {isMobileMenuOpen ? (
+                    <path
+                      d="M18 6L6 18M6 6l12 12"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  ) : (
+                    <path
+                      d="M4 6H20M4 12H20M4 18H20"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      data-oid="wfi87ae"
+                    />
+                  )}
+                </svg>
               </button>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Mobile Menu Overlay */}
-      {isMobileMenuOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black bg-opacity-50 md:hidden"
-          onClick={closeMobileMenu}
-        />
-      )}
-
-      {/* Mobile Menu */}
-      <div
-        className={`fixed top-0 right-0 h-full w-80 max-w-sm bg-canvas border-l border-border z-50 transform transition-transform duration-300 ease-in-out md:hidden ${
-          isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
-        }`}
-      >
-        <div className="flex flex-col h-full">
-          {/* Mobile Menu Header */}
-          <div className="flex items-center justify-between p-6 border-b border-border">
-            <div className="flex items-center space-x-3">
-              <Image
-                src="/favicon.ico"
-                alt="AggieRMP Logo"
-                width={24}
-                height={24}
-                className="w-6 h-6"
-              />
-              <span className="text-lg font-semibold text-heading">
-                AggieSB+
-              </span>
-            </div>
+      <AnimatePresence>
+        {isMobileMenuOpen ? (
+          <motion.div
+            className="fixed inset-0 z-40 md:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            {/* Backdrop */}
             <button
-              onClick={closeMobileMenu}
-              className="text-body hover:text-heading transition-colors duration-normal p-1"
-              aria-label="Close mobile menu"
+              type="button"
+              aria-label="Close menu"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="absolute inset-0 bg-black/50"
+            />
+
+            {/* Panel */}
+            <motion.div
+              id="mobile-menu"
+              className="absolute top-16 left-0 right-0 border-b border-white/10 bg-black/85 backdrop-blur-md"
+              initial={{ y: -10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -10, opacity: 0 }}
+              transition={{ duration: 0.2 }}
             >
-              <X size={20} />
-            </button>
-          </div>
+              <div className="px-6 py-5 space-y-3">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block text-white/90 hover:text-white text-base font-medium"
+                  >
+                    {item.name}
+                  </Link>
+                ))}
 
-          {/* Mobile Navigation Items */}
-          <nav className="flex-1 px-6 py-6">
-            <div className="space-y-4">
-              {navigationItems.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  onClick={closeMobileMenu}
-                  className="block text-body hover:text-heading text-lg font-medium transition-colors duration-normal py-2"
-                >
-                  {item.name}
-                </Link>
-              ))}
-            </div>
-          </nav>
-
-          {/* Mobile CTA Button */}
-          <div className="p-6 border-t border-border">
-            <Link href="/compare" onClick={closeMobileMenu}>
-              <button className="w-full bg-button-primary text-button-primary-text hover:bg-maroon-light transition-colors duration-normal font-medium px-6 py-3 text-sm rounded-full">
-                Start comparing
-              </button>
-            </Link>
-          </div>
-        </div>
-      </div>
+                <div className="pt-2">
+                  <Link
+                    href="/compare"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <Button className="w-full bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966] rounded-full">
+                      Start comparing
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </>
   );
 };

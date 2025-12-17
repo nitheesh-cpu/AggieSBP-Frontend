@@ -1,5 +1,5 @@
-const API_BASE_URL = "https://api-aggiesbp.servehttp.com";
-// const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL?.trim() || "http://localhost:8000";
 
 // Development mode - set to true to use mock data
 // const USE_MOCK_DATA = false; // Set to true if you want to use mock data
@@ -640,7 +640,7 @@ export async function getAllDepartmentIds(): Promise<SitemapEntry[]> {
 
 export async function getAllCourseIds(): Promise<SitemapEntry[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/courses?limit=10000`, {
+    const response = await fetch(`${API_BASE_URL}/courses?limit=50000`, {
       headers: {
         "Content-Type": "application/json",
       },

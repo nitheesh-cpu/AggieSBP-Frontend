@@ -23,26 +23,22 @@ export function HomeHeroScroll() {
 
   // At the top (progress ~0) the user should only see the image.
   // As they scroll, content slides up and fades into place.
-  const contentOpacity = shouldReduceMotion
-    ? 1
-    : useTransform(scrollYProgress, [0.02, 0.42], [0, 1]);
-  const contentY = shouldReduceMotion
-    ? 0
-    : useTransform(scrollYProgress, [0.0, 0.42], [84, 0]);
-  const backdropOpacity = shouldReduceMotion
-    ? 1
-    : useTransform(scrollYProgress, [0.0, 0.22], [0, 1]);
-
-  const imageScale = shouldReduceMotion
-    ? 1
-    : useTransform(scrollYProgress, [0, 1], [1, 1.06]);
+  // Hooks must not be called conditionally — always create motion values,
+  // and choose constants at render time if reduced motion is enabled.
+  const contentOpacityMv = useTransform(scrollYProgress, [0.02, 0.42], [0, 1]);
+  const contentYMv = useTransform(scrollYProgress, [0.0, 0.42], [84, 0]);
+  const backdropOpacityMv = useTransform(scrollYProgress, [0.0, 0.22], [0, 1]);
+  const imageScaleMv = useTransform(scrollYProgress, [0, 1], [1, 1.06]);
 
   return (
     <section className="relative isolate">
       {/* Scroll area that controls the sticky hero */}
       <div ref={targetRef} className="relative h-[210svh]">
         <div className="sticky top-0 h-[100svh] w-full overflow-hidden relative z-20">
-          <motion.div className="absolute inset-0" style={{ scale: imageScale }}>
+          <motion.div
+            className="absolute inset-0"
+            style={{ scale: shouldReduceMotion ? 1 : imageScaleMv }}
+          >
             <Image
               src="/academic-plaza2.png"
               alt="Academic Plaza"
@@ -57,7 +53,7 @@ export function HomeHeroScroll() {
             aria-hidden
             className="absolute inset-0"
             style={{
-              opacity: backdropOpacity,
+              opacity: shouldReduceMotion ? 1 : backdropOpacityMv,
               background:
                 "linear-gradient(to top, rgba(0,0,0,0.70) 0%, rgba(0,0,0,0.55) 32%, rgba(0,0,0,0) 70%)",
             }}
@@ -66,7 +62,10 @@ export function HomeHeroScroll() {
           {/* Content reveals on scroll */}
           <motion.div
             className="absolute inset-x-0 bottom-0 px-6 sm:px-10 pb-10 pt-10"
-            style={{ opacity: contentOpacity, y: contentY }}
+            style={{
+              opacity: shouldReduceMotion ? 1 : contentOpacityMv,
+              y: shouldReduceMotion ? 0 : contentYMv,
+            }}
           >
             <div className="max-w-4xl mx-auto text-center space-y-5">
               <h1 className="text-white text-[22px] sm:text-[28px] md:text-[34px] leading-tight font-semibold tracking-tight">
@@ -74,8 +73,8 @@ export function HomeHeroScroll() {
               </h1>
 
               <p className="text-white/90 text-[12px] sm:text-[13px] md:text-[14px] tracking-wide px-6 py-3 rounded-full bg-black/60 inline-block">
-                Compare teaching quality, research impact, and course workload in
-                one elegant dashboard.
+                Compare teaching quality, research impact, and course workload
+                in one elegant dashboard.
               </p>
 
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-1">
@@ -105,5 +104,3 @@ export function HomeHeroScroll() {
     </section>
   );
 }
-
-

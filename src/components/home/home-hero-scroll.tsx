@@ -14,12 +14,33 @@ import { Button } from "@/components/ui/button";
 
 export function HomeHeroScroll() {
   const shouldReduceMotion = useReducedMotion();
+  const [isPortrait, setIsPortrait] = React.useState(false);
 
   const targetRef = React.useRef<HTMLDivElement | null>(null);
   const { scrollYProgress } = useScroll({
     target: targetRef,
     offset: ["start start", "end start"],
   });
+
+  // Detect portrait orientation (vertical screens)
+  React.useEffect(() => {
+    const checkOrientation = () => {
+      // Check if screen height is greater than width (portrait)
+      setIsPortrait(window.innerHeight > window.innerWidth);
+    };
+
+    // Check on mount
+    checkOrientation();
+
+    // Listen for orientation changes and window resize
+    window.addEventListener("resize", checkOrientation);
+    window.addEventListener("orientationchange", checkOrientation);
+
+    return () => {
+      window.removeEventListener("resize", checkOrientation);
+      window.removeEventListener("orientationchange", checkOrientation);
+    };
+  }, []);
 
   // At the top (progress ~0) the user should only see the image.
   // As they scroll, content slides up and fades into place.
@@ -40,7 +61,7 @@ export function HomeHeroScroll() {
             style={{ scale: shouldReduceMotion ? 1 : imageScaleMv }}
           >
             <Image
-              src="/academic-plaza2.png"
+              src={isPortrait ? "/academic-plaza3.png" : "/academic-plaza2.png"}
               alt="Academic Plaza"
               fill
               priority

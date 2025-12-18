@@ -54,14 +54,14 @@ export function HomeHeroScroll() {
   return (
     <section className="relative isolate">
       {/* Scroll area that controls the sticky hero */}
-      <div ref={targetRef} className="relative h-[210svh]">
-        <div className="sticky top-0 h-[100svh] w-full overflow-hidden relative z-20">
+      <div ref={targetRef} className="relative h-[210dvh] min-h-[210svh]">
+        <div className="sticky top-0 h-[100dvh] min-h-[100svh] w-full overflow-hidden relative z-20">
           <motion.div
             className="absolute inset-0"
             style={{ scale: shouldReduceMotion ? 1 : imageScaleMv }}
           >
             <Image
-              src={isPortrait ? "/academic-plaza3.png" : "/academic-plaza2.png"}
+              src={isPortrait ? "/academic-plaza4.png" : "/academic-plaza2.png"}
               alt="Academic Plaza"
               fill
               priority

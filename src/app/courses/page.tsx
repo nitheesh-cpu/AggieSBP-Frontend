@@ -315,7 +315,6 @@ function CoursesPageContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [departments, setDepartments] = useState<DepartmentsInfo | null>(null);
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState(

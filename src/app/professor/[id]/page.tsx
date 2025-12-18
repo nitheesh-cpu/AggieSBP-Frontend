@@ -42,7 +42,7 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
         setError(null);
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Failed to load professor data",
+          err instanceof Error ? err.message : "Failed to load professor data"
         );
       } finally {
         setLoading(false);
@@ -54,8 +54,16 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-canvas">
-        <Navigation />
+      <div
+        className="min-h-screen relative"
+        style={{ background: "var(--app-bg-gradient)" }}
+      >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{ background: "var(--app-bg-ambient)" }}
+        />
+        <Navigation variant="glass" />
         <main className="pt-24 pb-20">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center py-12">
@@ -71,8 +79,16 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
 
   if (error || !professor) {
     return (
-      <div className="min-h-screen bg-canvas">
-        <Navigation />
+      <div
+        className="min-h-screen relative"
+        style={{ background: "var(--app-bg-gradient)" }}
+      >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{ background: "var(--app-bg-ambient)" }}
+        />
+        <Navigation variant="glass" />
         <main className="pt-24 pb-20">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center py-12">
@@ -95,10 +111,18 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-canvas">
-      <Navigation />
+    <div
+      className="min-h-screen relative"
+      style={{ background: "var(--app-bg-gradient)" }}
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{ background: "var(--app-bg-ambient)" }}
+      />
+      <Navigation variant="glass" />
 
-      <main className="pt-24 pb-20">
+      <main className="pt-24 pb-20 relative z-10">
         <div className="max-w-7xl mx-auto px-6">
           {/* Breadcrumb */}
           <div>
@@ -212,7 +236,7 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                           >
                             {dept}
                           </Badge>
-                        ) : null,
+                        ) : null
                       )}
                     </div>
                   </div>
@@ -327,7 +351,7 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                       </Link>
                     </CardContent>
                   </Card>
-                ) : null,
+                ) : null
               )}
             </div>
           </div>

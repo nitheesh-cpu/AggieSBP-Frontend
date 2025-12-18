@@ -75,8 +75,7 @@ export function HomeHeroScroll() {
             className="absolute inset-0"
             style={{
               opacity: shouldReduceMotion ? 1 : backdropOpacityMv,
-              background:
-                "linear-gradient(to top, rgba(0,0,0,0.70) 0%, rgba(0,0,0,0.55) 32%, rgba(0,0,0,0) 70%)",
+              background: "var(--hero-backdrop-gradient)",
             }}
           />
 
@@ -89,11 +88,11 @@ export function HomeHeroScroll() {
             }}
           >
             <div className="max-w-4xl mx-auto text-center space-y-5">
-              <h1 className="text-white text-[22px] sm:text-[28px] md:text-[34px] leading-tight font-semibold tracking-tight">
+              <h1 className="text-text-heading dark:text-white text-[22px] sm:text-[28px] md:text-[34px] leading-tight font-semibold tracking-tight">
                 The fastest way to choose the learning environment for you.
               </h1>
 
-              <p className="text-white/90 text-[12px] sm:text-[13px] md:text-[14px] tracking-wide px-6 py-3 rounded-full bg-black/60 inline-block">
+              <p className="text-text-body text-[12px] sm:text-[13px] md:text-[14px] tracking-wide px-6 py-3 rounded-full bg-card border border-border inline-block dark:text-white/90 dark:bg-black/60 dark:border-white/10">
                 Compare teaching quality, research impact, and course workload
                 in one elegant dashboard.
               </p>
@@ -108,14 +107,14 @@ export function HomeHeroScroll() {
                 <Link href="/courses" className="w-full sm:w-auto">
                   <Button
                     variant="outline"
-                    className="w-full sm:w-auto rounded-full border-white/60 text-white hover:bg-white/10 hover:text-white"
+                    className="w-full sm:w-auto rounded-full border-border text-text-heading hover:bg-button-hover dark:border-white/60 dark:text-white dark:hover:bg-white/10 dark:hover:text-white"
                   >
                     Browse courses
                   </Button>
                 </Link>
               </div>
 
-              <div className="pt-1 text-white/80 text-[11px] sm:text-[12px] tracking-wide">
+              <div className="pt-1 text-text-body text-[11px] sm:text-[12px] tracking-wide dark:text-white/80">
                 Search by course · View grade distributions · Student insights
               </div>
             </div>

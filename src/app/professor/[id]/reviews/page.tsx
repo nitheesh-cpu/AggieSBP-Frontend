@@ -109,8 +109,16 @@ export default function ProfessorReviewsPage({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-canvas">
-        <Navigation />
+      <div
+        className="min-h-screen relative"
+        style={{ background: "var(--app-bg-gradient)" }}
+      >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{ background: "var(--app-bg-ambient)" }}
+        />
+        <Navigation variant="glass" />
         <main className="pt-24 pb-20">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center py-12">
@@ -126,8 +134,16 @@ export default function ProfessorReviewsPage({
 
   if (error || !professor || !reviewsData) {
     return (
-      <div className="min-h-screen bg-canvas">
-        <Navigation />
+      <div
+        className="min-h-screen relative"
+        style={{ background: "var(--app-bg-gradient)" }}
+      >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{ background: "var(--app-bg-ambient)" }}
+        />
+        <Navigation variant="glass" />
         <main className="pt-24 pb-20">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center py-12">
@@ -152,15 +168,23 @@ export default function ProfessorReviewsPage({
   const totalPages = Math.ceil(reviewsData.pagination.total / itemsPerPage);
   const availableCourses = [
     ...new Set(
-      professor.courses?.map((c) => c.course_id).filter(Boolean) || [],
+      professor.courses?.map((c) => c.course_id).filter(Boolean) || []
     ),
   ];
 
   return (
-    <div className="min-h-screen bg-canvas">
-      <Navigation />
+    <div
+      className="min-h-screen relative"
+      style={{ background: "var(--app-bg-gradient)" }}
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{ background: "var(--app-bg-ambient)" }}
+      />
+      <Navigation variant="glass" />
 
-      <main className="pt-24 pb-20">
+      <main className="pt-24 pb-20 relative z-10">
         <div className="max-w-7xl mx-auto px-6">
           {/* Breadcrumb */}
           <div className="mb-6">
@@ -175,7 +199,7 @@ export default function ProfessorReviewsPage({
               <Link href={`/professor/${professor.id}`}>
                 <Button
                   variant="ghost"
-                  className="text-white hover:bg-[#500000]/10"
+                  className="text-text-heading hover:bg-button-hover dark:text-white dark:hover:bg-[#500000]/10"
                 >
                   {professor.name}
                 </Button>

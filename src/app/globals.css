@@ -88,6 +88,25 @@
   --aspect-square: 1 / 1;
   --aspect-video: 16 / 9;
   --aspect-portrait: 3 / 4;
+
+  /* App backgrounds (light defaults) */
+  --app-bg-gradient: linear-gradient(to bottom,
+      #ffffff 0%,
+      #fff7f5 38%,
+      #ffecec 64%,
+      #ffffff 100%);
+  --app-bg-ambient: radial-gradient(900px 520px at 18% 12%,
+      rgba(80, 0, 0, 0.08),
+      transparent 62%),
+    radial-gradient(740px 460px at 85% 22%,
+      rgba(255, 207, 63, 0.16),
+      transparent 62%);
+
+  /* Hero overlays */
+  --hero-backdrop-gradient: linear-gradient(to top,
+      rgba(255, 255, 255, 0.92) 0%,
+      rgba(255, 255, 255, 0.78) 32%,
+      rgba(255, 255, 255, 0) 70%);
 }
 
 /* Dark mode override */
@@ -99,6 +118,24 @@
   --color-text-heading: #ffffff;
   --color-button-hover: rgba(80, 0, 0, 0.08);
   --shadow-lg: 0 8px 24px 32px rgba(0, 0, 0, 0.6);
+
+  /* App backgrounds (dark) */
+  --app-bg-gradient: linear-gradient(to bottom,
+      #0f0f0f 0%,
+      #140000 38%,
+      #220000 64%,
+      #330000 100%);
+  --app-bg-ambient: radial-gradient(900px 520px at 18% 12%,
+      rgba(80, 0, 0, 0.14),
+      transparent 62%),
+    radial-gradient(740px 460px at 85% 22%,
+      rgba(255, 207, 63, 0.08),
+      transparent 62%);
+
+  --hero-backdrop-gradient: linear-gradient(to top,
+      rgba(0, 0, 0, 0.7) 0%,
+      rgba(0, 0, 0, 0.55) 32%,
+      rgba(0, 0, 0, 0) 70%);
 }
 
 @layer base {

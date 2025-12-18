@@ -39,10 +39,13 @@ function CountUp({ value }: { value: string }) {
   const ref = React.useRef<HTMLSpanElement | null>(null);
   const isInView = useInView(ref, { once: true, amount: 0.7 });
 
-  const { prefix, suffix, target } = React.useMemo(() => parseValue(value), [value]);
+  const { prefix, suffix, target } = React.useMemo(
+    () => parseValue(value),
+    [value]
+  );
   const motionValue = useMotionValue(0);
-  const [display, setDisplay] = React.useState(() =>
-    `${prefix}${formatNumber(0)}${suffix}`,
+  const [display, setDisplay] = React.useState(
+    () => `${prefix}${formatNumber(0)}${suffix}`
   );
 
   React.useEffect(() => {
@@ -98,9 +101,7 @@ export function HomeDataStats() {
   const shouldReduceMotion = useReducedMotion();
 
   return (
-    <section
-      className="w-full py-10 bg-black/20 border-y border-white/5"
-    >
+    <section className="w-full py-10 bg-card border-y border-border dark:bg-black/20 dark:border-white/5">
       <div className="max-w-6xl mx-auto px-6">
         <motion.div
           initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
@@ -109,10 +110,10 @@ export function HomeDataStats() {
           transition={{ duration: 0.5 }}
           className="mb-6 text-center"
         >
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/40 px-4 py-2 text-white/80 text-xs tracking-wide">
+          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-canvas px-4 py-2 text-text-body text-xs tracking-wide dark:border-white/15 dark:bg-black/40 dark:text-white/80">
             Data at a glance
           </div>
-          <div className="mt-3 text-white text-lg sm:text-xl font-semibold tracking-tight">
+          <div className="mt-3 text-text-heading dark:text-white text-lg sm:text-xl font-semibold tracking-tight">
             Built on real outcomes, not vibes.
           </div>
         </motion.div>
@@ -135,16 +136,16 @@ export function HomeDataStats() {
                 visible: { opacity: 1, y: 0 },
               }}
               whileHover={shouldReduceMotion ? undefined : { y: -2 }}
-              className="rounded-2xl border border-white/10 bg-black/45 backdrop-blur-sm px-4 py-4"
+              className="rounded-2xl border border-border bg-canvas px-4 py-4 dark:border-white/10 dark:bg-black/45 dark:backdrop-blur-sm"
             >
               <div className="text-[#FFCF3F] text-xl sm:text-2xl font-semibold tracking-tight">
                 <CountUp value={s.value} />
               </div>
-              <div className="mt-1 text-white/90 text-sm font-medium">
+              <div className="mt-1 text-text-heading dark:text-white/90 text-sm font-medium">
                 {s.label}
               </div>
               {s.helper ? (
-                <div className="mt-1 text-white/60 text-xs leading-relaxed">
+                <div className="mt-1 text-text-body text-xs leading-relaxed dark:text-white/60">
                   {s.helper}
                 </div>
               ) : null}
@@ -155,5 +156,3 @@ export function HomeDataStats() {
     </section>
   );
 }
-
-

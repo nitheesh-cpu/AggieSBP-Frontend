@@ -53,8 +53,7 @@ export function HomePageMotion() {
       <div
         className="min-h-screen relative"
         style={{
-          background:
-            "linear-gradient(to bottom, #0f0f0f 0%, #140000 38%, #220000 64%, #330000 100%)",
+          background: "var(--app-bg-gradient)",
         }}
       >
         {/* Ambient background */}
@@ -65,8 +64,7 @@ export function HomePageMotion() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
           style={{
-            background:
-              "radial-gradient(900px 520px at 18% 12%, rgba(80, 0, 0, 0.14), transparent 62%), radial-gradient(740px 460px at 85% 22%, rgba(255, 207, 63, 0.08), transparent 62%)",
+            background: "var(--app-bg-ambient)",
           }}
         />
 

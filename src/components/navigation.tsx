@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
 import { usePathname } from "next/navigation";
+import { useTheme } from "next-themes";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface NavigationProps {
   className?: string;
@@ -16,6 +18,8 @@ export const Navigation = ({
   variant = "default",
 }: NavigationProps) => {
   const pathname = usePathname();
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme !== "light";
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const isOverlay = variant === "transparent" || variant === "glass";
   const style =
@@ -23,19 +27,26 @@ export const Navigation = ({
       ? { backgroundColor: "transparent", borderBottom: "none" }
       : variant === "glass"
         ? {
-            backgroundColor: "rgba(0, 0, 0, 0.82)",
-            borderBottom: "1px solid rgba(255, 207, 63, 0.5)",
+            backgroundColor: isDark
+              ? "rgba(0, 0, 0, 0.82)"
+              : "rgba(255, 255, 255, 0.82)",
+            borderBottom: isDark
+              ? "1px solid rgba(255, 207, 63, 0.5)"
+              : "1px solid rgba(80, 0, 0, 0.25)",
             backdropFilter: "blur(12px)",
             WebkitBackdropFilter: "blur(12px)",
           }
-        : { backgroundColor: "#000000", borderBottom: "2px solid #FFCF3F" };
+        : {
+            backgroundColor: isDark ? "#000000" : "#ffffff",
+            borderBottom: isDark ? "2px solid #FFCF3F" : "2px solid #500000",
+          };
 
   const linkClassName = isOverlay
-    ? "relative text-white/90 text-sm font-medium transition-all duration-normal ease-in-out hover:text-white group"
+    ? `relative ${isDark ? "text-white/90 hover:text-white" : "text-heading hover:text-heading"} text-sm font-medium transition-all duration-normal ease-in-out group`
     : "relative text-body text-sm font-medium transition-all duration-normal ease-in-out hover:text-heading group";
 
   const underlineClassName = isOverlay
-    ? "absolute -bottom-1 left-0 w-0 h-px bg-white transition-all duration-normal ease-in-out group-hover:w-full"
+    ? `absolute -bottom-1 left-0 w-0 h-px ${isDark ? "bg-white" : "bg-heading"} transition-all duration-normal ease-in-out group-hover:w-full`
     : "absolute -bottom-1 left-0 w-0 h-px bg-heading transition-all duration-normal ease-in-out group-hover:w-full";
 
   // Close the mobile menu on route change.
@@ -83,7 +94,7 @@ export const Navigation = ({
                 />
 
                 <span
-                  className={`text-xl font-semibold tracking-tight ${isOverlay ? "text-white" : "text-heading"}`}
+                  className={`text-xl font-semibold tracking-tight ${isOverlay ? (isDark ? "text-white" : "text-heading") : "text-heading"}`}
                   data-oid="riswfct"
                 >
                   AggieSB+
@@ -110,7 +121,11 @@ export const Navigation = ({
             </nav>
 
             {/* Desktop CTA */}
-            <div className="hidden md:flex items-center" data-oid="llrkwuz">
+            <div
+              className="hidden md:flex items-center gap-2"
+              data-oid="llrkwuz"
+            >
+              <ThemeToggle />
               <Link href="/compare">
                 <Button className="bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966] rounded-full px-6">
                   Start comparing
@@ -181,7 +196,7 @@ export const Navigation = ({
             {/* Panel */}
             <motion.div
               id="mobile-menu"
-              className="absolute top-16 left-0 right-0 border-b border-white/10 bg-black/85 backdrop-blur-md"
+              className={`absolute top-16 left-0 right-0 border-b ${isDark ? "border-white/10 bg-black/85" : "border-border bg-white/90"} backdrop-blur-md`}
               initial={{ y: -10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -10, opacity: 0 }}
@@ -193,13 +208,21 @@ export const Navigation = ({
                     key={item.name}
                     href={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="block text-white/90 hover:text-white text-base font-medium"
+                    className={`block ${isDark ? "text-white/90 hover:text-white" : "text-heading hover:text-heading"} text-base font-medium`}
                   >
                     {item.name}
                   </Link>
                 ))}
 
                 <div className="pt-2">
+                  <div className="flex items-center justify-between gap-3 pb-3">
+                    <span
+                      className={`text-sm ${isDark ? "text-white/70" : "text-body"}`}
+                    >
+                      Theme
+                    </span>
+                    <ThemeToggle />
+                  </div>
                   <Link
                     href="/compare"
                     onClick={() => setIsMobileMenuOpen(false)}

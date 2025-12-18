@@ -107,7 +107,7 @@ export const CourseTable: React.FC = () => {
       <div className="max-w-6xl mx-auto px-6" data-oid="7-_xf5i">
         <div className="max-w-md mx-auto" data-oid="qopl6by">
           <motion.h2
-            className="text-[20px] sm:text-[24px] md:text-[26px] text-white leading-[1.4] mb-2"
+            className="text-[20px] sm:text-[24px] md:text-[26px] text-text-heading dark:text-white leading-[1.4] mb-2"
             data-oid="dez3r-n"
             initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -117,7 +117,7 @@ export const CourseTable: React.FC = () => {
             Compare courses before you enroll
           </motion.h2>
           <motion.p
-            className="text-[11px] sm:text-[12px] text-white/80 mb-6"
+            className="text-[11px] sm:text-[12px] text-text-body dark:text-white/80 mb-6"
             data-oid="pjvgnwu"
             initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -128,7 +128,7 @@ export const CourseTable: React.FC = () => {
           </motion.p>
 
           <motion.div
-            className="relative rounded-2xl border border-[#4B5563] bg-black/60 px-4 pt-6 pb-4 shadow-[0_20px_40px_rgba(0,0,0,0.7)]"
+            className="relative rounded-2xl border border-border bg-card px-4 pt-6 pb-4 shadow-sm dark:border-[#4B5563] dark:bg-black/60 dark:shadow-[0_20px_40px_rgba(0,0,0,0.7)]"
             data-oid="dpyv23t"
           >
             <motion.div
@@ -145,7 +145,7 @@ export const CourseTable: React.FC = () => {
               {courseData.map((course, index) => (
                 <motion.div
                   key={index}
-                  className="flex items-center justify-between px-4 py-3 rounded-xl border border-[#4B5563] bg-black/70 hover:border-[#FFCF3F] transition-all duration-200 group cursor-pointer"
+                  className="flex items-center justify-between px-4 py-3 rounded-xl border border-border bg-canvas hover:border-[#FFCF3F] transition-all duration-200 group cursor-pointer dark:border-[#4B5563] dark:bg-black/70"
                   data-oid="wi27n:e"
                   variants={{
                     hidden: { opacity: 0, y: 12 },
@@ -164,10 +164,13 @@ export const CourseTable: React.FC = () => {
                       {course.icon}
                     </span>
                     <div>
-                      <div className="text-white" data-oid="v2lkzkk">
+                      <div
+                        className="text-text-heading dark:text-white"
+                        data-oid="v2lkzkk"
+                      >
                         {course.course}
                       </div>
-                      <div className="flex gap-4 mt-1 text-[10px] text-white/70">
+                      <div className="flex gap-4 mt-1 text-[10px] text-text-body dark:text-white/70">
                         <span data-oid="its91ip">GPA {course.avgGPA}</span>
                         <span data-oid="4gzf_j4">LOAD {course.workload}</span>
                       </div>
@@ -189,7 +192,7 @@ export const CourseTable: React.FC = () => {
             >
               <Button
                 variant="outline"
-                className="mt-2 w-full border-dashed border-[#4B5563] bg-transparent text-white hover:bg-black/60"
+                className="mt-2 w-full border-dashed border-border bg-transparent text-text-heading hover:bg-button-hover dark:border-[#4B5563] dark:text-white dark:hover:bg-black/60"
                 data-oid="y197u7a"
               >
                 Try a sample search

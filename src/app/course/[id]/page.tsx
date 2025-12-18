@@ -152,8 +152,16 @@ export default function CoursePage({ params }: CoursePageProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-canvas">
-        <Navigation />
+      <div
+        className="min-h-screen relative"
+        style={{ background: "var(--app-bg-gradient)" }}
+      >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{ background: "var(--app-bg-ambient)" }}
+        />
+        <Navigation variant="glass" />
         <main className="pt-24 pb-20">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center py-12">
@@ -168,8 +176,16 @@ export default function CoursePage({ params }: CoursePageProps) {
 
   if (error || !courseData) {
     return (
-      <div className="min-h-screen bg-canvas">
-        <Navigation />
+      <div
+        className="min-h-screen relative"
+        style={{ background: "var(--app-bg-gradient)" }}
+      >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{ background: "var(--app-bg-ambient)" }}
+        />
+        <Navigation variant="glass" />
         <main className="pt-24 pb-20">
           <div className="max-w-7xl mx-auto px-6">
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
@@ -189,10 +205,18 @@ export default function CoursePage({ params }: CoursePageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-canvas">
-      <Navigation />
+    <div
+      className="min-h-screen relative"
+      style={{ background: "var(--app-bg-gradient)" }}
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{ background: "var(--app-bg-ambient)" }}
+      />
+      <Navigation variant="glass" />
 
-      <main className="pt-24 pb-20">
+      <main className="pt-24 pb-20 relative z-10">
         <div className="max-w-7xl mx-auto px-6">
           {/* Breadcrumb */}
           <div>

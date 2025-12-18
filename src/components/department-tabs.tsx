@@ -46,6 +46,11 @@ export const DepartmentTabs = () => {
   return (
     <section className="w-full py-20" data-oid="ffx4gjv">
       <div className="max-w-6xl mx-auto px-6">
+        <div className="text-center mb-6">
+          <div className="text-text-body text-[12px] sm:text-[13px] tracking-wide dark:text-white/80">
+            Pick a department to jump into its courses.
+          </div>
+        </div>
         <motion.div
           className="flex flex-wrap justify-center gap-6"
           data-oid="o3ha5rp"
@@ -67,8 +72,8 @@ export const DepartmentTabs = () => {
                 onMouseLeave={() => setHoveredTab(null)}
                 className={`inline-flex items-center justify-center min-w-[120px] px-8 py-4 rounded-xl border transition-all duration-[220ms] ease-out cursor-pointer select-none ${
                   hoveredTab === department.id
-                    ? "border-[#FFCF3F] bg-black/75"
-                    : "border-[#4B5563] bg-black/45"
+                    ? "border-[#FFCF3F] bg-card dark:bg-black/75"
+                    : "border-border bg-card dark:border-[#4B5563] dark:bg-black/45"
                 }`}
                 data-oid="jj0_m:8"
                 variants={{
@@ -80,7 +85,7 @@ export const DepartmentTabs = () => {
                 }
                 whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
               >
-                <span className="tracking-[0.18em] text-white text-[11px] font-medium">
+                <span className="tracking-[0.18em] text-text-heading text-[11px] font-medium dark:text-white">
                   {department.label}
                 </span>
               </motion.span>

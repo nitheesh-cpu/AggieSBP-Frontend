@@ -48,7 +48,7 @@ function CourseComparisonPageContent() {
       try {
         setLoading(true);
         const cleanedCourses = selectedCourses.map((course) =>
-          course.replace(/\s+/g, ""),
+          course.replace(/\s+/g, "")
         );
         const courseData = await compareCourses(cleanedCourses);
         setCourses(courseData);
@@ -58,7 +58,7 @@ function CourseComparisonPageContent() {
         setError(
           err instanceof Error
             ? err.message
-            : "Failed to load course comparison",
+            : "Failed to load course comparison"
         );
       } finally {
         setLoading(false);
@@ -146,8 +146,16 @@ function CourseComparisonPageContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-canvas">
-        <Navigation />
+      <div
+        className="min-h-screen relative"
+        style={{ background: "var(--app-bg-gradient)" }}
+      >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{ background: "var(--app-bg-ambient)" }}
+        />
+        <Navigation variant="glass" />
         <main className="pt-24 pb-20">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center py-16">
@@ -166,8 +174,16 @@ function CourseComparisonPageContent() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-canvas">
-        <Navigation />
+      <div
+        className="min-h-screen relative"
+        style={{ background: "var(--app-bg-gradient)" }}
+      >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{ background: "var(--app-bg-ambient)" }}
+        />
+        <Navigation variant="glass" />
         <main className="pt-24 pb-20">
           <div className="max-w-7xl mx-auto px-6">
             <Card className="max-w-2xl mx-auto mt-16 p-8 text-center bg-red-50 border-red-200">
@@ -196,10 +212,18 @@ function CourseComparisonPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-canvas">
-      <Navigation />
+    <div
+      className="min-h-screen relative"
+      style={{ background: "var(--app-bg-gradient)" }}
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{ background: "var(--app-bg-ambient)" }}
+      />
+      <Navigation variant="glass" />
 
-      <main className="pt-24 pb-20">
+      <main className="pt-24 pb-20 relative z-10">
         <div className="max-w-7xl mx-auto px-6">
           {/* Enhanced Header */}
           <div className="mb-12">
@@ -407,7 +431,7 @@ function CourseComparisonPageContent() {
                           </span>
                           <Badge
                             className={getDifficultyBadgeColor(
-                              course.difficulty,
+                              course.difficulty
                             )}
                           >
                             <Zap className="w-3 h-3 mr-1" />
@@ -566,7 +590,7 @@ function CourseComparisonPageContent() {
                             <td key={course.code} className="p-4 text-center">
                               <Badge
                                 className={getDifficultyBadgeColor(
-                                  course.difficulty,
+                                  course.difficulty
                                 )}
                               >
                                 {course.difficulty}
@@ -691,7 +715,7 @@ function CourseComparisonPageContent() {
                                             {percentage}%
                                           </div>
                                         </div>
-                                      ),
+                                      )
                                     )}
                                   </div>
                                 </div>
@@ -843,7 +867,7 @@ function CourseComparisonPageContent() {
                                   courses.find(
                                     (c) =>
                                       getDifficultyScore(c.difficulty) ===
-                                      courseAnalysis.easiestDifficulty,
+                                      courseAnalysis.easiestDifficulty
                                   )?.code
                                 }{" "}
                                 - Best for maintaining high GPA
@@ -860,7 +884,7 @@ function CourseComparisonPageContent() {
                                 {
                                   courses.find(
                                     (c) =>
-                                      c.rating === courseAnalysis.bestRating,
+                                      c.rating === courseAnalysis.bestRating
                                   )?.code
                                 }{" "}
                                 - Students love this course
@@ -876,7 +900,7 @@ function CourseComparisonPageContent() {
                               <p className="text-sm text-body">
                                 {
                                   courses.find(
-                                    (c) => c.avgGPA === courseAnalysis.bestGPA,
+                                    (c) => c.avgGPA === courseAnalysis.bestGPA
                                   )?.code
                                 }{" "}
                                 - Historically strong performance
@@ -894,7 +918,7 @@ function CourseComparisonPageContent() {
                                   courses.find(
                                     (c) =>
                                       c.enrollment ===
-                                      courseAnalysis.highestEnrollment,
+                                      courseAnalysis.highestEnrollment
                                   )?.code
                                 }{" "}
                                 - High student demand

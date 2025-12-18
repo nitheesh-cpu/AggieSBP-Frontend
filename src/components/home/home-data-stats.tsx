@@ -138,7 +138,7 @@ export function HomeDataStats() {
               whileHover={shouldReduceMotion ? undefined : { y: -2 }}
               className="rounded-2xl border border-border bg-canvas px-4 py-4 dark:border-white/10 dark:bg-black/45 dark:backdrop-blur-sm"
             >
-              <div className="text-[#FFCF3F] text-xl sm:text-2xl font-semibold tracking-tight">
+              <div className="text-accent text-xl sm:text-2xl font-semibold tracking-tight">
                 <CountUp value={s.value} />
               </div>
               <div className="mt-1 text-text-heading dark:text-white/90 text-sm font-medium">

@@ -36,7 +36,7 @@ export function ComparisonWidget() {
     <>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <BarChart3 className="w-5 h-5 text-[#500000]" />
+          <BarChart3 className="w-5 h-5 text-accent" />
           <span className="font-semibold text-text-heading">
             Compare Courses ({selectedCourses.length}/4)
           </span>

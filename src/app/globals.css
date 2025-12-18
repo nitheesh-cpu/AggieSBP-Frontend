@@ -18,6 +18,8 @@
   --color-accent-yellow: #f59e0b;
   --color-accent-magenta: #ec4899;
   --color-accent-maroon: #500000;
+  /* Primary accent (light = maroon, dark = gold) */
+  --color-accent-primary: #500000;
   --color-maroon-light: #722f37;
   --color-maroon-dark: #330000;
 
@@ -117,6 +119,7 @@
   --color-text-body: #e6e6e6;
   --color-text-heading: #ffffff;
   --color-button-hover: rgba(80, 0, 0, 0.08);
+  --color-accent-primary: #ffcf3f;
   --shadow-lg: 0 8px 24px 32px rgba(0, 0, 0, 0.6);
 
   /* App backgrounds (dark) */
@@ -276,6 +279,14 @@
 
   .text-maroon-light {
     color: var(--color-maroon-light);
+  }
+
+  .text-accent {
+    color: var(--color-accent-primary);
+  }
+
+  .border-accent {
+    border-color: var(--color-accent-primary);
   }
 
   .border-canvas {

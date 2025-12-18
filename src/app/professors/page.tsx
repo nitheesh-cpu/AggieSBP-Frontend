@@ -329,11 +329,11 @@ export default function ProfessorsPage() {
                       className="rounded-2xl border border-border bg-card px-4 py-4 dark:border-white/10 dark:bg-black/45 dark:backdrop-blur-sm"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-canvas border border-border flex items-center justify-center text-[#FFCF3F] dark:bg-white/10 dark:border-white/10">
+                        <div className="h-10 w-10 rounded-xl bg-canvas border border-border flex items-center justify-center text-accent dark:bg-white/10 dark:border-white/10">
                           <StatIcon className="w-5 h-5" />
                         </div>
                         <div>
-                          <div className="text-[#FFCF3F] text-xl sm:text-2xl font-semibold tracking-tight">
+                          <div className="text-accent text-xl sm:text-2xl font-semibold tracking-tight">
                             <CountUpNumber
                               value={s.value}
                               decimals={s.decimals}
@@ -477,12 +477,12 @@ export default function ProfessorsPage() {
 
                       <div className="flex items-start justify-between mb-4 relative">
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-12 h-12 rounded-xl bg-canvas border border-border flex items-center justify-center text-[#FFCF3F] dark:bg-white/10 dark:border-white/10">
+                          <div className="w-12 h-12 rounded-xl bg-canvas border border-border flex items-center justify-center text-accent dark:bg-white/10 dark:border-white/10">
                             <User className="w-6 h-6" />
                           </div>
                           <div className="min-w-0">
                             <Link href={`/professor/${professor.id}`}>
-                              <h3 className="font-semibold text-text-heading hover:text-[#FFCF3F] transition-colors truncate dark:text-white">
+                              <h3 className="font-semibold text-text-heading hover:text-accent transition-colors truncate dark:text-white">
                                 {professor.name}
                               </h3>
                             </Link>
@@ -496,7 +496,7 @@ export default function ProfessorsPage() {
                             Overall Rating
                           </span>
                           <div className="flex items-center gap-1">
-                            <Star className="w-4 h-4 text-[#FFCF3F] fill-current" />
+                            <Star className="w-4 h-4 text-accent fill-current" />
                             <span className="font-medium text-text-heading dark:text-white">
                               {professor.overall_rating
                                 ? professor.overall_rating.toFixed(1)
@@ -513,7 +513,7 @@ export default function ProfessorsPage() {
                             Courses Taught
                           </span>
                           <div className="flex items-center gap-1 text-text-body dark:text-white/80">
-                            <BookOpen className="w-4 h-4 text-[#FFCF3F]" />
+                            <BookOpen className="w-4 h-4 text-accent" />
                             <span className="font-medium text-text-heading dark:text-white">
                               {professor.courses_taught.length}
                             </span>

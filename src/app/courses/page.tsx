@@ -649,46 +649,277 @@ function CoursesPageContent() {
   };
 
   const getDepartmentColor = (deptName: string) => {
-    if (deptName === "All")
-      return "bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-500 dark:to-pink-500";
+    if (deptName === "All") return "bg-purple-700 dark:bg-purple-600";
 
     const colorMap: { [key: string]: string } = {
-      ACCT: "bg-gradient-to-r from-yellow-600 to-orange-600 dark:from-yellow-500 dark:to-orange-500",
-      MATH: "bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-500 dark:to-purple-500",
-      MEEN: "bg-gradient-to-r from-gray-600 to-slate-700 dark:from-gray-500 dark:to-slate-600",
-      CSCE: "bg-gradient-to-r from-blue-600 to-cyan-600 dark:from-blue-500 dark:to-cyan-500",
-      BUAD: "bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-500 dark:to-teal-500",
-      CVEN: "bg-gradient-to-r from-orange-600 to-red-600 dark:from-orange-500 dark:to-red-500",
-      CHEM: "bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-500 dark:to-emerald-500",
-      FINC: "bg-gradient-to-r from-green-700 to-lime-600 dark:from-green-600 dark:to-lime-500",
-      STAT: "bg-gradient-to-r from-purple-700 to-indigo-600 dark:from-purple-600 dark:to-indigo-500",
-      COSC: "bg-gradient-to-r from-amber-600 to-yellow-600 dark:from-amber-500 dark:to-yellow-500",
-      PHAR: "bg-gradient-to-r from-blue-700 to-purple-600 dark:from-blue-600 dark:to-purple-500",
-      NURS: "bg-gradient-to-r from-red-600 to-pink-600 dark:from-red-500 dark:to-pink-500",
-      PETE: "bg-gradient-to-r from-amber-700 to-orange-700 dark:from-amber-600 dark:to-orange-600",
-      ECON: "bg-gradient-to-r from-yellow-700 to-amber-600 dark:from-yellow-600 dark:to-amber-500",
-      ANSC: "bg-gradient-to-r from-emerald-700 to-green-600 dark:from-emerald-600 dark:to-green-500",
+      // Accounting & Business
+      ACCT: "bg-yellow-600 dark:bg-yellow-500 text-white",
+      BUAD: "bg-blue-600 dark:bg-blue-500 text-white",
+      BUSN: "bg-indigo-600 dark:bg-indigo-500 text-white",
+      FINC: "bg-green-600 dark:bg-green-500 text-white",
+      FINP: "bg-emerald-600 dark:bg-emerald-500 text-white",
+      MGMT: "bg-purple-600 dark:bg-purple-500 text-white",
+      MKTG: "bg-pink-600 dark:bg-pink-500 text-white",
+      SCMT: "bg-orange-600 dark:bg-orange-500 text-white",
+      ECON: "bg-yellow-600 dark:bg-yellow-500 text-white",
+      IBUS: "bg-blue-600 dark:bg-blue-500 text-white",
+      ISTM: "bg-cyan-600 dark:bg-cyan-500 text-white",
+      IDIS: "bg-gray-600 dark:bg-gray-500 text-white",
+
+      // Engineering
+      CSCE: "bg-blue-600 dark:bg-blue-500 text-white",
+      ECEN: "bg-yellow-600 dark:bg-yellow-500 text-white",
+      MEEN: "bg-gray-600 dark:bg-gray-500 text-white",
+      CVEN: "bg-orange-600 dark:bg-orange-500 text-white",
+      CHEN: "bg-green-600 dark:bg-green-500 text-white",
+      AERO: "bg-sky-600 dark:bg-sky-500 text-white",
+      PETE: "bg-amber-600 dark:bg-amber-500 text-white",
+      NUEN: "bg-red-600 dark:bg-red-500 text-white",
+      BMEN: "bg-rose-600 dark:bg-rose-500 text-white",
+      ISEN: "bg-purple-600 dark:bg-purple-500 text-white",
+      OCEN: "bg-cyan-600 dark:bg-cyan-500 text-white",
+      ENGR: "bg-slate-600 dark:bg-slate-500 text-white",
+      BAEN: "bg-green-600 dark:bg-green-500 text-white",
+      EVEN: "bg-emerald-600 dark:bg-emerald-500 text-white",
+      MSEN: "bg-indigo-600 dark:bg-indigo-500 text-white",
+      AREN: "bg-blue-600 dark:bg-blue-500 text-white",
+      SENG: "bg-red-600 dark:bg-red-500 text-white",
+      SSEN: "bg-blue-600 dark:bg-blue-500 text-white",
+      CLEN: "bg-gray-600 dark:bg-gray-500 text-white",
+      ENDG: "bg-purple-600 dark:bg-purple-500 text-white",
+      ENDS: "bg-green-600 dark:bg-green-500 text-white",
+      ENTC: "bg-orange-600 dark:bg-orange-500 text-white",
+      ESET: "bg-blue-600 dark:bg-blue-500 text-white",
+      MMET: "bg-gray-600 dark:bg-gray-500 text-white",
+      MXET: "bg-purple-600 dark:bg-purple-500 text-white",
+      ITDE: "bg-cyan-600 dark:bg-cyan-500 text-white",
+      MTDE: "bg-indigo-600 dark:bg-indigo-500 text-white",
+      DAEN: "bg-blue-600 dark:bg-blue-500 text-white",
+
+      // Sciences
+      MATH: "bg-indigo-600 dark:bg-indigo-500 text-white",
+      STAT: "bg-purple-600 dark:bg-purple-500 text-white",
+      CHEM: "bg-green-600 dark:bg-green-500 text-white",
+      BIOL: "bg-emerald-600 dark:bg-emerald-500 text-white",
+      PHYS: "bg-purple-600 dark:bg-purple-500 text-white",
+      GEOL: "bg-amber-600 dark:bg-amber-500 text-white",
+      GEOG: "bg-blue-600 dark:bg-blue-500 text-white",
+      GEOS: "bg-emerald-600 dark:bg-emerald-500 text-white",
+      GEOP: "bg-orange-600 dark:bg-orange-500 text-white",
+      ASTR: "bg-indigo-600 dark:bg-indigo-500 text-white",
+      ATMO: "bg-cyan-600 dark:bg-cyan-500 text-white",
+      OCNG: "bg-blue-600 dark:bg-blue-500 text-white",
+      BICH: "bg-green-600 dark:bg-green-500 text-white",
+      GENE: "bg-red-600 dark:bg-red-500 text-white",
+      BIMS: "bg-blue-600 dark:bg-blue-500 text-white",
+      BIOT: "bg-purple-600 dark:bg-purple-500 text-white",
+      EEBL: "bg-green-600 dark:bg-green-500 text-white",
+      ECCB: "bg-emerald-600 dark:bg-emerald-500 text-white",
+      BESC: "bg-teal-600 dark:bg-teal-500 text-white",
+      ENSS: "bg-green-600 dark:bg-green-500 text-white",
+      WMHS: "bg-cyan-600 dark:bg-cyan-500 text-white",
+      ANLY: "bg-blue-600 dark:bg-blue-500 text-white",
+      MASC: "bg-purple-600 dark:bg-purple-500 text-white",
+
+      // Medical & Health
+      NURS: "bg-red-600 dark:bg-red-500 text-white",
+      HLTH: "bg-blue-600 dark:bg-blue-500 text-white",
+      HBEH: "bg-pink-600 dark:bg-pink-500 text-white",
+      KINE: "bg-orange-600 dark:bg-orange-500 text-white",
+      ATTR: "bg-green-600 dark:bg-green-500 text-white",
+      NUTR: "bg-red-600 dark:bg-red-500 text-white",
+      PHAR: "bg-blue-600 dark:bg-blue-500 text-white",
+      PHSC: "bg-purple-600 dark:bg-purple-500 text-white",
+      MPHY: "bg-red-600 dark:bg-red-500 text-white",
+      MSCI: "bg-cyan-600 dark:bg-cyan-500 text-white",
+      MCMD: "bg-green-600 dark:bg-green-500 text-white",
+      PHLT: "bg-emerald-600 dark:bg-emerald-500 text-white",
+      PHEB: "bg-blue-600 dark:bg-blue-500 text-white",
+      PHEO: "bg-green-600 dark:bg-green-500 text-white",
+      PHPM: "bg-purple-600 dark:bg-purple-500 text-white",
+      SOPH: "bg-blue-600 dark:bg-blue-500 text-white",
+      HCPI: "bg-red-600 dark:bg-red-500 text-white",
+      EDHP: "bg-teal-600 dark:bg-teal-500 text-white",
+      IBST: "bg-indigo-600 dark:bg-indigo-500 text-white",
+      FIVS: "bg-purple-600 dark:bg-purple-500 text-white",
+      FORS: "bg-gray-600 dark:bg-gray-500 text-white",
+      NRSC: "bg-pink-600 dark:bg-pink-500 text-white",
+      NEXT: "bg-indigo-600 dark:bg-indigo-500 text-white",
+      PBSI: "bg-purple-600 dark:bg-purple-500 text-white",
+
+      // Dental
+      AEGD: "bg-blue-600 dark:bg-blue-500 text-white",
+      ENDO: "bg-green-600 dark:bg-green-500 text-white",
+      ORTH: "bg-purple-600 dark:bg-purple-500 text-white",
+      PEDD: "bg-pink-600 dark:bg-pink-500 text-white",
+      PERI: "bg-orange-600 dark:bg-orange-500 text-white",
+      PROS: "bg-cyan-600 dark:bg-cyan-500 text-white",
+      OMFP: "bg-red-600 dark:bg-red-500 text-white",
+      OMFR: "bg-indigo-600 dark:bg-indigo-500 text-white",
+      OMFS: "bg-amber-600 dark:bg-amber-500 text-white",
+      OBIO: "bg-emerald-600 dark:bg-emerald-500 text-white",
+      DDHS: "bg-teal-600 dark:bg-teal-500 text-white",
+      DPHS: "bg-blue-600 dark:bg-blue-500 text-white",
+
+      // Veterinary
+      VIBS: "bg-amber-600 dark:bg-amber-500 text-white",
+      VLCS: "bg-amber-600 dark:bg-amber-500 text-white",
+      VSCS: "bg-green-600 dark:bg-green-500 text-white",
+      VMID: "bg-red-600 dark:bg-red-500 text-white",
+      VPAR: "bg-purple-600 dark:bg-purple-500 text-white",
+      VPAT: "bg-blue-600 dark:bg-blue-500 text-white",
+      VTMI: "bg-cyan-600 dark:bg-cyan-500 text-white",
+      VTPB: "bg-emerald-600 dark:bg-emerald-500 text-white",
+      VTPP: "bg-pink-600 dark:bg-pink-500 text-white",
+
+      // Agriculture & Life Sciences
+      AGEC: "bg-green-600 dark:bg-green-500 text-white",
+      AGLS: "bg-emerald-600 dark:bg-emerald-500 text-white",
+      AGSC: "bg-green-600 dark:bg-green-500 text-white",
+      AGSM: "bg-amber-600 dark:bg-amber-500 text-white",
+      ANSC: "bg-amber-600 dark:bg-amber-500 text-white",
+      HORT: "bg-pink-600 dark:bg-pink-500 text-white",
+      POSC: "bg-yellow-600 dark:bg-yellow-500 text-white",
+      RWFM: "bg-green-600 dark:bg-green-500 text-white",
+      SCSC: "bg-amber-600 dark:bg-amber-500 text-white",
+      FSTC: "bg-red-600 dark:bg-red-500 text-white",
+      CULN: "bg-orange-600 dark:bg-orange-500 text-white",
+      MEPS: "bg-emerald-600 dark:bg-emerald-500 text-white",
+      PLPA: "bg-green-600 dark:bg-green-500 text-white",
+      ENTO: "bg-amber-600 dark:bg-amber-500 text-white",
+      ALEC: "bg-blue-600 dark:bg-blue-500 text-white",
+      ALED: "bg-green-600 dark:bg-green-500 text-white",
+      AGCJ: "bg-cyan-600 dark:bg-cyan-500 text-white",
+
+      // Liberal Arts & Humanities
+      ENGL: "bg-pink-600 dark:bg-pink-500 text-white",
+      HIST: "bg-amber-600 dark:bg-amber-500 text-white",
+      PHIL: "bg-purple-600 dark:bg-purple-500 text-white",
+      SPAN: "bg-red-600 dark:bg-red-500 text-white",
+      FREN: "bg-blue-600 dark:bg-blue-500 text-white",
+      GERM: "bg-gray-600 dark:bg-gray-500 text-white",
+      CHIN: "bg-yellow-600 dark:bg-yellow-500 text-white",
+      JAPN: "bg-pink-600 dark:bg-pink-500 text-white",
+      ARAB: "bg-green-600 dark:bg-green-500 text-white",
+      ITAL: "bg-green-600 dark:bg-green-500 text-white",
+      RUSS: "bg-red-600 dark:bg-red-500 text-white",
+      MODL: "bg-purple-600 dark:bg-purple-500 text-white",
+      CLAS: "bg-amber-600 dark:bg-amber-500 text-white",
+      RELS: "bg-purple-600 dark:bg-purple-500 text-white",
+      AFST: "bg-orange-600 dark:bg-orange-500 text-white",
+      ASIA: "bg-red-600 dark:bg-red-500 text-white",
+      HISP: "bg-orange-600 dark:bg-orange-500 text-white",
+      WGST: "bg-pink-600 dark:bg-pink-500 text-white",
+      DHUM: "bg-cyan-600 dark:bg-cyan-500 text-white",
+
+      // Social Sciences
+      POLS: "bg-red-600 dark:bg-red-500 text-white",
+      SOCI: "bg-blue-600 dark:bg-blue-500 text-white",
+      ANTH: "bg-amber-600 dark:bg-amber-500 text-white",
+      CPSY: "bg-teal-600 dark:bg-teal-500 text-white",
+      EPSY: "bg-purple-600 dark:bg-purple-500 text-white",
+      SPSY: "bg-pink-600 dark:bg-pink-500 text-white",
+      GLST: "bg-blue-600 dark:bg-blue-500 text-white",
+      INTA: "bg-green-600 dark:bg-green-500 text-white",
+
+      // Fine Arts
+      ARTS: "bg-violet-600 dark:bg-violet-500 text-white",
+      MUSC: "bg-indigo-600 dark:bg-indigo-500 text-white",
+      THEA: "bg-pink-600 dark:bg-pink-500 text-white",
+      DCED: "bg-purple-600 dark:bg-purple-500 text-white",
+      PVFA: "bg-cyan-600 dark:bg-cyan-500 text-white",
+      VIST: "bg-blue-600 dark:bg-blue-500 text-white",
+      VIZA: "bg-green-600 dark:bg-green-500 text-white",
+      PERF: "bg-orange-600 dark:bg-orange-500 text-white",
+      MSTC: "bg-purple-600 dark:bg-purple-500 text-white",
+      FILM: "bg-gray-600 dark:bg-gray-500 text-white",
+
+      // Architecture & Planning
+      ARCH: "bg-gray-600 dark:bg-gray-500 text-white",
+      CARC: "bg-blue-600 dark:bg-blue-500 text-white",
+      LAND: "bg-green-600 dark:bg-green-500 text-white",
+      PLAN: "bg-purple-600 dark:bg-purple-500 text-white",
+      URPN: "bg-amber-600 dark:bg-amber-500 text-white",
+      URSC: "bg-cyan-600 dark:bg-cyan-500 text-white",
+      COSC: "bg-orange-600 dark:bg-orange-500 text-white",
+      LDEV: "bg-emerald-600 dark:bg-emerald-500 text-white",
+
+      // Education
+      EDCI: "bg-blue-600 dark:bg-blue-500 text-white",
+      EDAD: "bg-purple-600 dark:bg-purple-500 text-white",
+      TEED: "bg-green-600 dark:bg-green-500 text-white",
+      SPED: "bg-pink-600 dark:bg-pink-500 text-white",
+      RDNG: "bg-cyan-600 dark:bg-cyan-500 text-white",
+      LDTC: "bg-indigo-600 dark:bg-indigo-500 text-white",
+      EHRD: "bg-amber-600 dark:bg-amber-500 text-white",
+      CEHD: "bg-emerald-600 dark:bg-emerald-500 text-white",
+      BEFB: "bg-orange-600 dark:bg-orange-500 text-white",
+      BESL: "bg-yellow-600 dark:bg-yellow-500 text-white",
+      MEFB: "bg-purple-600 dark:bg-purple-500 text-white",
+      SEFB: "bg-red-600 dark:bg-red-500 text-white",
+      TEFB: "bg-blue-600 dark:bg-blue-500 text-white",
+      ECDE: "bg-pink-600 dark:bg-pink-500 text-white",
+
+      // Communication & Journalism
+      COMM: "bg-blue-600 dark:bg-blue-500 text-white",
+      JOUR: "bg-gray-600 dark:bg-gray-500 text-white",
+
+      // Military & Defense
+      MLSC: "bg-green-600 dark:bg-green-500 text-white",
+      AERS: "bg-sky-600 dark:bg-sky-500 text-white",
+      NVSC: "bg-blue-600 dark:bg-blue-500 text-white",
+      SOMS: "bg-red-600 dark:bg-red-500 text-white",
+
+      // Law & Government
+      LAW: "bg-purple-600 dark:bg-purple-500 text-white",
+      BUSH: "bg-blue-600 dark:bg-blue-500 text-white",
+      PSAA: "bg-green-600 dark:bg-green-500 text-white",
+
+      // Recreation & Tourism
+      RPTS: "bg-emerald-100 text-emerald-600",
+      HMGT: "bg-orange-100 text-orange-600",
+      SPMT: "bg-red-100 text-red-600",
+
+      // Technology & Information Systems
+      TCMG: "bg-blue-100 text-blue-600",
+      TCMT: "bg-purple-100 text-purple-600",
+      ITSV: "bg-cyan-100 text-cyan-600",
+
+      // Energy
+      ENGY: "bg-yellow-100 text-yellow-600",
+
+      // Economics & Finance
+      ECMT: "bg-indigo-100 text-indigo-600",
+
+      // General/Administrative
+      ARSC: "bg-gray-100 text-gray-600",
+      HONR: "bg-yellow-100 text-yellow-600",
+      UGST: "bg-blue-100 text-blue-600",
+      FYEX: "bg-green-100 text-green-600",
+      SYEX: "bg-purple-100 text-purple-600",
+      ASCC: "bg-cyan-100 text-cyan-600",
+      INST: "bg-amber-100 text-amber-600",
+      SABR: "bg-emerald-100 text-emerald-600",
+      NSEB: "bg-orange-100 text-orange-600",
+      TAMU: "bg-maroon-100 text-maroon-600",
     };
 
     const deptCode = deptName.split(" - ")[0];
-    return (
-      colorMap[deptCode] ||
-      "bg-gradient-to-r from-gray-600 to-slate-600 dark:from-gray-500 dark:to-slate-500"
-    );
+    return colorMap[deptCode] || "bg-slate-700 dark:bg-slate-600";
   };
 
   const getCourseTagColor = (tag: string) => {
     switch (tag.toLowerCase()) {
       case "undergraduate":
-        return "bg-gradient-to-r from-blue-600 to-cyan-600 dark:from-blue-500/50 dark:to-cyan-500/50 text-white border-transparent";
+        return "bg-blue-700 dark:bg-blue-600 text-white border-transparent";
       case "advanced":
-        return "bg-gradient-to-r from-orange-600 to-red-600 dark:from-orange-500/50 dark:to-red-500/50 text-white border-transparent";
+        return "bg-orange-700 dark:bg-orange-600 text-white border-transparent";
       case "graduate":
-        return "bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-500/50 dark:to-indigo-500/50 text-white border-transparent";
+        return "bg-purple-700 dark:bg-purple-600 text-white border-transparent";
       case "honors":
-        return "bg-gradient-to-r from-yellow-600 to-amber-600 dark:from-yellow-500/50 dark:to-amber-500/50 text-white border-transparent";
+        return "bg-amber-700 dark:bg-amber-600 text-white border-transparent";
       case "distance education":
-        return "bg-gradient-to-r from-slate-600 to-gray-600 dark:from-slate-500/50 dark:to-gray-500/50 text-white border-transparent";
+        return "bg-slate-700 dark:bg-slate-600 text-white border-transparent";
       default:
         return "border-gray-400 dark:border-gray-600 bg-gray-100 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300";
     }
@@ -752,7 +983,7 @@ function CoursesPageContent() {
             <div className="max-w-7xl mx-auto px-6">
               <Card className="p-8 bg-card border-border dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm">
                 <div className="text-center text-text-body dark:text-white/70">
-                  <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-[#FFCF3F]" />
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-accent" />
                   Loading courses...
                 </div>
               </Card>
@@ -816,7 +1047,7 @@ function CoursesPageContent() {
                 <div className="relative max-w-lg mx-auto mt-8">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-body/70 w-5 h-5 dark:text-white/60" />
                   {searchTerm !== debouncedSearchTerm && (
-                    <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-[#FFCF3F]" />
+                    <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-accent" />
                   )}
                   <Input
                     type="text"
@@ -880,11 +1111,11 @@ function CoursesPageContent() {
                       className="rounded-2xl border border-border bg-card px-4 py-4 dark:border-white/10 dark:bg-black/45 dark:backdrop-blur-sm"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-canvas border border-border flex items-center justify-center text-[#FFCF3F] dark:bg-white/10 dark:border-white/10">
+                        <div className="h-10 w-10 rounded-xl bg-canvas border border-border flex items-center justify-center text-accent dark:bg-white/10 dark:border-white/10">
                           <StatIcon className="w-5 h-5" />
                         </div>
                         <div>
-                          <div className="text-[#FFCF3F] text-xl sm:text-2xl font-semibold tracking-tight">
+                          <div className="text-accent text-xl sm:text-2xl font-semibold tracking-tight">
                             <CountUpNumber
                               value={s.value}
                               decimals={s.decimals}
@@ -905,9 +1136,14 @@ function CoursesPageContent() {
           {/* Error Message */}
           {error && (
             <div className="max-w-7xl mx-auto px-6 mb-8">
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                Error loading courses: {error}
-              </div>
+              <Card className="p-8 rounded-2xl shadow-none bg-red-50 border border-red-200">
+                <div className="text-center">
+                  <div className="text-red-700 font-semibold mb-2">
+                    Error loading courses
+                  </div>
+                  <div className="text-sm text-red-700">{error}</div>
+                </div>
+              </Card>
             </div>
           )}
 
@@ -1016,8 +1252,8 @@ function CoursesPageContent() {
                           className={`${
                             selectedSectionAttributes.includes(filter.id)
                               ? `${filter.color} ${filter.hoverColor} text-white border-transparent`
-                              : "border-border hover:bg-button-hover"
-                          } transition-all duration-200 flex-shrink-0`}
+                              : "border-border hover:bg-button-hover dark:border-white/15 dark:bg-black/20 dark:text-white dark:hover:bg-black/35 dark:hover:text-white"
+                          } transition-all duration-200 flex-shrink-0 rounded-full`}
                         >
                           <Icon className="w-4 h-4 mr-2" />
                           {filter.label}
@@ -1029,7 +1265,7 @@ function CoursesPageContent() {
 
                 {/* Department Filter */}
                 <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-text-heading mb-3">
+                  <h3 className="text-lg font-semibold text-text-heading dark:text-white mb-3">
                     Departments
                   </h3>
                   <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto md:max-h-none md:overflow-visible">
@@ -1037,10 +1273,10 @@ function CoursesPageContent() {
                       <Badge
                         key={deptName}
                         variant="outline"
-                        className={`cursor-pointer transition-all duration-200 flex-shrink-0 ${
+                        className={`cursor-pointer transition-all duration-200 flex-shrink-0 rounded-full ${
                           selectedDepartment === deptName
                             ? `${getDepartmentColor(deptName)} text-white border-transparent hover:opacity-90`
-                            : "border-border hover:bg-button-hover"
+                            : "border-border hover:bg-button-hover dark:border-white/15 dark:bg-black/20 dark:text-white dark:hover:bg-black/35"
                         }`}
                         onClick={() => setSelectedDepartment(deptName)}
                       >
@@ -1057,7 +1293,7 @@ function CoursesPageContent() {
           <div className="max-w-7xl mx-auto px-6">
             {isLoadingAll ? (
               <div className="text-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-[#FFCF3F]" />
+                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-accent" />
                 <div className="text-white/70">Loading courses...</div>
               </div>
             ) : (
@@ -1137,7 +1373,7 @@ function CoursesPageContent() {
                           </div>
                           <div className="text-right">
                             <div className="flex items-center gap-1 mb-1">
-                              <Star className="w-4 h-4 text-[#FFCF3F] fill-current" />
+                              <Star className="w-4 h-4 text-accent fill-current" />
                               <span className="text-sm font-medium text-text-heading dark:text-white">
                                 {course.rating.toFixed(1)}
                               </span>
@@ -1151,7 +1387,7 @@ function CoursesPageContent() {
                         <div className="grid grid-cols-3 gap-4 mb-4">
                           <div className="text-center">
                             <div className="flex items-center justify-center gap-1 mb-1">
-                              <TrendingUp className="w-4 h-4 text-[#FFCF3F]" />
+                              <TrendingUp className="w-4 h-4 text-accent" />
                               <span className="text-lg font-semibold text-text-heading dark:text-white">
                                 {course.avgGPA !== -1
                                   ? course.avgGPA.toFixed(2)
@@ -1164,7 +1400,7 @@ function CoursesPageContent() {
                           </div>
                           <div className="text-center">
                             <div className="flex items-center justify-center gap-1 mb-1">
-                              <BookOpen className="w-4 h-4 text-[#FFCF3F]" />
+                              <BookOpen className="w-4 h-4 text-accent" />
                               <span className="text-lg font-semibold text-text-heading dark:text-white">
                                 {course.credits}
                               </span>
@@ -1175,7 +1411,7 @@ function CoursesPageContent() {
                           </div>
                           <div className="text-center">
                             <div className="flex items-center justify-center gap-1 mb-1">
-                              <Users className="w-4 h-4 text-[#FFCF3F]" />
+                              <Users className="w-4 h-4 text-accent" />
                               <span className="text-lg font-semibold text-text-heading dark:text-white">
                                 {course.enrollment}
                               </span>
@@ -1279,7 +1515,7 @@ function CoursesPageContent() {
                     setCurrentPage((prev) => Math.max(prev - 1, 1))
                   }
                   disabled={currentPage === 1}
-                  className="border-border"
+                  className="border-border bg-canvas text-text-body hover:bg-button-hover dark:border-white/15 dark:bg-black/30 dark:text-white/80 dark:hover:bg-black/45"
                 >
                   <ChevronLeft className="w-4 h-4" />
                   Previous
@@ -1311,7 +1547,7 @@ function CoursesPageContent() {
                           variant="outline"
                           size="sm"
                           onClick={() => setCurrentPage(1)}
-                          className="border-border"
+                          className="border-border bg-canvas text-text-body hover:bg-button-hover dark:border-white/15 dark:bg-black/30 dark:text-white/80 dark:hover:bg-black/45"
                         >
                           1
                         </Button>
@@ -1320,7 +1556,7 @@ function CoursesPageContent() {
                         pages.push(
                           <span
                             key="start-ellipsis"
-                            className="px-2 text-text-body"
+                            className="px-2 text-text-body/70 dark:text-white/60"
                           >
                             ...
                           </span>
@@ -1338,8 +1574,8 @@ function CoursesPageContent() {
                           onClick={() => setCurrentPage(page)}
                           className={
                             currentPage === page
-                              ? "bg-[#500000] text-white"
-                              : "border-border"
+                              ? "bg-[#FFCF3F] text-[#0f0f0f]"
+                              : "border-border bg-canvas text-text-body hover:bg-button-hover dark:border-white/15 dark:bg-black/30 dark:text-white/80 dark:hover:bg-black/45"
                           }
                         >
                           {page}
@@ -1353,7 +1589,7 @@ function CoursesPageContent() {
                         pages.push(
                           <span
                             key="end-ellipsis"
-                            className="px-2 text-text-body"
+                            className="px-2 text-text-body/70 dark:text-white/60"
                           >
                             ...
                           </span>
@@ -1365,7 +1601,7 @@ function CoursesPageContent() {
                           variant="outline"
                           size="sm"
                           onClick={() => setCurrentPage(totalPages)}
-                          className="border-border"
+                          className="border-border bg-canvas text-text-body hover:bg-button-hover dark:border-white/15 dark:bg-black/30 dark:text-white/80 dark:hover:bg-black/45"
                         >
                           {totalPages}
                         </Button>
@@ -1383,14 +1619,14 @@ function CoursesPageContent() {
                     setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                   }
                   disabled={currentPage === totalPages}
-                  className="border-border"
+                  className="border-border bg-canvas text-text-body hover:bg-button-hover dark:border-white/15 dark:bg-black/30 dark:text-white/80 dark:hover:bg-black/45"
                 >
                   Next
                   <ChevronRight className="w-4 h-4" />
                 </Button>
 
                 {/* Page info */}
-                <div className="text-sm text-text-body ml-4">
+                <div className="text-sm text-text-body/80 dark:text-white/70 ml-4">
                   Page {currentPage} of {totalPages} (
                   {filteredCourses.length.toLocaleString()} courses)
                 </div>

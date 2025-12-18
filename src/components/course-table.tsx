@@ -177,7 +177,7 @@ export const CourseTable: React.FC = () => {
                     </div>
                   </div>
 
-                  <span className="text-[#FFCF3F]" data-oid="2np2d31">
+                  <span className="text-accent" data-oid="2np2d31">
                     {course.rating}
                   </span>
                 </motion.div>

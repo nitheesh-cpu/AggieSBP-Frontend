@@ -814,6 +814,20 @@ export default function DepartmentsPage() {
     return <Icon className="w-6 h-6" />;
   };
 
+  const DepartmentBadge = ({ code, name }: { code: string; name: string }) => {
+    const badgeColor =
+      departmentIcons[code as keyof typeof departmentIcons]?.color ||
+      "bg-slate-700 dark:bg-slate-600 text-white";
+    return (
+      <Badge
+        variant="outline"
+        className={`text-xs ${badgeColor} border-transparent px-3 py-1 rounded-full`}
+      >
+        {code} - {name}
+      </Badge>
+    );
+  };
+
   // const CategoryIcon = ({
   //   category,
   // }: {
@@ -982,11 +996,11 @@ export default function DepartmentsPage() {
                       className="rounded-2xl border border-border bg-card px-4 py-4 dark:border-white/10 dark:bg-black/45 dark:backdrop-blur-sm"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-canvas border border-border flex items-center justify-center text-[#FFCF3F] dark:bg-white/10 dark:border-white/10">
+                        <div className="h-10 w-10 rounded-xl bg-canvas border border-border flex items-center justify-center text-accent dark:bg-white/10 dark:border-white/10">
                           <StatIcon className="w-5 h-5" />
                         </div>
                         <div>
-                          <div className="text-[#FFCF3F] text-xl sm:text-2xl font-semibold tracking-tight">
+                          <div className="text-accent text-xl sm:text-2xl font-semibold tracking-tight">
                             <CountUpNumber
                               value={s.value}
                               decimals={s.decimals}
@@ -1118,7 +1132,7 @@ export default function DepartmentsPage() {
                       />
 
                       <div className="flex items-start gap-4 mb-4 relative">
-                        <div className="p-3 rounded-xl bg-canvas border border-border text-[#FFCF3F] dark:bg-white/10 dark:border-white/10">
+                        <div className="p-3 rounded-xl bg-canvas border border-border text-accent dark:bg-white/10 dark:border-white/10">
                           <IconComponent code={department.code} />
                         </div>
                         <div className="flex-1">
@@ -1127,15 +1141,18 @@ export default function DepartmentsPage() {
                               {department.code}
                             </h3>
                             <div className="flex items-center gap-1">
-                              <Star className="w-4 h-4 text-[#FFCF3F] fill-current" />
+                              <Star className="w-4 h-4 text-accent fill-current" />
                               <span className="text-sm text-text-body dark:text-white/70">
                                 {department.rating}
                               </span>
                             </div>
                           </div>
-                          <h4 className="text-sm text-text-body font-medium mb-2 dark:text-white/80">
-                            {department.name}
-                          </h4>
+                          <div className="mb-2">
+                            <DepartmentBadge
+                              code={department.code}
+                              name={department.name}
+                            />
+                          </div>
                           {(() => {
                             const desc = (department.description || "").trim();
                             const codePrefix = `${department.code} -`;
@@ -1161,7 +1178,7 @@ export default function DepartmentsPage() {
                       <div className="grid grid-cols-3 gap-4 mb-4">
                         <div className="text-center">
                           <div className="flex items-center justify-center gap-1 mb-1 text-text-body dark:text-white/80">
-                            <BookOpen className="w-4 h-4 text-[#FFCF3F]" />
+                            <BookOpen className="w-4 h-4 text-accent" />
                             <span className="text-lg font-semibold text-text-heading dark:text-white">
                               {department.courses}
                             </span>
@@ -1172,7 +1189,7 @@ export default function DepartmentsPage() {
                         </div>
                         <div className="text-center">
                           <div className="flex items-center justify-center gap-1 mb-1 text-text-body dark:text-white/80">
-                            <Users className="w-4 h-4 text-[#FFCF3F]" />
+                            <Users className="w-4 h-4 text-accent" />
                             <span className="text-lg font-semibold text-text-heading dark:text-white">
                               {department.professors}
                             </span>
@@ -1183,7 +1200,7 @@ export default function DepartmentsPage() {
                         </div>
                         <div className="text-center">
                           <div className="flex items-center justify-center gap-1 mb-1 text-text-body dark:text-white/80">
-                            <TrendingUp className="w-4 h-4 text-[#FFCF3F]" />
+                            <TrendingUp className="w-4 h-4 text-accent" />
                             <span className="text-lg font-semibold text-text-heading dark:text-white">
                               {department.avgGpa}
                             </span>

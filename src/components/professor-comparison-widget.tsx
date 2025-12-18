@@ -31,7 +31,7 @@ export function ProfessorComparisonWidget() {
           // Get all professors and filter for selected ones
           const allProfessors = await getProfessors({ limit: 1000 });
           const selectedData = allProfessors.filter((prof) =>
-            selectedProfessors.includes(prof.id),
+            selectedProfessors.includes(prof.id)
           );
           setProfessorData(selectedData);
         } catch (err) {
@@ -56,7 +56,7 @@ export function ProfessorComparisonWidget() {
   const ComparisonContent = () => (
     <>
       <div className="flex items-center gap-2 mb-4">
-        <Users className="w-5 h-5 text-[#500000]" />
+        <Users className="w-5 h-5 text-accent" />
         <span className="font-semibold text-text-heading">
           Compare Professors ({selectedProfessors.length}/4)
         </span>

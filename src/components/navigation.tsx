@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
 import { usePathname } from "next/navigation";
-import { useTheme } from "next-themes";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 interface NavigationProps {
@@ -18,35 +17,26 @@ export const Navigation = ({
   variant = "default",
 }: NavigationProps) => {
   const pathname = usePathname();
-  const { resolvedTheme } = useTheme();
-  const isDark = resolvedTheme !== "light";
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const isOverlay = variant === "transparent" || variant === "glass";
-  const style =
+
+  // IMPORTANT: Don't compute theme-dependent inline styles here.
+  // When using next-themes, JS theme resolution can shift during hydration,
+  // causing the navbar to flash the wrong color on refresh. Use CSS `dark:`
+  // classes so the correct theme is applied immediately from <html class="dark">.
+  const headerClassName =
     variant === "transparent"
-      ? { backgroundColor: "transparent", borderBottom: "none" }
+      ? "bg-transparent border-b-0"
       : variant === "glass"
-        ? {
-            backgroundColor: isDark
-              ? "rgba(0, 0, 0, 0.82)"
-              : "rgba(255, 255, 255, 0.82)",
-            borderBottom: isDark
-              ? "1px solid rgba(255, 207, 63, 0.5)"
-              : "1px solid rgba(80, 0, 0, 0.25)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
-          }
-        : {
-            backgroundColor: isDark ? "#000000" : "#ffffff",
-            borderBottom: isDark ? "2px solid #FFCF3F" : "2px solid #500000",
-          };
+        ? "bg-white/80 dark:bg-black/80 border-b border-[#500000]/25 dark:border-[#FFCF3F]/50 backdrop-blur-md"
+        : "bg-white dark:bg-black border-b-2 border-[#500000] dark:border-[#FFCF3F]";
 
   const linkClassName = isOverlay
-    ? `relative ${isDark ? "text-white/90 hover:text-white" : "text-heading hover:text-heading"} text-sm font-medium transition-all duration-normal ease-in-out group`
+    ? "relative text-heading hover:text-heading dark:text-white/90 dark:hover:text-white text-sm font-medium transition-all duration-normal ease-in-out group"
     : "relative text-body text-sm font-medium transition-all duration-normal ease-in-out hover:text-heading group";
 
   const underlineClassName = isOverlay
-    ? `absolute -bottom-1 left-0 w-0 h-px ${isDark ? "bg-white" : "bg-heading"} transition-all duration-normal ease-in-out group-hover:w-full`
+    ? "absolute -bottom-1 left-0 w-0 h-px bg-heading dark:bg-white transition-all duration-normal ease-in-out group-hover:w-full"
     : "absolute -bottom-1 left-0 w-0 h-px bg-heading transition-all duration-normal ease-in-out group-hover:w-full";
 
   // Close the mobile menu on route change.
@@ -74,8 +64,7 @@ export const Navigation = ({
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 ${className}`}
-        style={style}
+        className={`fixed top-0 left-0 right-0 z-50 ${headerClassName} ${className}`}
         data-oid="ilaa0s3"
       >
         <div className="max-w-7xl mx-auto px-6" data-oid="6.rinbi">
@@ -94,7 +83,11 @@ export const Navigation = ({
                 />
 
                 <span
-                  className={`text-xl font-semibold tracking-tight ${isOverlay ? (isDark ? "text-white" : "text-heading") : "text-heading"}`}
+                  className={`text-xl font-semibold tracking-tight ${
+                    isOverlay
+                      ? "text-heading dark:text-white"
+                      : "text-heading dark:text-white"
+                  }`}
                   data-oid="riswfct"
                 >
                   AggieSB+
@@ -141,7 +134,11 @@ export const Navigation = ({
                 aria-expanded={isMobileMenuOpen}
                 aria-controls="mobile-menu"
                 onClick={() => setIsMobileMenuOpen((v) => !v)}
-                className={`${isOverlay ? "text-white/90 hover:text-white" : "text-body hover:text-heading"} transition-colors duration-normal p-2`}
+                className={`${
+                  isOverlay
+                    ? "text-text-heading hover:text-text-heading dark:text-white/90 dark:hover:text-white"
+                    : "text-text-heading hover:text-text-heading dark:text-white/90 dark:hover:text-white"
+                } transition-colors duration-normal p-2`}
                 data-oid="u5.szs3"
               >
                 <svg
@@ -196,7 +193,7 @@ export const Navigation = ({
             {/* Panel */}
             <motion.div
               id="mobile-menu"
-              className={`absolute top-16 left-0 right-0 border-b ${isDark ? "border-white/10 bg-black/85" : "border-border bg-white/90"} backdrop-blur-md`}
+              className="absolute top-16 left-0 right-0 border-b border-border bg-white/90 dark:border-white/10 dark:bg-black/85 backdrop-blur-md"
               initial={{ y: -10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -10, opacity: 0 }}
@@ -208,7 +205,7 @@ export const Navigation = ({
                     key={item.name}
                     href={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`block ${isDark ? "text-white/90 hover:text-white" : "text-heading hover:text-heading"} text-base font-medium`}
+                    className="block text-heading hover:text-heading dark:text-white/90 dark:hover:text-white text-base font-medium"
                   >
                     {item.name}
                   </Link>
@@ -216,9 +213,7 @@ export const Navigation = ({
 
                 <div className="pt-2">
                   <div className="flex items-center justify-between gap-3 pb-3">
-                    <span
-                      className={`text-sm ${isDark ? "text-white/70" : "text-body"}`}
-                    >
+                    <span className="text-sm text-body dark:text-white/70">
                       Theme
                     </span>
                     <ThemeToggle />

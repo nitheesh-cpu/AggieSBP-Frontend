@@ -812,6 +812,21 @@ function CoursesPageContent() {
                   comprehensive data on grades, difficulty, and professor
                   insights.
                 </p>
+
+                {/* Prominent Search Bar (match other pages) */}
+                <div className="relative max-w-lg mx-auto mt-8">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-body/70 w-5 h-5 dark:text-white/60" />
+                  {searchTerm !== debouncedSearchTerm && (
+                    <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-[#FFCF3F]" />
+                  )}
+                  <Input
+                    type="text"
+                    placeholder="Search courses..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-12 pr-10 h-12 sm:h-14 text-[14px] sm:text-[15px] bg-card border border-border rounded-full text-text-body placeholder:text-text-body/55 backdrop-blur-sm focus-visible:ring-2 focus-visible:ring-[#FFCF3F]/70 focus-visible:ring-offset-0 dark:bg-black/45 dark:border-white/15 dark:text-white dark:placeholder:text-white/40"
+                  />
+                </div>
               </motion.div>
 
               {/* Statistics Overview */}
@@ -897,51 +912,42 @@ function CoursesPageContent() {
             </div>
           )}
 
-          {/* Search and Filters */}
+          {/* Filters */}
           <div className="max-w-7xl mx-auto px-6 mb-8">
-            <Card className="bg-card border-border p-6 dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm">
-              {/* Search Bar */}
-              <div className="flex flex-col md:flex-row gap-4 mb-6">
-                <motion.div
-                  className="flex-1 relative"
-                  animate={{
-                    flexGrow: isSearchFocused ? 1.15 : 1,
-                    boxShadow: isSearchFocused
-                      ? "0 0 0 3px rgba(255, 207, 63, 0.35), 0 10px 30px rgba(255, 207, 63, 0.12)"
-                      : "0 0 0 0 rgba(0,0,0,0)",
-                  }}
-                  transition={{ duration: 0.18, ease: "easeOut" }}
-                >
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-text-body dark:text-white/60" />
-                  {searchTerm !== debouncedSearchTerm && (
-                    <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 animate-spin text-[#FFCF3F]" />
-                  )}
-                  <Input
-                    placeholder="Search courses by code or name..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    onFocus={() => setIsSearchFocused(true)}
-                    onBlur={() => setIsSearchFocused(false)}
-                    className="pl-10 pr-10 bg-canvas border-border text-text-body placeholder:text-text-body/60 focus-visible:ring-2 focus-visible:ring-[#FFCF3F]/70 focus-visible:ring-offset-0 dark:bg-black/30 dark:border-white/10 dark:text-white dark:placeholder:text-white/45"
-                  />
-                </motion.div>
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-48 bg-canvas border-border text-text-body dark:bg-black/30 dark:border-white/10 dark:text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-canvas border-border text-text-body dark:bg-black/85 dark:border-white/10 dark:text-white">
-                    <SelectItem value="code">Sort by Code</SelectItem>
-                    <SelectItem value="gpa">Sort by GPA</SelectItem>
-                    <SelectItem value="difficulty">
-                      Sort by Difficulty
-                    </SelectItem>
-                    <SelectItem value="enrollment">
-                      Sort by Enrollment
-                    </SelectItem>
-                    <SelectItem value="rating">Sort by Rating</SelectItem>
-                  </SelectContent>
-                </Select>
+            <Card className="bg-card border-border p-6 rounded-2xl shadow-none dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm">
+              {/* Top row (match Departments/Professors) */}
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-2">
+                  <Filter className="w-4 h-4 text-text-body/70 dark:text-white/60" />
+                  <div className="text-sm font-semibold text-text-heading dark:text-white">
+                    Filters
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="text-xs text-text-body/70 dark:text-white/60">
+                    Sort
+                  </div>
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="w-48 bg-canvas border-border text-text-body dark:bg-black/30 dark:border-white/10 dark:text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-canvas border-border text-text-body dark:bg-black/85 dark:border-white/10 dark:text-white">
+                      <SelectItem value="code">Sort by Code</SelectItem>
+                      <SelectItem value="gpa">Sort by GPA</SelectItem>
+                      <SelectItem value="difficulty">
+                        Sort by Difficulty
+                      </SelectItem>
+                      <SelectItem value="enrollment">
+                        Sort by Enrollment
+                      </SelectItem>
+                      <SelectItem value="rating">Sort by Rating</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+
+              <div className="h-px bg-border my-5 dark:bg-white/10" />
 
               {/* Quick Filters */}
               <div className="">
@@ -980,7 +986,7 @@ function CoursesPageContent() {
                           selectedQuickFilters.includes(filter.id)
                             ? `${filter.color} ${filter.hoverColor} text-white border-transparent`
                             : "border-border hover:bg-button-hover dark:border-white/15 dark:bg-black/20 dark:text-white dark:hover:bg-black/35 dark:hover:text-white"
-                        } transition-all duration-200`}
+                        } transition-all duration-200 rounded-full`}
                       >
                         <Icon className="w-4 h-4 mr-2" />
                         {filter.label}

@@ -488,16 +488,6 @@ export default function ProfessorsPage() {
                             </Link>
                           </div>
                         </div>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleAddProfessor(professor)}
-                          disabled={!canAddMore() || isSelected(professor.id)}
-                          className="flex items-center gap-1 border-border bg-canvas text-text-body hover:bg-button-hover dark:border-white/15 dark:bg-black/30 dark:text-white/80 dark:hover:bg-black/45"
-                        >
-                          <Plus className="w-4 h-4" />
-                          Compare
-                        </Button>
                       </div>
 
                       <div className="space-y-3 relative">
@@ -520,18 +510,6 @@ export default function ProfessorsPage() {
 
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-text-body dark:text-white/70">
-                            Would Take Again
-                          </span>
-                          <span className="font-medium text-text-heading dark:text-white">
-                            {professor.would_take_again_percent
-                              ? professor.would_take_again_percent.toFixed(0)
-                              : "N/A"}
-                            %
-                          </span>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-text-body dark:text-white/70">
                             Courses Taught
                           </span>
                           <div className="flex items-center gap-1 text-text-body dark:text-white/80">
@@ -543,30 +521,45 @@ export default function ProfessorsPage() {
                         </div>
 
                         <div className="pt-2">
-                          <div className="flex flex-wrap gap-1">
-                            {professor.departments.slice(0, 4).map((dept) =>
-                              dept && dept.length === 4 ? (
-                                <Link
-                                  href={`/professors?department=${dept}`}
-                                  key={dept}
-                                >
-                                  <Badge
-                                    variant="outline"
-                                    className="text-xs border-border text-text-body bg-canvas dark:border-white/15 dark:text-white/70 dark:bg-black/20"
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex flex-wrap gap-1 min-w-0">
+                              {professor.departments.slice(0, 4).map((dept) =>
+                                dept && dept.length === 4 ? (
+                                  <Link
+                                    href={`/professors?department=${dept}`}
+                                    key={dept}
                                   >
-                                    {dept}
-                                  </Badge>
-                                </Link>
-                              ) : null
-                            )}
-                            {professor.departments.length > 4 && (
-                              <Badge
-                                variant="outline"
-                                className="text-xs border-border text-text-body bg-canvas dark:border-white/15 dark:text-white/70 dark:bg-black/20"
-                              >
-                                +{professor.departments.length - 4} more
-                              </Badge>
-                            )}
+                                    <Badge
+                                      variant="outline"
+                                      className="text-xs border-border text-text-body bg-canvas dark:border-white/15 dark:text-white/70 dark:bg-black/20"
+                                    >
+                                      {dept}
+                                    </Badge>
+                                  </Link>
+                                ) : null
+                              )}
+                              {professor.departments.length > 4 && (
+                                <Badge
+                                  variant="outline"
+                                  className="text-xs border-border text-text-body bg-canvas dark:border-white/15 dark:text-white/70 dark:bg-black/20"
+                                >
+                                  +{professor.departments.length - 4} more
+                                </Badge>
+                              )}
+                            </div>
+
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleAddProfessor(professor)}
+                              disabled={
+                                !canAddMore() || isSelected(professor.id)
+                              }
+                              className="flex items-center gap-1 border-border bg-canvas text-text-body hover:bg-button-hover shrink-0 dark:border-white/15 dark:bg-black/30 dark:text-white/80 dark:hover:bg-black/45"
+                            >
+                              <Plus className="w-4 h-4" />
+                              Compare
+                            </Button>
                           </div>
                         </div>
                       </div>

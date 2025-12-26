@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState, use } from "react";
+import React, { useEffect, useMemo, useState, use } from "react";
 import {
   MotionConfig,
   animate,
@@ -13,7 +13,13 @@ import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { getProfessor, type ProfessorDetail } from "@/lib/api";
+import {
+  getProfessor,
+  getTerms,
+  getCourseSectionsForTerm,
+  type ProfessorDetail,
+  type Term,
+} from "@/lib/api";
 import {
   Star,
   TrendingUp,
@@ -24,6 +30,10 @@ import {
   Eye,
   ChevronDown,
   ChevronUp,
+  ThumbsUp,
+  ThumbsDown,
+  Sparkles,
+  BarChart3,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -346,6 +356,10 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAllTags, setShowAllTags] = useState(false);
+  const [terms, setTerms] = useState<Term[]>([]);
+  const [selectedTerm, setSelectedTerm] = useState<string>("");
+  const [termCourseIds, setTermCourseIds] = useState<Set<string>>(new Set());
+  const [loadingTermData, setLoadingTermData] = useState(false);
 
   useEffect(() => {
     const fetchProfessor = async () => {
@@ -365,6 +379,112 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
 
     fetchProfessor();
   }, [resolvedParams.id]);
+
+  // Load terms
+  useEffect(() => {
+    const loadTerms = async () => {
+      try {
+        const termsData = await getTerms();
+        setTerms(termsData);
+      } catch (err) {
+        console.error("Failed to load terms:", err);
+      }
+    };
+
+    loadTerms();
+  }, []);
+
+  // Load term-specific courses when term is selected
+  useEffect(() => {
+    const loadTermCourses = async () => {
+      if (!selectedTerm || !professor) {
+        setTermCourseIds(new Set());
+        return;
+      }
+
+      try {
+        setLoadingTermData(true);
+        // Get all courses the professor teaches
+        // const professorCourseIds = new Set(
+        //   professor.courses
+        //     ?.filter((c) => c.course_id)
+        //     .map((c) => c.course_id.replace(/\s+/g, "").toUpperCase()) || []
+        // );
+
+        // For each course, check if professor is teaching it in the selected term
+        const termCourseSet = new Set<string>();
+
+        // Fetch sections for each course and check if professor is teaching
+        const sectionPromises =
+          professor.courses
+            ?.filter((c) => c.course_id)
+            .map(async (course) => {
+              try {
+                const courseId = course.course_id.replace(/\s+/g, "");
+                const sections = await getCourseSectionsForTerm(
+                  selectedTerm,
+                  courseId
+                );
+
+                // Check if any section has this professor as an instructor
+                const hasProfessor = sections.some((section) =>
+                  section.instructors?.some(
+                    (instructor) =>
+                      instructor.name.toLowerCase().trim() ===
+                      professor.name.toLowerCase().trim()
+                  )
+                );
+
+                if (hasProfessor) {
+                  return courseId.toUpperCase();
+                }
+                return null;
+              } catch (err) {
+                console.error(
+                  `Failed to load sections for ${course.course_id}:`,
+                  err
+                );
+                return null;
+              }
+            }) || [];
+
+        const results = await Promise.all(sectionPromises);
+        results.forEach((courseId) => {
+          if (courseId) {
+            termCourseSet.add(courseId);
+          }
+        });
+
+        setTermCourseIds(termCourseSet);
+      } catch (err) {
+        console.error("Failed to load term courses:", err);
+        setTermCourseIds(new Set());
+      } finally {
+        setLoadingTermData(false);
+      }
+    };
+
+    loadTermCourses();
+  }, [selectedTerm, professor, resolvedParams.id]);
+
+  // Filter courses based on selected term
+  const displayedCourses = React.useMemo(() => {
+    if (!professor?.courses) return [];
+
+    // If no term selected, show all courses
+    if (!selectedTerm || termCourseIds.size === 0) {
+      return professor.courses.filter((course) => course.course_id);
+    }
+
+    // Filter courses to only those taught in the selected term
+    return professor.courses.filter((course) => {
+      if (!course.course_id) return false;
+      const normalizedCourseId = course.course_id
+        .replace(/\s+/g, "")
+        .toUpperCase();
+      return termCourseIds.has(normalizedCourseId);
+    });
+  }, [professor?.courses, selectedTerm, termCourseIds]);
 
   if (loading) {
     return (
@@ -692,6 +812,157 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
               </Card>
             </div>
 
+            {/* Overall Summary Section */}
+            {professor.overallSummary && (
+              <div className="mb-12">
+                <div className="flex items-center gap-3 mb-6">
+                  <h2 className="text-2xl font-bold text-text-heading">
+                    AI Summary
+                  </h2>
+                  <Badge
+                    variant="outline"
+                    className="text-xs border-border bg-canvas text-text-body dark:border-white/15 dark:bg-black/30 dark:text-white/70 font-medium rounded-full"
+                  >
+                    <Sparkles className="w-3 h-3 mr-1" />
+                    Generated by AI
+                  </Badge>
+                </div>
+
+                <Card className="rounded-2xl shadow-none bg-card border-border dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm overflow-hidden">
+                  <CardContent className="p-6">
+                    {/* Sentiment & Confidence Header */}
+                    <div className="flex flex-wrap items-center gap-4 mb-6">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`h-10 w-10 rounded-xl flex items-center justify-center ${
+                            professor.overallSummary.sentiment
+                              ?.toLowerCase()
+                              .includes("positive")
+                              ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400"
+                              : professor.overallSummary.sentiment
+                                    ?.toLowerCase()
+                                    .includes("negative")
+                                ? "bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400"
+                                : "bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400"
+                          }`}
+                        >
+                          <TrendingUp className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <div className="text-xs text-text-body dark:text-white/60 uppercase tracking-wide">
+                            Overall Sentiment
+                          </div>
+                          <div className="font-semibold text-text-heading dark:text-white">
+                            {professor.overallSummary.sentiment || "Mixed"}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 ml-auto">
+                        <div className="h-10 w-10 rounded-xl bg-canvas border border-border flex items-center justify-center text-accent dark:bg-white/10 dark:border-white/10">
+                          <BarChart3 className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <div className="text-xs text-text-body dark:text-white/60 uppercase tracking-wide">
+                            Confidence
+                          </div>
+                          <div className="font-semibold text-text-heading dark:text-white">
+                            {Math.round(
+                              (professor.overallSummary.confidence || 0) * 100
+                            )}
+                            %
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Consistency Note */}
+                    {professor.overallSummary.consistency && (
+                      <div className="mb-6 px-4 py-3 rounded-xl bg-canvas/70 border border-border dark:bg-black/30 dark:border-white/10">
+                        <p className="text-sm text-text-body dark:text-white/80">
+                          <span className="font-medium text-text-heading dark:text-white">
+                            Pattern:{" "}
+                          </span>
+                          {professor.overallSummary.consistency}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Strengths & Complaints Grid */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* Strengths */}
+                      {professor.overallSummary.strengths &&
+                        professor.overallSummary.strengths.length > 0 && (
+                          <div>
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="h-8 w-8 rounded-lg bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 flex items-center justify-center">
+                                <ThumbsUp className="w-4 h-4" />
+                              </div>
+                              <h3 className="font-semibold text-text-heading dark:text-white">
+                                Strengths
+                              </h3>
+                            </div>
+                            <ul className="space-y-2">
+                              {professor.overallSummary.strengths.map(
+                                (strength, index) => (
+                                  <li
+                                    key={index}
+                                    className="flex items-start gap-2 text-sm text-text-body dark:text-white/80"
+                                  >
+                                    <span className="text-emerald-500 mt-1.5 flex-shrink-0">
+                                      •
+                                    </span>
+                                    <span className="leading-relaxed">
+                                      {strength
+                                        .replace(/^Teaching:\s*/i, "")
+                                        .trim()}
+                                    </span>
+                                  </li>
+                                )
+                              )}
+                            </ul>
+                          </div>
+                        )}
+
+                      {/* Complaints */}
+                      {professor.overallSummary.complaints &&
+                        professor.overallSummary.complaints.length > 0 && (
+                          <div>
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="h-8 w-8 rounded-lg bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400 flex items-center justify-center">
+                                <ThumbsDown className="w-4 h-4" />
+                              </div>
+                              <h3 className="font-semibold text-text-heading dark:text-white">
+                                Complaints
+                              </h3>
+                            </div>
+                            <ul className="space-y-2">
+                              {professor.overallSummary.complaints.map(
+                                (complaint, index) => (
+                                  <li
+                                    key={index}
+                                    className="flex items-start gap-2 text-sm text-text-body dark:text-white/80"
+                                  >
+                                    <span className="text-red-500 mt-1.5 flex-shrink-0">
+                                      •
+                                    </span>
+                                    <span className="leading-relaxed">
+                                      {complaint
+                                        .replace(/^Teaching:\s*/i, "")
+                                        .trim()}
+                                    </span>
+                                  </li>
+                                )
+                              )}
+                            </ul>
+                          </div>
+                        )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
             {/* Courses Section */}
             <div className="mb-12">
               <div className="flex items-center justify-between mb-6">
@@ -699,14 +970,41 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                   Courses Taught
                 </h2>
                 <div className="text-sm text-text-body/80 dark:text-white/70 border border-border dark:border-white/15 px-3 py-1 rounded-full bg-canvas/70 dark:bg-black/30">
-                  {professor.courses?.filter((course) => course.course_id)
-                    .length || 0}{" "}
-                  courses
+                  {displayedCourses.length} courses
+                  {selectedTerm && " (this term)"}
                 </div>
               </div>
 
+              {/* Term Selector */}
+              <div className="flex items-center gap-3 mb-6">
+                <label
+                  htmlFor="term-selector-professor"
+                  className="text-sm font-semibold text-text-heading dark:text-white"
+                >
+                  Select Term:
+                </label>
+                <select
+                  id="term-selector-professor"
+                  value={selectedTerm}
+                  onChange={(e) => setSelectedTerm(e.target.value)}
+                  className="flex-1 max-w-xs bg-canvas border border-border rounded-xl px-4 py-2 text-text-body dark:bg-black/45 dark:border-white/15 dark:text-white/90 dark:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
+                >
+                  <option value="">All Terms</option>
+                  {terms.map((term) => (
+                    <option key={term.termCode} value={term.termCode}>
+                      {term.termDesc}
+                    </option>
+                  ))}
+                </select>
+                {loadingTermData && (
+                  <div className="text-xs text-text-body/80 dark:text-white/70">
+                    Loading...
+                  </div>
+                )}
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {professor.courses?.map((course) =>
+                {displayedCourses.map((course) =>
                   course.course_id ? (
                     <Card
                       key={course.course_id}
@@ -778,11 +1076,11 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                     </Link>
                   </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div className="columns-1 lg:columns-2 gap-4 space-y-4">
                     {professor.recent_reviews?.slice(0, 4).map((review) => (
                       <Card
                         key={review.id}
-                        className="bg-card border-border hover:shadow-md transition-shadow duration-200"
+                        className="bg-card border-border hover:shadow-md transition-shadow duration-200 break-inside-avoid"
                       >
                         <CardContent className="p-4">
                           <div className="flex items-start justify-between mb-3">
@@ -802,17 +1100,17 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                             </Badge>
                           </div>
 
-                          <blockquote className="text-text-body mb-3 leading-relaxed line-clamp-3 italic border-l-4 border-gray-200 pl-3 text-sm">
-                            `&quot;{review.review_text}&quot;`
+                          <blockquote className="text-text-body leading-relaxed italic border-l-4 border-gray-200 dark:border-gray-600 pl-3 text-sm">
+                            &quot;{review.review_text}&quot;
                           </blockquote>
 
                           {review.tags && review.tags.length > 0 && (
-                            <div className="flex flex-wrap gap-1">
+                            <div className="flex flex-wrap gap-1 mt-3 pt-3 border-t border-border dark:border-white/10">
                               {review.tags.slice(0, 3).map((tag, index) => (
                                 <Badge
                                   key={index}
                                   variant="outline"
-                                  className="text-xs bg-gray-50 text-gray-700"
+                                  className="text-xs bg-gray-50 dark:bg-white/10 text-gray-700 dark:text-white/80 dark:border-white/15"
                                 >
                                   {tag}
                                 </Badge>

@@ -8,6 +8,7 @@ import {
   useMotionValue,
   useReducedMotion,
 } from "motion/react";
+import { getDataStats, type DataStats } from "@/lib/api";
 
 type Stat = {
   value: string;
@@ -49,6 +50,12 @@ function CountUp({ value }: { value: string }) {
   );
 
   React.useEffect(() => {
+    // Reset motion value when target changes
+    motionValue.set(0);
+    setDisplay(`${prefix}${formatNumber(0)}${suffix}`);
+  }, [target, prefix, suffix, motionValue]);
+
+  React.useEffect(() => {
     if (!isInView) return;
 
     if (shouldReduceMotion) {
@@ -74,7 +81,8 @@ function CountUp({ value }: { value: string }) {
   );
 }
 
-const STATS: Stat[] = [
+// Default fallback stats
+const DEFAULT_STATS: Stat[] = [
   {
     value: "80,000+",
     label: "reviews summarized",
@@ -97,8 +105,79 @@ const STATS: Stat[] = [
   },
 ];
 
+function mapDataStatsToStats(data: DataStats | Record<string, unknown>): {
+  stats: Stat[];
+  lastUpdated: string;
+} {
+  // Use the correct field names from the API response
+  const reviewsCount = (data as DataStats).reviews_count;
+  const coursesCount = (data as DataStats).courses_count;
+  const professorsCount = (data as DataStats).professors_count;
+  const gpaDataCount = (data as DataStats).gpa_data_count;
+  const lastUpdated = (data as DataStats).last_updated;
+
+  console.log("Extracted values:", {
+    reviewsCount,
+    coursesCount,
+    professorsCount,
+    gpaDataCount,
+  });
+
+  return {
+    stats: [
+      {
+        value: formatNumber(reviewsCount as number),
+        label: "reviews summarized",
+        helper: "student feedback distilled into insights",
+      },
+      {
+        value: formatNumber(coursesCount as number),
+        label: "courses indexed",
+        helper: "searchable across departments",
+      },
+      {
+        value: formatNumber(professorsCount as number),
+        label: "professors tracked",
+        helper: "ratings, tags, and outcomes",
+      },
+      {
+        value: formatNumber(gpaDataCount as number),
+        label: "GPA data points",
+        helper: "grade distributions & outcomes",
+      },
+    ],
+    lastUpdated: (lastUpdated as string) || "",
+  };
+}
+
 export function HomeDataStats() {
   const shouldReduceMotion = useReducedMotion();
+  const [stats, setStats] = React.useState<Stat[]>(DEFAULT_STATS);
+  const [lastUpdated, setLastUpdated] = React.useState<string>("");
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    async function fetchStats() {
+      try {
+        setIsLoading(true);
+        const data = await getDataStats();
+        console.log("Data stats API response:", data);
+        const mappedData = mapDataStatsToStats(data);
+        console.log("Mapped stats:", mappedData);
+        setStats(mappedData.stats);
+        setLastUpdated(mappedData.lastUpdated);
+      } catch (error) {
+        console.error("Failed to fetch data stats:", error);
+        // Keep default stats on error
+        setStats(DEFAULT_STATS);
+        setLastUpdated("");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchStats();
+  }, []);
 
   return (
     <section className="w-full py-10 bg-card border-y border-border dark:bg-black/20 dark:border-white/5">
@@ -128,7 +207,7 @@ export function HomeDataStats() {
             visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
           }}
         >
-          {STATS.map((s) => (
+          {stats.map((s) => (
             <motion.div
               key={s.label}
               variants={{
@@ -139,7 +218,11 @@ export function HomeDataStats() {
               className="rounded-2xl border border-border bg-canvas px-4 py-4 dark:border-white/10 dark:bg-black/45 dark:backdrop-blur-sm"
             >
               <div className="text-accent text-xl sm:text-2xl font-semibold tracking-tight">
-                <CountUp value={s.value} />
+                {isLoading ? (
+                  <span className="opacity-50">Loading...</span>
+                ) : (
+                  <CountUp key={`${s.label}-${s.value}`} value={s.value} />
+                )}
               </div>
               <div className="mt-1 text-text-heading dark:text-white/90 text-sm font-medium">
                 {s.label}
@@ -151,6 +234,13 @@ export function HomeDataStats() {
               ) : null}
             </motion.div>
           ))}
+          {lastUpdated && (
+            <div className="col-span-2">
+              <div className="text-text-body text-xs leading-relaxed dark:text-white/60">
+                Last updated: {new Date(lastUpdated).toLocaleDateString()}
+              </div>
+            </div>
+          )}
         </motion.div>
       </div>
     </section>

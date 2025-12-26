@@ -21,7 +21,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ className = "" }) => {
         {/* Image with bottom-quarter overlay for content */}
         <div className="relative z-0 w-full" data-oid="image-container">
           <Image
-            src="/academic-plaza2.png"
+            src="/academic-plaza-desktop.jpeg"
             alt="Academic Plaza"
             width={1920}
             height={1080}

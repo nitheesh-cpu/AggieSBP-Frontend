@@ -61,7 +61,7 @@ export function HomeHeroScroll() {
             style={{ scale: shouldReduceMotion ? 1 : imageScaleMv }}
           >
             <Image
-              src={isPortrait ? "/academic-plaza4.png" : "/academic-plaza2.png"}
+              src={isPortrait ? "/academic-plaza-mobile.jpeg" : "/academic-plaza-desktop.jpeg"}
               alt="Academic Plaza"
               fill
               priority

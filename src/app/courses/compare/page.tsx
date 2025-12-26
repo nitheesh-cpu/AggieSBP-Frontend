@@ -461,6 +461,7 @@ function CourseComparisonPageContent() {
 
                       {/* Prerequisites */}
                       {course.prerequisites &&
+                        Array.isArray(course.prerequisites) &&
                         course.prerequisites.length > 0 && (
                           <div>
                             <h4 className="text-sm font-medium text-heading mb-2">
@@ -631,6 +632,7 @@ function CourseComparisonPageContent() {
                           {courses.map((course) => (
                             <td key={course.code} className="p-4 text-center">
                               {course.prerequisites &&
+                              Array.isArray(course.prerequisites) &&
                               course.prerequisites.length > 0 ? (
                                 <Badge
                                   variant="outline"

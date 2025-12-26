@@ -452,7 +452,7 @@ function CoursesPageContent() {
         // Load all courses in background
         setIsLoadingAll(true);
         console.log("Loading all courses in background...");
-        const allCoursesData = await getCourses({ limit: 50000 });
+        const allCoursesData = await getCourses({ limit: 5000 });
         console.log("Loaded all courses:", allCoursesData.length);
 
         // Update with all courses

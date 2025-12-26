@@ -823,7 +823,7 @@ export default function DepartmentsPage() {
         variant="outline"
         className={`text-xs ${badgeColor} border-transparent px-3 py-1 rounded-full`}
       >
-        {code} - {name}
+        {name}
       </Badge>
     );
   };
@@ -1016,6 +1016,110 @@ export default function DepartmentsPage() {
                 })}
               </motion.div>
             )}
+
+            {/* Top Departments by Courses */}
+            {!loading &&
+              !error &&
+              departmentsInfo &&
+              departmentsInfo.top_departments_by_courses && (
+                <motion.div
+                  initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                  className="mb-8"
+                >
+                  <div className="mb-4">
+                    <h3 className="text-text-heading dark:text-white text-base sm:text-lg font-semibold tracking-tight">
+                      Top Departments by Courses
+                    </h3>
+                  </div>
+                  <div className="flex gap-3 overflow-x-auto pb-2 sm:pb-0 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 sm:gap-4 sm:overflow-visible">
+                    {departmentsInfo.top_departments_by_courses.map(
+                      (dept, index) => (
+                        <motion.div
+                          key={dept.code}
+                          initial={
+                            shouldReduceMotion ? false : { opacity: 0, y: 14 }
+                          }
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: true, amount: 0.2 }}
+                          transition={{ duration: 0.4, delay: index * 0.03 }}
+                          whileHover={
+                            shouldReduceMotion
+                              ? undefined
+                              : { y: -2, scale: 1.01 }
+                          }
+                          whileTap={
+                            shouldReduceMotion ? undefined : { scale: 0.99 }
+                          }
+                          className="group flex-shrink-0 w-[160px] sm:w-auto"
+                        >
+                          <Link href={`/departments?search=${dept.code}`}>
+                            <Card className="p-3 gap-2.5 bg-card border-border hover:border-border transition-all duration-normal cursor-pointer dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm dark:hover:border-white/20">
+                              <div className="flex items-center justify-between gap-2">
+                                <h4
+                                  className="font-semibold text-text-heading dark:text-white"
+                                  style={{ fontSize: "34px" }}
+                                >
+                                  {dept.code}
+                                </h4>
+                                <div className="flex items-center justify-start gap-0.5">
+                                  <Star
+                                    className="w-3 h-3 text-accent fill-current"
+                                    style={{ display: "flex" }}
+                                  />
+                                  <span className="text-xs text-text-body dark:text-white/70">
+                                    {dept.rating.toFixed(1)}
+                                  </span>
+                                </div>
+                              </div>
+                              <p className="text-xs text-text-body line-clamp-1 dark:text-white/60">
+                                {dept.name.replace(`${dept.code} - `, "")}
+                              </p>
+                              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border dark:border-white/10">
+                                <div className="text-center">
+                                  <div className="flex items-center justify-center gap-0.5 mb-0.5">
+                                    <BookOpen className="w-3 h-3 text-accent" />
+                                    <span className="text-sm font-semibold text-text-heading dark:text-white">
+                                      {dept.courses}
+                                    </span>
+                                  </div>
+                                  <div className="text-[10px] text-text-body dark:text-white/60">
+                                    Courses
+                                  </div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="flex items-center justify-center gap-0.5 mb-0.5">
+                                    <Users className="w-3 h-3 text-accent" />
+                                    <span className="text-sm font-semibold text-text-heading dark:text-white">
+                                      {dept.professors}
+                                    </span>
+                                  </div>
+                                  <div className="text-[10px] text-text-body dark:text-white/60">
+                                    Profs
+                                  </div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="flex items-center justify-center gap-0.5 mb-0.5">
+                                    <TrendingUp className="w-3 h-3 text-accent" />
+                                    <span className="text-sm font-semibold text-text-heading dark:text-white">
+                                      {dept.avgGpa.toFixed(2)}
+                                    </span>
+                                  </div>
+                                  <div className="text-[10px] text-text-body dark:text-white/60">
+                                    GPA
+                                  </div>
+                                </div>
+                              </div>
+                            </Card>
+                          </Link>
+                        </motion.div>
+                      )
+                    )}
+                  </div>
+                </motion.div>
+              )}
           </div>
         </section>
 
@@ -1113,7 +1217,7 @@ export default function DepartmentsPage() {
                     }
                     whileTap={shouldReduceMotion ? undefined : { scale: 0.99 }}
                   >
-                    <Card className="p-6 bg-card border-border hover:border-border transition-all duration-normal cursor-pointer group relative overflow-hidden dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm dark:hover:border-white/20">
+                    <Card className="p-6 gap-3 bg-card border-border hover:border-border transition-all duration-normal cursor-pointer group relative overflow-hidden dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm dark:hover:border-white/20">
                       {/* subtle corner highlight */}
                       <motion.div
                         aria-hidden
@@ -1131,8 +1235,8 @@ export default function DepartmentsPage() {
                         }}
                       />
 
-                      <div className="flex items-start gap-4 mb-4 relative">
-                        <div className="p-3 rounded-xl bg-canvas border border-border text-accent dark:bg-white/10 dark:border-white/10">
+                      <div className="flex items-start gap-4 mb-2 relative">
+                        <div className="p-3 my-4 rounded-xl bg-canvas border border-border text-accent dark:bg-white/10 dark:border-white/10">
                           <IconComponent code={department.code} />
                         </div>
                         <div className="flex-1">
@@ -1175,7 +1279,7 @@ export default function DepartmentsPage() {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-3 gap-4 mb-4">
+                      <div className="grid grid-cols-3 gap-4 gap-y-4 mb-2">
                         <div className="text-center">
                           <div className="flex items-center justify-center gap-1 mb-1 text-text-body dark:text-white/80">
                             <BookOpen className="w-4 h-4 text-accent" />
@@ -1211,7 +1315,7 @@ export default function DepartmentsPage() {
                         </div>
                       </div>
 
-                      <div className="mb-4">
+                      <div className="mb-2">
                         <div className="text-sm text-text-body mb-2 dark:text-white/70">
                           Top Courses:
                         </div>

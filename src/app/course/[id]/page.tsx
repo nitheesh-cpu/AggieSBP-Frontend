@@ -15,7 +15,15 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-import { getCourseDetail, type CourseDetail } from "@/lib/api";
+import {
+  getCourseDetail,
+  getTerms,
+  getCourseProfessorsForTerm,
+  getCourseSectionsForTerm,
+  type CourseDetail,
+  type Term,
+  type CourseSection,
+} from "@/lib/api";
 import {
   Star,
   Users,
@@ -29,6 +37,15 @@ import {
   User,
   Check,
   Plus,
+  Clock,
+  FlaskConical,
+  Link as LinkIcon,
+  GraduationCap,
+  ClipboardList,
+  FileText,
+  Briefcase,
+  UserCircle,
+  ScrollText,
 } from "lucide-react";
 import Link from "next/link";
 import { useComparison } from "@/contexts/ComparisonContext";
@@ -85,39 +102,6 @@ function CountUpNumber({
   }, [decimals, isInView, motionValue, shouldReduceMotion, value]);
 
   return <span ref={ref}>{display}</span>;
-}
-
-function AnimatedText({
-  text,
-  shouldReduceMotion,
-  className,
-  style,
-}: {
-  text: string;
-  shouldReduceMotion: boolean;
-  className?: string;
-  style?: React.CSSProperties;
-}) {
-  if (shouldReduceMotion) {
-    return (
-      <span className={className} style={style}>
-        {text}
-      </span>
-    );
-  }
-
-  // Match the "count up" feel: quick ease-out, subtle blur -> crisp.
-  return (
-    <motion.span
-      className={className}
-      style={style}
-      initial={{ opacity: 0, y: 8, filter: "blur(6px)" }}
-      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-    >
-      {text}
-    </motion.span>
-  );
 }
 
 // Helper function to get department name from course code
@@ -428,6 +412,13 @@ export default function CoursePage({ params }: CoursePageProps) {
   const [courseData, setCourseData] = useState<CourseDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [terms, setTerms] = useState<Term[]>([]);
+  const [selectedTerm, setSelectedTerm] = useState<string>("");
+  const [termProfessorIds, setTermProfessorIds] = useState<Set<string>>(
+    new Set()
+  );
+  const [sections, setSections] = useState<CourseSection[]>([]);
+  const [loadingTermData, setLoadingTermData] = useState(false);
 
   // Comparison context
   const { addCourse, removeCourse, isSelected, canAddMore } = useComparison();
@@ -456,6 +447,86 @@ export default function CoursePage({ params }: CoursePageProps) {
 
     loadCourseData();
   }, [resolvedParams.id]);
+
+  // Load terms
+  useEffect(() => {
+    const loadTerms = async () => {
+      try {
+        const termsData = await getTerms();
+        setTerms(termsData);
+      } catch (err) {
+        console.error("Failed to load terms:", err);
+      }
+    };
+
+    loadTerms();
+  }, []);
+
+  // Load term-specific professors and sections when term is selected
+  useEffect(() => {
+    const loadTermData = async () => {
+      if (!selectedTerm || !courseData) {
+        // Reset to all professors when no term is selected
+        setTermProfessorIds(new Set());
+        setSections([]);
+        return;
+      }
+
+      try {
+        setLoadingTermData(true);
+        const [professorsData, sectionsData] = await Promise.all([
+          getCourseProfessorsForTerm(selectedTerm, resolvedParams.id),
+          getCourseSectionsForTerm(selectedTerm, resolvedParams.id),
+        ]);
+
+        // Create a set of professor IDs/names from term-specific data
+        // Use both ID and name for matching since some professors might only have one
+        const professorIdSet = new Set<string>();
+        professorsData?.forEach((prof) => {
+          if (prof.id) {
+            professorIdSet.add(prof.id);
+          }
+          if (prof.name) {
+            // Normalize name for matching (lowercase, trim)
+            professorIdSet.add(prof.name.toLowerCase().trim());
+          }
+        });
+        setTermProfessorIds(professorIdSet);
+        setSections(sectionsData);
+      } catch (err) {
+        console.error("Failed to load term data:", err);
+        setTermProfessorIds(new Set());
+        setSections([]);
+      } finally {
+        setLoadingTermData(false);
+      }
+    };
+
+    loadTermData();
+  }, [selectedTerm, courseData, resolvedParams.id]);
+
+  // Filter professors based on selected term
+  const displayedProfessors = React.useMemo(() => {
+    if (!courseData?.professors) return undefined;
+
+    // If no term selected, show all professors
+    if (!selectedTerm || termProfessorIds.size === 0) {
+      return courseData.professors;
+    }
+
+    // Filter professors to only those teaching in the selected term
+    return courseData.professors.filter((prof) => {
+      // Match by ID if available
+      if (prof.id && termProfessorIds.has(prof.id)) {
+        return true;
+      }
+      // Match by name (normalized)
+      if (prof.name && termProfessorIds.has(prof.name.toLowerCase().trim())) {
+        return true;
+      }
+      return false;
+    });
+  }, [courseData?.professors, selectedTerm, termProfessorIds]);
 
   if (loading) {
     return (
@@ -576,7 +647,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                   aria-hidden
                   className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-[#FFCF3F]/10 blur-2xl"
                 />
-                <div className="flex items-center gap-3 mb-4">
+                <div className="flex flex-wrap items-center gap-2 mb-4">
                   <Badge
                     variant="outline"
                     className={`${getDepartmentColor(courseData.code)} border-transparent px-3 py-1 text-xs font-medium rounded-full`}
@@ -589,6 +660,26 @@ export default function CoursePage({ params }: CoursePageProps) {
                   >
                     {courseData.credits} Credits
                   </Badge>
+                  {courseData.lectureHours !== undefined &&
+                    courseData.lectureHours > 0 && (
+                      <Badge
+                        variant="outline"
+                        className="border-border text-text-body bg-canvas/70 px-3 py-1 text-xs font-medium rounded-full dark:bg-black/30 dark:border-white/15 dark:text-white/80"
+                      >
+                        <Clock className="w-3 h-3 mr-1" />
+                        {courseData.lectureHours}h Lecture
+                      </Badge>
+                    )}
+                  {courseData.labHours !== undefined &&
+                    courseData.labHours > 0 && (
+                      <Badge
+                        variant="outline"
+                        className="border-border text-text-body bg-canvas/70 px-3 py-1 text-xs font-medium rounded-full dark:bg-black/30 dark:border-white/15 dark:text-white/80"
+                      >
+                        <FlaskConical className="w-3 h-3 mr-1" />
+                        {courseData.labHours}h Lab
+                      </Badge>
+                    )}
                 </div>
 
                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 relative">
@@ -661,9 +752,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                       label: "Difficulty",
                       icon: Zap,
                       display: (
-                        <AnimatedText
-                          text={courseData.difficulty}
-                          shouldReduceMotion={!!shouldReduceMotion}
+                        <span
                           className="block font-semibold tracking-tight leading-tight break-words text-balance line-clamp-2"
                           // Auto-fit the label: short strings stay big, longer shrink.
                           // Uses a CSS variable so the math is stable across renders.
@@ -674,7 +763,9 @@ export default function CoursePage({ params }: CoursePageProps) {
                                 "clamp(1rem, calc(2.3rem - (var(--len) * 0.085rem)), 1.55rem)",
                             } as React.CSSProperties
                           }
-                        />
+                        >
+                          {courseData.difficulty}
+                        </span>
                       ),
                     },
                     {
@@ -741,21 +832,299 @@ export default function CoursePage({ params }: CoursePageProps) {
                     </div>
 
                     {courseData.prerequisites &&
-                      courseData.prerequisites.length > 0 && (
+                      typeof courseData.prerequisites === "object" &&
+                      !Array.isArray(courseData.prerequisites) &&
+                      (courseData.prerequisites.text ||
+                        (courseData.prerequisites.courses &&
+                          courseData.prerequisites.courses.length > 0)) && (
                         <div>
                           <span className="text-xs font-semibold text-body uppercase tracking-wider">
                             Prerequisites:
                           </span>
+                          {courseData.prerequisites.text && (
+                            <p className="text-sm text-text-body dark:text-white/70 mt-1 mb-2">
+                              {courseData.prerequisites.text}
+                            </p>
+                          )}
+                          {(() => {
+                            // Only show course badges if there are courses to display
+                            const prereqCourses =
+                              courseData.prerequisites.courses || [];
+                            const hasCourses = prereqCourses.length > 0;
+
+                            if (!hasCourses) return null;
+
+                            // Find courses that appear in both prerequisites and corequisites
+                            // Normalize course codes by removing all whitespace and converting to uppercase for comparison
+                            const coreqCoursesRaw =
+                              courseData.corequisites?.courses || [];
+                            const normalizeCourse = (c: string) =>
+                              c.replace(/\s+/g, "").toUpperCase();
+                            const coreqCoursesNormalized = new Set(
+                              coreqCoursesRaw.map(normalizeCourse)
+                            );
+                            const hasOverlap = prereqCourses.some((c: string) =>
+                              coreqCoursesNormalized.has(normalizeCourse(c))
+                            );
+
+                            return (
+                              <>
+                                <div className="flex flex-wrap items-center gap-2">
+                                  {courseData.prerequisites.groups &&
+                                  courseData.prerequisites.groups.length > 0
+                                    ? // Use groups if available
+                                      courseData.prerequisites.groups.map(
+                                        (
+                                          group: string[],
+                                          groupIndex: number
+                                        ) => (
+                                          <div
+                                            key={groupIndex}
+                                            className="flex items-center gap-1"
+                                          >
+                                            {groupIndex > 0 && (
+                                              <span className="text-xs text-text-body/60 dark:text-white/50 mx-1 font-medium">
+                                                AND
+                                              </span>
+                                            )}
+                                            <div className="flex items-center gap-1">
+                                              {group.map(
+                                                (
+                                                  prereq: string,
+                                                  prereqIndex: number
+                                                ) => {
+                                                  const isAlsoCoreq =
+                                                    coreqCoursesNormalized.has(
+                                                      normalizeCourse(prereq)
+                                                    );
+                                                  return (
+                                                    <React.Fragment
+                                                      key={prereqIndex}
+                                                    >
+                                                      {prereqIndex > 0 && (
+                                                        <span className="text-xs text-accent font-medium">
+                                                          or
+                                                        </span>
+                                                      )}
+                                                      <Link
+                                                        href={`/course/${prereq.replace(/\s+/g, "")}`}
+                                                      >
+                                                        <Badge
+                                                          variant="outline"
+                                                          className={`text-xs px-2 py-1 font-medium rounded-full transition-colors cursor-pointer ${
+                                                            isAlsoCoreq
+                                                              ? "border-green-500 text-green-800 bg-green-200 dark:border-green-400 dark:text-green-200 dark:bg-green-600/40"
+                                                              : "border-border text-text-body bg-canvas/70 hover:bg-accent hover:text-white dark:border-white/15 dark:text-white/80 dark:bg-black/30 dark:hover:bg-accent dark:hover:text-white"
+                                                          }`}
+                                                          title={
+                                                            isAlsoCoreq
+                                                              ? "Can be taken before OR concurrently"
+                                                              : undefined
+                                                          }
+                                                        >
+                                                          {isAlsoCoreq && (
+                                                            <span className="mr-1">
+                                                              ⟷
+                                                            </span>
+                                                          )}
+                                                          {prereq}
+                                                        </Badge>
+                                                      </Link>
+                                                    </React.Fragment>
+                                                  );
+                                                }
+                                              )}
+                                            </div>
+                                          </div>
+                                        )
+                                      )
+                                    : // Fallback to simple courses list
+                                      prereqCourses.map(
+                                        (prereq: string, index: number) => {
+                                          const isAlsoCoreq =
+                                            coreqCoursesNormalized.has(
+                                              normalizeCourse(prereq)
+                                            );
+                                          return (
+                                            <React.Fragment key={index}>
+                                              {index > 0 && (
+                                                <span className="text-xs text-text-body/60 dark:text-white/50">
+                                                  ,
+                                                </span>
+                                              )}
+                                              <Link
+                                                href={`/course/${prereq.replace(/\s+/g, "")}`}
+                                              >
+                                                <Badge
+                                                  variant="outline"
+                                                  className={`text-xs px-2 py-1 font-medium rounded-full transition-colors cursor-pointer ${
+                                                    isAlsoCoreq
+                                                      ? "border-green-500 text-green-800 bg-green-200 dark:border-green-400 dark:text-green-200 dark:bg-green-600/40"
+                                                      : "border-border text-text-body bg-canvas/70 hover:bg-accent hover:text-white dark:border-white/15 dark:text-white/80 dark:bg-black/30 dark:hover:bg-accent dark:hover:text-white"
+                                                  }`}
+                                                  title={
+                                                    isAlsoCoreq
+                                                      ? "Can be taken before OR concurrently"
+                                                      : undefined
+                                                  }
+                                                >
+                                                  {isAlsoCoreq && (
+                                                    <span className="mr-1">
+                                                      ⟷
+                                                    </span>
+                                                  )}
+                                                  {prereq}
+                                                </Badge>
+                                              </Link>
+                                            </React.Fragment>
+                                          );
+                                        }
+                                      )}
+                                </div>
+                                {hasOverlap && (
+                                  <div className="mt-3 p-2.5 rounded-lg bg-green-100 dark:bg-green-600/30 border border-green-300 dark:border-green-500/50">
+                                    <p className="text-xs text-green-800 dark:text-green-200 flex items-center gap-2">
+                                      <span className="text-sm">⟷</span>
+                                      <span>
+                                        <strong>Green courses</strong> can be
+                                        taken before OR concurrently (as a
+                                        corequisite)
+                                      </span>
+                                    </p>
+                                  </div>
+                                )}
+                              </>
+                            );
+                          })()}
+                        </div>
+                      )}
+
+                    {courseData.corequisites &&
+                      courseData.corequisites.courses &&
+                      courseData.corequisites.courses.length > 0 && (
+                        <div>
+                          {(() => {
+                            // Find courses that are ONLY corequisites (not also prerequisites)
+                            // Normalize course codes for comparison
+                            const prereqCoursesRaw =
+                              (courseData.prerequisites &&
+                              typeof courseData.prerequisites === "object" &&
+                              !Array.isArray(courseData.prerequisites)
+                                ? courseData.prerequisites.courses
+                                : Array.isArray(courseData.prerequisites)
+                                  ? courseData.prerequisites
+                                  : []) || [];
+                            const normalizeCourse = (c: string) =>
+                              c.replace(/\s+/g, "").toUpperCase();
+                            const prereqCoursesNormalized = new Set(
+                              prereqCoursesRaw.map(normalizeCourse)
+                            );
+                            const coreqOnlyCourses =
+                              courseData.corequisites.courses.filter(
+                                (c: string) =>
+                                  !prereqCoursesNormalized.has(
+                                    normalizeCourse(c)
+                                  )
+                              );
+                            const sharedCourses =
+                              courseData.corequisites.courses.filter(
+                                (c: string) =>
+                                  prereqCoursesNormalized.has(
+                                    normalizeCourse(c)
+                                  )
+                              );
+
+                            // If all corequisites are also prerequisites, show a simpler message
+                            if (
+                              coreqOnlyCourses.length === 0 &&
+                              sharedCourses.length > 0
+                            ) {
+                              return (
+                                <>
+                                  <span className="text-xs font-semibold text-body uppercase tracking-wider">
+                                    Corequisites:
+                                  </span>
+                                  <p className="text-sm text-text-body dark:text-white/70 mt-1">
+                                    {courseData.corequisites.text}
+                                  </p>
+                                  <p className="text-xs text-text-body/70 dark:text-white/50 mt-1 italic">
+                                    (Same as prerequisites marked in green above
+                                    - can be taken before or concurrently)
+                                  </p>
+                                </>
+                              );
+                            }
+
+                            return (
+                              <>
+                                <span className="text-xs font-semibold text-body uppercase tracking-wider">
+                                  Corequisites:
+                                </span>
+                                <p className="text-sm text-text-body dark:text-white/70 mt-1 mb-2">
+                                  {courseData.corequisites.text}
+                                </p>
+                                <div className="flex flex-wrap gap-1">
+                                  {courseData.corequisites.courses.map(
+                                    (coreq: string, index: number) => {
+                                      const isAlsoPrereq =
+                                        prereqCoursesNormalized.has(
+                                          normalizeCourse(coreq)
+                                        );
+                                      return (
+                                        <Link
+                                          key={index}
+                                          href={`/course/${coreq.replace(/\s+/g, "")}`}
+                                        >
+                                          <Badge
+                                            variant="outline"
+                                            className={`text-xs px-2 py-1 font-medium rounded-full transition-colors cursor-pointer ${
+                                              isAlsoPrereq
+                                                ? "border-green-500 text-green-800 bg-green-200 dark:border-green-400 dark:text-green-200 dark:bg-green-600/40"
+                                                : "border-orange-300 text-orange-700 bg-orange-50 dark:border-orange-500/30 dark:text-orange-400 dark:bg-orange-500/10"
+                                            }`}
+                                            title={
+                                              isAlsoPrereq
+                                                ? "Can be taken before OR concurrently"
+                                                : "Must be taken concurrently"
+                                            }
+                                          >
+                                            {isAlsoPrereq && (
+                                              <span className="mr-1">⟷</span>
+                                            )}
+                                            {coreq}
+                                          </Badge>
+                                        </Link>
+                                      );
+                                    }
+                                  )}
+                                </div>
+                              </>
+                            );
+                          })()}
+                        </div>
+                      )}
+
+                    {courseData.crossListings &&
+                      courseData.crossListings.length > 0 && (
+                        <div>
+                          <span className="text-xs font-semibold text-body uppercase tracking-wider">
+                            Cross-Listed With:
+                          </span>
                           <div className="flex flex-wrap gap-1 mt-2">
-                            {courseData.prerequisites.map(
-                              (prereq: string, index: number) => (
-                                <Badge
+                            {courseData.crossListings.map(
+                              (crossList: string, index: number) => (
+                                <Link
                                   key={index}
-                                  variant="outline"
-                                  className="text-xs border-white/15 text-white/80 bg-black/20 dark:border-white/15 dark:text-white/80 dark:bg-black/30 px-2 py-1 font-medium rounded-full"
+                                  href={`/course/${crossList.replace(/\s+/g, "")}`}
                                 >
-                                  {prereq}
-                                </Badge>
+                                  <Badge
+                                    variant="outline"
+                                    className="text-xs border-purple-300 text-purple-700 bg-purple-50 dark:border-purple-500/30 dark:text-purple-400 dark:bg-purple-500/10 px-2 py-1 font-medium rounded-full transition-colors cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-500/20"
+                                  >
+                                    <LinkIcon className="w-3 h-3 mr-1" />
+                                    {crossList}
+                                  </Badge>
+                                </Link>
                               )
                             )}
                           </div>
@@ -793,6 +1162,29 @@ export default function CoursePage({ params }: CoursePageProps) {
                   </div>
                 </Card>
 
+                {/* Term Selector */}
+                <div className="flex items-center gap-3 mb-2">
+                  <label
+                    htmlFor="term-selector"
+                    className="text-sm font-semibold text-text-heading dark:text-white"
+                  >
+                    Select Term:
+                  </label>
+                  <select
+                    id="term-selector"
+                    value={selectedTerm}
+                    onChange={(e) => setSelectedTerm(e.target.value)}
+                    className="flex-1 max-w-xs bg-canvas border border-border rounded-xl px-4 py-2 text-text-body dark:bg-black/45 dark:border-white/15 dark:text-white/90 dark:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
+                  >
+                    <option value="">All Terms</option>
+                    {terms.map((term) => (
+                      <option key={term.termCode} value={term.termCode}>
+                        {term.termDesc}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 {/* Professors Section */}
                 <Card className="p-4 rounded-2xl shadow-none bg-card border-border dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
@@ -800,34 +1192,39 @@ export default function CoursePage({ params }: CoursePageProps) {
                       Course Professors
                     </h3>
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
-                      {courseData.professors &&
-                        courseData.professors.length >= 2 && (
-                          <Link
-                            href="/compare?tab=professors"
-                            className="w-full sm:w-auto"
+                      {loadingTermData && (
+                        <div className="text-xs text-text-body/80 dark:text-white/70">
+                          Loading term data...
+                        </div>
+                      )}
+                      {(displayedProfessors || []).length >= 2 && (
+                        <Link
+                          href="/compare?tab=professors"
+                          className="w-full sm:w-auto"
+                        >
+                          <Button
+                            size="sm"
+                            className="bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966] rounded-full flex items-center gap-2 w-full sm:w-auto"
                           >
-                            <Button
-                              size="sm"
-                              className="bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966] rounded-full flex items-center gap-2 w-full sm:w-auto"
-                            >
-                              <BarChart3 className="w-4 h-4" />
-                              <span className="hidden sm:inline">
-                                Compare Professors
-                              </span>
-                              <span className="sm:hidden">Compare</span>
-                            </Button>
-                          </Link>
-                        )}
+                            <BarChart3 className="w-4 h-4" />
+                            <span className="hidden sm:inline">
+                              Compare Professors
+                            </span>
+                            <span className="sm:hidden">Compare</span>
+                          </Button>
+                        </Link>
+                      )}
                       <div className="text-xs text-text-body/80 dark:text-white/70 border border-border dark:border-white/15 px-3 py-1 rounded-full bg-canvas dark:bg-black/30">
                         <CountUpNumber
-                          value={courseData.professors?.length || 0}
+                          value={displayedProfessors?.length || 0}
                         />{" "}
                         professors
+                        {selectedTerm && " (this term)"}
                       </div>
                     </div>
                   </div>
                   <div className="space-y-3">
-                    {courseData.professors?.map((prof, index: number) => (
+                    {displayedProfessors?.map((prof, index: number) => (
                       <Card
                         key={index}
                         className="p-4 gap-0 rounded-2xl shadow-none bg-card border-border hover:border-border transition-all duration-200 group relative overflow-hidden dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm dark:hover:border-white/20"
@@ -839,50 +1236,101 @@ export default function CoursePage({ params }: CoursePageProps) {
                         />
 
                         <div className="">
-                          <div className="flex items-start justify-between mb-2">
-                            <div>
+                          <div className="flex gap-4">
+                            {/* Left side: Name and AI Summary header */}
+                            <div className="flex-1 min-w-0">
                               <h4 className="text-md font-bold text-text-heading dark:text-white mb-1">
                                 {prof.name}
                               </h4>
-                              {/* Only show rating and reviews if professor has review data */}
-                              {prof.id &&
-                              prof.rating !== undefined &&
-                              prof.reviews !== undefined ? (
-                                <div className="flex items-center gap-2 mt-2">
-                                  <div className="flex items-center bg-[#FFCF3F] text-[#0f0f0f] px-2 py-0.5 rounded-full">
-                                    <Star className="h-3 w-3 fill-current" />
-                                    <span className="ml-1 text-xs font-semibold">
+                              {/* Show Grade data only badge if no review data */}
+                              {!(prof.id && prof.rating !== undefined) && (
+                                <Badge
+                                  variant="outline"
+                                  className="text-xs border-border bg-canvas text-text-body dark:border-white/15 dark:bg-black/30 dark:text-white/70 font-medium rounded-full"
+                                >
+                                  Grade data only
+                                </Badge>
+                              )}
+                              {/* AI Summary header - show if courseSummary available */}
+                              {(() => {
+                                const summary = prof.courseSummary;
+                                const hasSummary =
+                                  summary &&
+                                  (summary.teaching ||
+                                    summary.exams ||
+                                    summary.grading ||
+                                    summary.workload ||
+                                    summary.personality ||
+                                    summary.policies);
+                                if (!hasSummary) return null;
+                                return (
+                                  <div className="flex flex-wrap items-center gap-2 mt-1">
+                                    <h5 className="text-xs font-semibold text-heading uppercase tracking-wide">
+                                      AI Summary
+                                    </h5>
+                                    <span className="text-xs text-text-body/70 dark:text-white/60">
+                                      based on{" "}
+                                      {prof.totalReviews ?? prof.reviews ?? 0}{" "}
+                                      reviews
+                                    </span>
+                                    {prof.confidence !== undefined &&
+                                      prof.confidence !== null && (
+                                        <Badge
+                                          variant="outline"
+                                          className="text-xs border-border bg-canvas text-text-body dark:border-white/15 dark:bg-black/30 dark:text-white/70 font-medium rounded-full"
+                                        >
+                                          {(prof.confidence * 100).toFixed(0)}%
+                                          confident
+                                        </Badge>
+                                      )}
+                                  </div>
+                                );
+                              })()}
+                            </div>
+
+                            {/* Right side: Large rating badge */}
+                            {prof.id && prof.rating !== undefined && (
+                              <div className="flex items-center justify-center bg-[#FFCF3F] text-[#0f0f0f] px-4 py-2 rounded-2xl min-w-[70px] self-stretch">
+                                <div className="flex flex-col items-center">
+                                  <div className="flex items-center gap-1">
+                                    <Star className="h-5 w-5 fill-current" />
+                                    <span className="text-xl font-bold">
                                       {prof.rating.toFixed(1)}
                                     </span>
                                   </div>
-                                  <div className="flex items-center bg-black/20 text-text-body dark:bg-black/30 dark:text-white/80 px-2 py-0.5 rounded-full border border-border dark:border-white/15">
-                                    <Users className="h-2 w-2" />
-                                    <span className="ml-1 text-xs font-semibold">
-                                      {prof.reviews} reviews
-                                    </span>
-                                  </div>
                                 </div>
-                              ) : (
-                                <div className="mt-2">
-                                  <Badge
-                                    variant="outline"
-                                    className="text-xs border-border bg-canvas text-text-body dark:border-white/15 dark:bg-black/30 dark:text-white/70 font-medium rounded-full"
-                                  >
-                                    Grade data only
-                                  </Badge>
-                                </div>
-                              )}
-                            </div>
+                              </div>
+                            )}
                           </div>
 
-                          {/* Professor AI Summary - only show if available and not generic */}
-                          {prof.description &&
-                            prof.description !== "Course instruction" &&
-                            prof.description.trim().length > 0 && (
-                              <div className="mb-3">
-                                <div className="flex items-center gap-2 mb-2">
+                          {/* Professor AI Summary content - show courseSummary or legacy description */}
+                          {(() => {
+                            // Check if we have any courseSummary content
+                            const summary = prof.courseSummary;
+                            const hasSummary =
+                              summary &&
+                              (summary.teaching ||
+                                summary.exams ||
+                                summary.grading ||
+                                summary.workload ||
+                                summary.personality ||
+                                summary.policies);
+
+                            // Fall back to legacy description if no courseSummary
+                            const legacyDesc =
+                              prof.description &&
+                              prof.description !== "Course instruction" &&
+                              prof.description.trim().length > 0
+                                ? prof.description
+                                : null;
+
+                            if (!hasSummary && !legacyDesc) return null;
+
+                            return (
+                              <div className="mb-3 mt-3">
+                                <div className="flex items-center gap-2 mb-2 hidden">
                                   <h5 className="text-xs font-semibold text-heading uppercase tracking-wide">
-                                    Summary
+                                    AI Summary
                                   </h5>
                                   <Badge
                                     variant="outline"
@@ -890,14 +1338,107 @@ export default function CoursePage({ params }: CoursePageProps) {
                                   >
                                     Generated by AI
                                   </Badge>
+                                  {prof.confidence !== undefined && (
+                                    <Badge
+                                      variant="outline"
+                                      className="text-xs border-border bg-canvas text-text-body dark:border-white/15 dark:bg-black/30 dark:text-white/70 font-medium rounded-full"
+                                    >
+                                      {Math.round(prof.confidence * 100)}%
+                                      confidence
+                                    </Badge>
+                                  )}
                                 </div>
-                                <div className="bg-canvas/70 border border-border rounded-2xl p-3 dark:bg-black/30 dark:border-white/10">
-                                  <p className="text-text-body dark:text-white/80 leading-relaxed text-sm">
-                                    {prof.description}
-                                  </p>
+                                <div className="bg-canvas/70 border border-border rounded-2xl p-3 dark:bg-black/30 dark:border-white/10 space-y-3">
+                                  {hasSummary ? (
+                                    <>
+                                      {summary.teaching && (
+                                        <div>
+                                          <div className="flex items-center gap-1.5 mb-1">
+                                            <GraduationCap className="w-3.5 h-3.5 text-accent" />
+                                            <span className="text-xs font-semibold text-text-heading dark:text-white/90">
+                                              Teaching Style
+                                            </span>
+                                          </div>
+                                          <p className="text-text-body dark:text-white/80 leading-relaxed text-sm pl-5">
+                                            {summary.teaching}
+                                          </p>
+                                        </div>
+                                      )}
+                                      {summary.exams && (
+                                        <div>
+                                          <div className="flex items-center gap-1.5 mb-1">
+                                            <ClipboardList className="w-3.5 h-3.5 text-accent" />
+                                            <span className="text-xs font-semibold text-text-heading dark:text-white/90">
+                                              Exams & Quizzes
+                                            </span>
+                                          </div>
+                                          <p className="text-text-body dark:text-white/80 leading-relaxed text-sm pl-5">
+                                            {summary.exams}
+                                          </p>
+                                        </div>
+                                      )}
+                                      {summary.grading && (
+                                        <div>
+                                          <div className="flex items-center gap-1.5 mb-1">
+                                            <FileText className="w-3.5 h-3.5 text-accent" />
+                                            <span className="text-xs font-semibold text-text-heading dark:text-white/90">
+                                              Grading
+                                            </span>
+                                          </div>
+                                          <p className="text-text-body dark:text-white/80 leading-relaxed text-sm pl-5">
+                                            {summary.grading}
+                                          </p>
+                                        </div>
+                                      )}
+                                      {summary.workload && (
+                                        <div>
+                                          <div className="flex items-center gap-1.5 mb-1">
+                                            <Briefcase className="w-3.5 h-3.5 text-accent" />
+                                            <span className="text-xs font-semibold text-text-heading dark:text-white/90">
+                                              Workload
+                                            </span>
+                                          </div>
+                                          <p className="text-text-body dark:text-white/80 leading-relaxed text-sm pl-5">
+                                            {summary.workload}
+                                          </p>
+                                        </div>
+                                      )}
+                                      {summary.personality && (
+                                        <div>
+                                          <div className="flex items-center gap-1.5 mb-1">
+                                            <UserCircle className="w-3.5 h-3.5 text-accent" />
+                                            <span className="text-xs font-semibold text-text-heading dark:text-white/90">
+                                              Personality
+                                            </span>
+                                          </div>
+                                          <p className="text-text-body dark:text-white/80 leading-relaxed text-sm pl-5">
+                                            {summary.personality}
+                                          </p>
+                                        </div>
+                                      )}
+                                      {summary.policies && (
+                                        <div>
+                                          <div className="flex items-center gap-1.5 mb-1">
+                                            <ScrollText className="w-3.5 h-3.5 text-accent" />
+                                            <span className="text-xs font-semibold text-text-heading dark:text-white/90">
+                                              Policies
+                                            </span>
+                                          </div>
+                                          <p className="text-text-body dark:text-white/80 leading-relaxed text-sm pl-5">
+                                            {summary.policies}
+                                          </p>
+                                        </div>
+                                      )}
+                                    </>
+                                  ) : (
+                                    <p className="text-text-body dark:text-white/80 leading-relaxed text-sm">
+                                      {legacyDesc}
+                                    </p>
+                                  )}
                                 </div>
                               </div>
-                            )}
+                            );
+                          })()}
 
                           {/* Professor Tags - only show if available and not empty */}
                           {prof.tag_frequencies &&
@@ -1051,7 +1592,8 @@ export default function CoursePage({ params }: CoursePageProps) {
                                     <Eye className="w-3 h-3 mr-1" />
                                     <span className="sm:hidden">Reviews</span>
                                     <span className="hidden sm:inline">
-                                      Reviews ({prof.reviews || 0})
+                                      Reviews (
+                                      {prof.totalReviews ?? prof.reviews ?? 0})
                                     </span>
                                   </Button>
                                 </Link>
@@ -1120,6 +1662,173 @@ export default function CoursePage({ params }: CoursePageProps) {
                     ))}
                   </div>
                 </Card>
+
+                {/* Sections Section - Only show when term is selected */}
+                {selectedTerm && sections.length > 0 && (
+                  <Card className="p-4 rounded-2xl shadow-none bg-card border-border dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm">
+                    <h3 className="text-xl font-bold text-text-heading dark:text-white mb-4">
+                      Course Sections (
+                      {terms.find((t) => t.termCode === selectedTerm)
+                        ?.termDesc || selectedTerm}
+                      )
+                    </h3>
+                    <div className="space-y-3">
+                      {sections.map((section) => (
+                        <Card
+                          key={section.id}
+                          className="p-4 rounded-xl shadow-none bg-canvas/70 border border-border hover:bg-canvas transition-all duration-200 dark:bg-black/30 dark:border-white/10 dark:hover:bg-black/40"
+                        >
+                          <div className="flex flex-col gap-3">
+                            {/* Header: Section Number and Title */}
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <Badge
+                                  variant="outline"
+                                  className="text-xs font-semibold border-accent text-accent bg-canvas/70 dark:bg-black/30 dark:border-accent"
+                                >
+                                  Section {section.sectionNumber}
+                                </Badge>
+                                {section.crn && (
+                                  <Badge
+                                    variant="outline"
+                                    className="text-xs border-border text-text-body bg-canvas/70 dark:bg-black/30 dark:border-white/15 dark:text-white/80"
+                                  >
+                                    CRN: {section.crn}
+                                  </Badge>
+                                )}
+                                {section.isOpen ? (
+                                  <Badge
+                                    variant="outline"
+                                    className="text-xs border-green-500 text-green-700 bg-green-50 dark:border-green-400 dark:text-green-200 dark:bg-green-600/40"
+                                  >
+                                    Open
+                                  </Badge>
+                                ) : (
+                                  <Badge
+                                    variant="outline"
+                                    className="text-xs border-red-500 text-red-700 bg-red-50 dark:border-red-400 dark:text-red-200 dark:bg-red-600/40"
+                                  >
+                                    Closed
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="text-xs text-text-body dark:text-white/70">
+                                {section.creditHours} Credits
+                              </div>
+                            </div>
+
+                            {/* Course Title */}
+                            {section.courseTitle && (
+                              <div className="text-sm font-medium text-text-heading dark:text-white">
+                                {section.courseTitle}
+                              </div>
+                            )}
+
+                            {/* Instructors */}
+                            {section.instructors &&
+                              section.instructors.length > 0 && (
+                                <div>
+                                  <span className="text-xs font-semibold text-text-heading dark:text-white/90 mb-1 block">
+                                    Instructor
+                                    {section.instructors.length > 1 ? "s" : ""}:
+                                  </span>
+                                  <div className="flex flex-wrap gap-2">
+                                    {section.instructors.map(
+                                      (instructor, idx) => (
+                                        <div
+                                          key={idx}
+                                          className="flex items-center gap-1"
+                                        >
+                                          <span className="text-sm text-text-body dark:text-white/80">
+                                            {instructor.name}
+                                          </span>
+                                          {instructor.isPrimary && (
+                                            <Badge
+                                              variant="outline"
+                                              className="text-[10px] border-accent text-accent bg-canvas/70 dark:bg-black/30 dark:border-accent px-1.5 py-0"
+                                            >
+                                              Primary
+                                            </Badge>
+                                          )}
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+
+                            {/* Meetings */}
+                            {section.meetings &&
+                              section.meetings.length > 0 && (
+                                <div>
+                                  <span className="text-xs font-semibold text-text-heading dark:text-white/90 mb-2 block">
+                                    Schedule:
+                                  </span>
+                                  <div className="space-y-2">
+                                    {section.meetings.map((meeting, idx) => (
+                                      <div
+                                        key={idx}
+                                        className="flex flex-wrap items-center gap-3 text-xs text-text-body dark:text-white/70 bg-canvas/50 dark:bg-black/20 p-2 rounded-lg"
+                                      >
+                                        <Badge
+                                          variant="outline"
+                                          className="text-[10px] border-border text-text-body bg-canvas/70 dark:bg-black/30 dark:border-white/15 dark:text-white/80"
+                                        >
+                                          {meeting.meetingType}
+                                        </Badge>
+                                        {meeting.daysOfWeek &&
+                                          meeting.daysOfWeek.length > 0 && (
+                                            <span className="font-medium">
+                                              {meeting.daysOfWeek.join("")}
+                                            </span>
+                                          )}
+                                        {meeting.beginTime &&
+                                          meeting.endTime && (
+                                            <span>
+                                              {meeting.beginTime} -{" "}
+                                              {meeting.endTime}
+                                            </span>
+                                          )}
+                                        {meeting.building && meeting.room && (
+                                          <span>
+                                            {meeting.building} {meeting.room}
+                                          </span>
+                                        )}
+                                        {meeting.startDate &&
+                                          meeting.endDate && (
+                                            <span className="text-text-body/60 dark:text-white/50">
+                                              {meeting.startDate} -{" "}
+                                              {meeting.endDate}
+                                            </span>
+                                          )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                            {/* Attributes */}
+                            {section.attributesText && (
+                              <div className="flex flex-wrap gap-1">
+                                {section.attributesText
+                                  .split("|")
+                                  .map((attr, idx) => (
+                                    <Badge
+                                      key={idx}
+                                      variant="outline"
+                                      className="text-[10px] border-border text-text-body bg-canvas/70 dark:bg-black/30 dark:border-white/15 dark:text-white/80"
+                                    >
+                                      {attr.trim()}
+                                    </Badge>
+                                  ))}
+                              </div>
+                            )}
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  </Card>
+                )}
               </div>
 
               {/* Sidebar */}

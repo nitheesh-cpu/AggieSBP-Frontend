@@ -54,49 +54,7 @@ const courseData: CourseRow[] = [
     avgGPA: "3.67",
     workload: "Light",
     rating: "4.7/5",
-  },
-  {
-    icon: "💻",
-    course: "CSCE314",
-    avgGPA: "3.05",
-    workload: "High",
-    rating: "4.1/5",
-  },
-  {
-    icon: "⚡",
-    course: "ECEN303",
-    avgGPA: "2.78",
-    workload: "High",
-    rating: "3.8/5",
-  },
-  {
-    icon: "📐",
-    course: "MATH308",
-    avgGPA: "3.12",
-    workload: "Medium",
-    rating: "4.3/5",
-  },
-  {
-    icon: "⚙️",
-    course: "ENGR216",
-    avgGPA: "3.38",
-    workload: "Medium",
-    rating: "4.5/5",
-  },
-  {
-    icon: "🧬",
-    course: "BIOL212",
-    avgGPA: "2.94",
-    workload: "High",
-    rating: "4.0/5",
-  },
-  {
-    icon: "📚",
-    course: "HIST202",
-    avgGPA: "3.52",
-    workload: "Light",
-    rating: "4.6/5",
-  },
+  }
 ];
 
 export const CourseTable: React.FC = () => {

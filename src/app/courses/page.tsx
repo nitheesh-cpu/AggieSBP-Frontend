@@ -1,6 +1,14 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback } from "react";
+import {
+  animate,
+  MotionConfig,
+  motion,
+  useInView,
+  useMotionValue,
+  useReducedMotion,
+} from "motion/react";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
@@ -57,6 +65,51 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { useComparison } from "@/contexts/ComparisonContext";
 import { ComparisonWidget } from "@/components/comparison-widget";
+
+function formatAnimatedNumber(n: number, decimals: number) {
+  const fixed = n.toFixed(decimals);
+  const [intPart, decPart] = fixed.split(".");
+  const withCommas = Number(intPart).toLocaleString("en-US");
+  return decimals > 0 ? `${withCommas}.${decPart}` : withCommas;
+}
+
+function CountUpNumber({
+  value,
+  decimals = 0,
+}: {
+  value: number;
+  decimals?: number;
+}) {
+  const shouldReduceMotion = useReducedMotion();
+  const ref = React.useRef<HTMLSpanElement | null>(null);
+  const isInView = useInView(ref, { once: true, amount: 0.6 });
+
+  const motionValue = useMotionValue(0);
+  const [display, setDisplay] = React.useState(() =>
+    formatAnimatedNumber(0, decimals)
+  );
+
+  React.useEffect(() => {
+    if (!isInView) return;
+
+    if (shouldReduceMotion) {
+      setDisplay(formatAnimatedNumber(value, decimals));
+      return;
+    }
+
+    const controls = animate(motionValue, value, {
+      duration: 1.05,
+      ease: [0.22, 1, 0.36, 1],
+      onUpdate(latest) {
+        setDisplay(formatAnimatedNumber(latest, decimals));
+      },
+    });
+
+    return () => controls.stop();
+  }, [decimals, isInView, motionValue, shouldReduceMotion, value]);
+
+  return <span ref={ref}>{display}</span>;
+}
 
 const quickFilters = [
   {
@@ -251,6 +304,8 @@ const sectionAttributeFilters = [
 function CoursesPageContent() {
   const { addCourse, removeCourse, isSelected, canAddMore } = useComparison();
   const searchParams = useSearchParams();
+  const shouldReduceMotion = useReducedMotion();
+  const [hasMounted, setHasMounted] = React.useState(false);
   const [courses, setCourses] = useState<Course[]>([]);
   const [allCourses, setAllCourses] = useState<Course[]>([]);
   const [isLoadingAll, setIsLoadingAll] = useState(false);
@@ -263,11 +318,11 @@ function CoursesPageContent() {
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState(
-    searchParams?.get("search") || "",
+    searchParams?.get("search") || ""
   );
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState(
-    searchParams?.get("department") || "All",
+    searchParams?.get("department") || "All"
   );
   const [selectedDifficulty] = useState(searchParams?.get("difficulty") || "");
   const [minGpa] = useState<string>(searchParams?.get("min_gpa") || "");
@@ -277,7 +332,7 @@ function CoursesPageContent() {
   const [sortBy, setSortBy] = useState("code");
   const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [selectedQuickFilters, setSelectedQuickFilters] = useState<string[]>(
-    [],
+    []
   );
   const [selectedSectionAttributes, setSelectedSectionAttributes] = useState<
     string[]
@@ -457,15 +512,15 @@ function CoursesPageContent() {
           switch (filterId) {
             case "undergraduate":
               return course.tags.some((tag) =>
-                tag.toLowerCase().includes("undergraduate"),
+                tag.toLowerCase().includes("undergraduate")
               );
             case "advanced":
               return course.tags.some((tag) =>
-                tag.toLowerCase().includes("advanced"),
+                tag.toLowerCase().includes("advanced")
               );
             case "graduate":
               return course.tags.some(
-                (tag) => tag.toLowerCase() === "graduate",
+                (tag) => tag.toLowerCase() === "graduate"
               );
             case "core":
               return course.sectionAttributes.some(
@@ -479,7 +534,7 @@ function CoursesPageContent() {
                   attr.includes("KPLL") ||
                   attr.includes("KMTH") ||
                   attr.includes("KSOC") ||
-                  attr.includes("KHTX"),
+                  attr.includes("KHTX")
               );
             case "highgpa":
               return course.avgGPA !== -1 && course.avgGPA >= 3.5;
@@ -497,7 +552,7 @@ function CoursesPageContent() {
       let matchesSectionAttributes = true;
       if (selectedSectionAttributes.length > 0) {
         matchesSectionAttributes = selectedSectionAttributes.some((attrId) =>
-          course.sectionAttributes.some((attr) => attr.includes(attrId)),
+          course.sectionAttributes.some((attr) => attr.includes(attrId))
         );
       }
 
@@ -567,13 +622,13 @@ function CoursesPageContent() {
 
   const totalPages = Math.max(
     1,
-    Math.ceil(filteredCourses.length / coursesPerPage),
+    Math.ceil(filteredCourses.length / coursesPerPage)
   );
 
   // Pagination
   const paginatedCourses = filteredCourses.slice(
     (currentPage - 1) * coursesPerPage,
-    currentPage * coursesPerPage,
+    currentPage * coursesPerPage
   );
 
   const getDifficultyBadgeColor = (difficulty: string) => {
@@ -594,46 +649,277 @@ function CoursesPageContent() {
   };
 
   const getDepartmentColor = (deptName: string) => {
-    if (deptName === "All")
-      return "bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-500 dark:to-pink-500";
+    if (deptName === "All") return "bg-purple-700 dark:bg-purple-600";
 
     const colorMap: { [key: string]: string } = {
-      ACCT: "bg-gradient-to-r from-yellow-600 to-orange-600 dark:from-yellow-500 dark:to-orange-500",
-      MATH: "bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-500 dark:to-purple-500",
-      MEEN: "bg-gradient-to-r from-gray-600 to-slate-700 dark:from-gray-500 dark:to-slate-600",
-      CSCE: "bg-gradient-to-r from-blue-600 to-cyan-600 dark:from-blue-500 dark:to-cyan-500",
-      BUAD: "bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-500 dark:to-teal-500",
-      CVEN: "bg-gradient-to-r from-orange-600 to-red-600 dark:from-orange-500 dark:to-red-500",
-      CHEM: "bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-500 dark:to-emerald-500",
-      FINC: "bg-gradient-to-r from-green-700 to-lime-600 dark:from-green-600 dark:to-lime-500",
-      STAT: "bg-gradient-to-r from-purple-700 to-indigo-600 dark:from-purple-600 dark:to-indigo-500",
-      COSC: "bg-gradient-to-r from-amber-600 to-yellow-600 dark:from-amber-500 dark:to-yellow-500",
-      PHAR: "bg-gradient-to-r from-blue-700 to-purple-600 dark:from-blue-600 dark:to-purple-500",
-      NURS: "bg-gradient-to-r from-red-600 to-pink-600 dark:from-red-500 dark:to-pink-500",
-      PETE: "bg-gradient-to-r from-amber-700 to-orange-700 dark:from-amber-600 dark:to-orange-600",
-      ECON: "bg-gradient-to-r from-yellow-700 to-amber-600 dark:from-yellow-600 dark:to-amber-500",
-      ANSC: "bg-gradient-to-r from-emerald-700 to-green-600 dark:from-emerald-600 dark:to-green-500",
+      // Accounting & Business
+      ACCT: "bg-yellow-600 dark:bg-yellow-500 text-white",
+      BUAD: "bg-blue-600 dark:bg-blue-500 text-white",
+      BUSN: "bg-indigo-600 dark:bg-indigo-500 text-white",
+      FINC: "bg-green-600 dark:bg-green-500 text-white",
+      FINP: "bg-emerald-600 dark:bg-emerald-500 text-white",
+      MGMT: "bg-purple-600 dark:bg-purple-500 text-white",
+      MKTG: "bg-pink-600 dark:bg-pink-500 text-white",
+      SCMT: "bg-orange-600 dark:bg-orange-500 text-white",
+      ECON: "bg-yellow-600 dark:bg-yellow-500 text-white",
+      IBUS: "bg-blue-600 dark:bg-blue-500 text-white",
+      ISTM: "bg-cyan-600 dark:bg-cyan-500 text-white",
+      IDIS: "bg-gray-600 dark:bg-gray-500 text-white",
+
+      // Engineering
+      CSCE: "bg-blue-600 dark:bg-blue-500 text-white",
+      ECEN: "bg-yellow-600 dark:bg-yellow-500 text-white",
+      MEEN: "bg-gray-600 dark:bg-gray-500 text-white",
+      CVEN: "bg-orange-600 dark:bg-orange-500 text-white",
+      CHEN: "bg-green-600 dark:bg-green-500 text-white",
+      AERO: "bg-sky-600 dark:bg-sky-500 text-white",
+      PETE: "bg-amber-600 dark:bg-amber-500 text-white",
+      NUEN: "bg-red-600 dark:bg-red-500 text-white",
+      BMEN: "bg-rose-600 dark:bg-rose-500 text-white",
+      ISEN: "bg-purple-600 dark:bg-purple-500 text-white",
+      OCEN: "bg-cyan-600 dark:bg-cyan-500 text-white",
+      ENGR: "bg-slate-600 dark:bg-slate-500 text-white",
+      BAEN: "bg-green-600 dark:bg-green-500 text-white",
+      EVEN: "bg-emerald-600 dark:bg-emerald-500 text-white",
+      MSEN: "bg-indigo-600 dark:bg-indigo-500 text-white",
+      AREN: "bg-blue-600 dark:bg-blue-500 text-white",
+      SENG: "bg-red-600 dark:bg-red-500 text-white",
+      SSEN: "bg-blue-600 dark:bg-blue-500 text-white",
+      CLEN: "bg-gray-600 dark:bg-gray-500 text-white",
+      ENDG: "bg-purple-600 dark:bg-purple-500 text-white",
+      ENDS: "bg-green-600 dark:bg-green-500 text-white",
+      ENTC: "bg-orange-600 dark:bg-orange-500 text-white",
+      ESET: "bg-blue-600 dark:bg-blue-500 text-white",
+      MMET: "bg-gray-600 dark:bg-gray-500 text-white",
+      MXET: "bg-purple-600 dark:bg-purple-500 text-white",
+      ITDE: "bg-cyan-600 dark:bg-cyan-500 text-white",
+      MTDE: "bg-indigo-600 dark:bg-indigo-500 text-white",
+      DAEN: "bg-blue-600 dark:bg-blue-500 text-white",
+
+      // Sciences
+      MATH: "bg-indigo-600 dark:bg-indigo-500 text-white",
+      STAT: "bg-purple-600 dark:bg-purple-500 text-white",
+      CHEM: "bg-green-600 dark:bg-green-500 text-white",
+      BIOL: "bg-emerald-600 dark:bg-emerald-500 text-white",
+      PHYS: "bg-purple-600 dark:bg-purple-500 text-white",
+      GEOL: "bg-amber-600 dark:bg-amber-500 text-white",
+      GEOG: "bg-blue-600 dark:bg-blue-500 text-white",
+      GEOS: "bg-emerald-600 dark:bg-emerald-500 text-white",
+      GEOP: "bg-orange-600 dark:bg-orange-500 text-white",
+      ASTR: "bg-indigo-600 dark:bg-indigo-500 text-white",
+      ATMO: "bg-cyan-600 dark:bg-cyan-500 text-white",
+      OCNG: "bg-blue-600 dark:bg-blue-500 text-white",
+      BICH: "bg-green-600 dark:bg-green-500 text-white",
+      GENE: "bg-red-600 dark:bg-red-500 text-white",
+      BIMS: "bg-blue-600 dark:bg-blue-500 text-white",
+      BIOT: "bg-purple-600 dark:bg-purple-500 text-white",
+      EEBL: "bg-green-600 dark:bg-green-500 text-white",
+      ECCB: "bg-emerald-600 dark:bg-emerald-500 text-white",
+      BESC: "bg-teal-600 dark:bg-teal-500 text-white",
+      ENSS: "bg-green-600 dark:bg-green-500 text-white",
+      WMHS: "bg-cyan-600 dark:bg-cyan-500 text-white",
+      ANLY: "bg-blue-600 dark:bg-blue-500 text-white",
+      MASC: "bg-purple-600 dark:bg-purple-500 text-white",
+
+      // Medical & Health
+      NURS: "bg-red-600 dark:bg-red-500 text-white",
+      HLTH: "bg-blue-600 dark:bg-blue-500 text-white",
+      HBEH: "bg-pink-600 dark:bg-pink-500 text-white",
+      KINE: "bg-orange-600 dark:bg-orange-500 text-white",
+      ATTR: "bg-green-600 dark:bg-green-500 text-white",
+      NUTR: "bg-red-600 dark:bg-red-500 text-white",
+      PHAR: "bg-blue-600 dark:bg-blue-500 text-white",
+      PHSC: "bg-purple-600 dark:bg-purple-500 text-white",
+      MPHY: "bg-red-600 dark:bg-red-500 text-white",
+      MSCI: "bg-cyan-600 dark:bg-cyan-500 text-white",
+      MCMD: "bg-green-600 dark:bg-green-500 text-white",
+      PHLT: "bg-emerald-600 dark:bg-emerald-500 text-white",
+      PHEB: "bg-blue-600 dark:bg-blue-500 text-white",
+      PHEO: "bg-green-600 dark:bg-green-500 text-white",
+      PHPM: "bg-purple-600 dark:bg-purple-500 text-white",
+      SOPH: "bg-blue-600 dark:bg-blue-500 text-white",
+      HCPI: "bg-red-600 dark:bg-red-500 text-white",
+      EDHP: "bg-teal-600 dark:bg-teal-500 text-white",
+      IBST: "bg-indigo-600 dark:bg-indigo-500 text-white",
+      FIVS: "bg-purple-600 dark:bg-purple-500 text-white",
+      FORS: "bg-gray-600 dark:bg-gray-500 text-white",
+      NRSC: "bg-pink-600 dark:bg-pink-500 text-white",
+      NEXT: "bg-indigo-600 dark:bg-indigo-500 text-white",
+      PBSI: "bg-purple-600 dark:bg-purple-500 text-white",
+
+      // Dental
+      AEGD: "bg-blue-600 dark:bg-blue-500 text-white",
+      ENDO: "bg-green-600 dark:bg-green-500 text-white",
+      ORTH: "bg-purple-600 dark:bg-purple-500 text-white",
+      PEDD: "bg-pink-600 dark:bg-pink-500 text-white",
+      PERI: "bg-orange-600 dark:bg-orange-500 text-white",
+      PROS: "bg-cyan-600 dark:bg-cyan-500 text-white",
+      OMFP: "bg-red-600 dark:bg-red-500 text-white",
+      OMFR: "bg-indigo-600 dark:bg-indigo-500 text-white",
+      OMFS: "bg-amber-600 dark:bg-amber-500 text-white",
+      OBIO: "bg-emerald-600 dark:bg-emerald-500 text-white",
+      DDHS: "bg-teal-600 dark:bg-teal-500 text-white",
+      DPHS: "bg-blue-600 dark:bg-blue-500 text-white",
+
+      // Veterinary
+      VIBS: "bg-amber-600 dark:bg-amber-500 text-white",
+      VLCS: "bg-amber-600 dark:bg-amber-500 text-white",
+      VSCS: "bg-green-600 dark:bg-green-500 text-white",
+      VMID: "bg-red-600 dark:bg-red-500 text-white",
+      VPAR: "bg-purple-600 dark:bg-purple-500 text-white",
+      VPAT: "bg-blue-600 dark:bg-blue-500 text-white",
+      VTMI: "bg-cyan-600 dark:bg-cyan-500 text-white",
+      VTPB: "bg-emerald-600 dark:bg-emerald-500 text-white",
+      VTPP: "bg-pink-600 dark:bg-pink-500 text-white",
+
+      // Agriculture & Life Sciences
+      AGEC: "bg-green-600 dark:bg-green-500 text-white",
+      AGLS: "bg-emerald-600 dark:bg-emerald-500 text-white",
+      AGSC: "bg-green-600 dark:bg-green-500 text-white",
+      AGSM: "bg-amber-600 dark:bg-amber-500 text-white",
+      ANSC: "bg-amber-600 dark:bg-amber-500 text-white",
+      HORT: "bg-pink-600 dark:bg-pink-500 text-white",
+      POSC: "bg-yellow-600 dark:bg-yellow-500 text-white",
+      RWFM: "bg-green-600 dark:bg-green-500 text-white",
+      SCSC: "bg-amber-600 dark:bg-amber-500 text-white",
+      FSTC: "bg-red-600 dark:bg-red-500 text-white",
+      CULN: "bg-orange-600 dark:bg-orange-500 text-white",
+      MEPS: "bg-emerald-600 dark:bg-emerald-500 text-white",
+      PLPA: "bg-green-600 dark:bg-green-500 text-white",
+      ENTO: "bg-amber-600 dark:bg-amber-500 text-white",
+      ALEC: "bg-blue-600 dark:bg-blue-500 text-white",
+      ALED: "bg-green-600 dark:bg-green-500 text-white",
+      AGCJ: "bg-cyan-600 dark:bg-cyan-500 text-white",
+
+      // Liberal Arts & Humanities
+      ENGL: "bg-pink-600 dark:bg-pink-500 text-white",
+      HIST: "bg-amber-600 dark:bg-amber-500 text-white",
+      PHIL: "bg-purple-600 dark:bg-purple-500 text-white",
+      SPAN: "bg-red-600 dark:bg-red-500 text-white",
+      FREN: "bg-blue-600 dark:bg-blue-500 text-white",
+      GERM: "bg-gray-600 dark:bg-gray-500 text-white",
+      CHIN: "bg-yellow-600 dark:bg-yellow-500 text-white",
+      JAPN: "bg-pink-600 dark:bg-pink-500 text-white",
+      ARAB: "bg-green-600 dark:bg-green-500 text-white",
+      ITAL: "bg-green-600 dark:bg-green-500 text-white",
+      RUSS: "bg-red-600 dark:bg-red-500 text-white",
+      MODL: "bg-purple-600 dark:bg-purple-500 text-white",
+      CLAS: "bg-amber-600 dark:bg-amber-500 text-white",
+      RELS: "bg-purple-600 dark:bg-purple-500 text-white",
+      AFST: "bg-orange-600 dark:bg-orange-500 text-white",
+      ASIA: "bg-red-600 dark:bg-red-500 text-white",
+      HISP: "bg-orange-600 dark:bg-orange-500 text-white",
+      WGST: "bg-pink-600 dark:bg-pink-500 text-white",
+      DHUM: "bg-cyan-600 dark:bg-cyan-500 text-white",
+
+      // Social Sciences
+      POLS: "bg-red-600 dark:bg-red-500 text-white",
+      SOCI: "bg-blue-600 dark:bg-blue-500 text-white",
+      ANTH: "bg-amber-600 dark:bg-amber-500 text-white",
+      CPSY: "bg-teal-600 dark:bg-teal-500 text-white",
+      EPSY: "bg-purple-600 dark:bg-purple-500 text-white",
+      SPSY: "bg-pink-600 dark:bg-pink-500 text-white",
+      GLST: "bg-blue-600 dark:bg-blue-500 text-white",
+      INTA: "bg-green-600 dark:bg-green-500 text-white",
+
+      // Fine Arts
+      ARTS: "bg-violet-600 dark:bg-violet-500 text-white",
+      MUSC: "bg-indigo-600 dark:bg-indigo-500 text-white",
+      THEA: "bg-pink-600 dark:bg-pink-500 text-white",
+      DCED: "bg-purple-600 dark:bg-purple-500 text-white",
+      PVFA: "bg-cyan-600 dark:bg-cyan-500 text-white",
+      VIST: "bg-blue-600 dark:bg-blue-500 text-white",
+      VIZA: "bg-green-600 dark:bg-green-500 text-white",
+      PERF: "bg-orange-600 dark:bg-orange-500 text-white",
+      MSTC: "bg-purple-600 dark:bg-purple-500 text-white",
+      FILM: "bg-gray-600 dark:bg-gray-500 text-white",
+
+      // Architecture & Planning
+      ARCH: "bg-gray-600 dark:bg-gray-500 text-white",
+      CARC: "bg-blue-600 dark:bg-blue-500 text-white",
+      LAND: "bg-green-600 dark:bg-green-500 text-white",
+      PLAN: "bg-purple-600 dark:bg-purple-500 text-white",
+      URPN: "bg-amber-600 dark:bg-amber-500 text-white",
+      URSC: "bg-cyan-600 dark:bg-cyan-500 text-white",
+      COSC: "bg-orange-600 dark:bg-orange-500 text-white",
+      LDEV: "bg-emerald-600 dark:bg-emerald-500 text-white",
+
+      // Education
+      EDCI: "bg-blue-600 dark:bg-blue-500 text-white",
+      EDAD: "bg-purple-600 dark:bg-purple-500 text-white",
+      TEED: "bg-green-600 dark:bg-green-500 text-white",
+      SPED: "bg-pink-600 dark:bg-pink-500 text-white",
+      RDNG: "bg-cyan-600 dark:bg-cyan-500 text-white",
+      LDTC: "bg-indigo-600 dark:bg-indigo-500 text-white",
+      EHRD: "bg-amber-600 dark:bg-amber-500 text-white",
+      CEHD: "bg-emerald-600 dark:bg-emerald-500 text-white",
+      BEFB: "bg-orange-600 dark:bg-orange-500 text-white",
+      BESL: "bg-yellow-600 dark:bg-yellow-500 text-white",
+      MEFB: "bg-purple-600 dark:bg-purple-500 text-white",
+      SEFB: "bg-red-600 dark:bg-red-500 text-white",
+      TEFB: "bg-blue-600 dark:bg-blue-500 text-white",
+      ECDE: "bg-pink-600 dark:bg-pink-500 text-white",
+
+      // Communication & Journalism
+      COMM: "bg-blue-600 dark:bg-blue-500 text-white",
+      JOUR: "bg-gray-600 dark:bg-gray-500 text-white",
+
+      // Military & Defense
+      MLSC: "bg-green-600 dark:bg-green-500 text-white",
+      AERS: "bg-sky-600 dark:bg-sky-500 text-white",
+      NVSC: "bg-blue-600 dark:bg-blue-500 text-white",
+      SOMS: "bg-red-600 dark:bg-red-500 text-white",
+
+      // Law & Government
+      LAW: "bg-purple-600 dark:bg-purple-500 text-white",
+      BUSH: "bg-blue-600 dark:bg-blue-500 text-white",
+      PSAA: "bg-green-600 dark:bg-green-500 text-white",
+
+      // Recreation & Tourism
+      RPTS: "bg-emerald-100 text-emerald-600",
+      HMGT: "bg-orange-100 text-orange-600",
+      SPMT: "bg-red-100 text-red-600",
+
+      // Technology & Information Systems
+      TCMG: "bg-blue-100 text-blue-600",
+      TCMT: "bg-purple-100 text-purple-600",
+      ITSV: "bg-cyan-100 text-cyan-600",
+
+      // Energy
+      ENGY: "bg-yellow-100 text-yellow-600",
+
+      // Economics & Finance
+      ECMT: "bg-indigo-100 text-indigo-600",
+
+      // General/Administrative
+      ARSC: "bg-gray-100 text-gray-600",
+      HONR: "bg-yellow-100 text-yellow-600",
+      UGST: "bg-blue-100 text-blue-600",
+      FYEX: "bg-green-100 text-green-600",
+      SYEX: "bg-purple-100 text-purple-600",
+      ASCC: "bg-cyan-100 text-cyan-600",
+      INST: "bg-amber-100 text-amber-600",
+      SABR: "bg-emerald-100 text-emerald-600",
+      NSEB: "bg-orange-100 text-orange-600",
+      TAMU: "bg-maroon-100 text-maroon-600",
     };
 
     const deptCode = deptName.split(" - ")[0];
-    return (
-      colorMap[deptCode] ||
-      "bg-gradient-to-r from-gray-600 to-slate-600 dark:from-gray-500 dark:to-slate-500"
-    );
+    return colorMap[deptCode] || "bg-slate-700 dark:bg-slate-600";
   };
 
   const getCourseTagColor = (tag: string) => {
     switch (tag.toLowerCase()) {
       case "undergraduate":
-        return "bg-gradient-to-r from-blue-600 to-cyan-600 dark:from-blue-500/50 dark:to-cyan-500/50 text-white border-transparent";
+        return "bg-blue-700 dark:bg-blue-600 text-white border-transparent";
       case "advanced":
-        return "bg-gradient-to-r from-orange-600 to-red-600 dark:from-orange-500/50 dark:to-red-500/50 text-white border-transparent";
+        return "bg-orange-700 dark:bg-orange-600 text-white border-transparent";
       case "graduate":
-        return "bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-500/50 dark:to-indigo-500/50 text-white border-transparent";
+        return "bg-purple-700 dark:bg-purple-600 text-white border-transparent";
       case "honors":
-        return "bg-gradient-to-r from-yellow-600 to-amber-600 dark:from-yellow-500/50 dark:to-amber-500/50 text-white border-transparent";
+        return "bg-amber-700 dark:bg-amber-600 text-white border-transparent";
       case "distance education":
-        return "bg-gradient-to-r from-slate-600 to-gray-600 dark:from-slate-500/50 dark:to-gray-500/50 text-white border-transparent";
+        return "bg-slate-700 dark:bg-slate-600 text-white border-transparent";
       default:
         return "border-gray-400 dark:border-gray-600 bg-gray-100 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300";
     }
@@ -665,203 +951,277 @@ function CoursesPageContent() {
   ];
   const departmentNames = ["All", ...topDepartments];
 
+  // Ensure we only run "initial" enter animations once per mount.
+  React.useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
   // Show initial loading screen only for initial page load
   if (loading) {
     return (
-      <div className="min-h-screen bg-canvas">
-        <Navigation />
-        <main className="pt-24 pb-20">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-[#500000]" />
-              <div className="text-text-body">Loading courses...</div>
+      <MotionConfig
+        reducedMotion="user"
+        transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <div
+          className="min-h-screen relative"
+          style={{
+            background: "var(--app-bg-gradient)",
+          }}
+        >
+          <motion.div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8 }}
+            style={{ background: "var(--app-bg-ambient)" }}
+          />
+
+          <Navigation variant="glass" />
+          <main className="pt-24 pb-20 relative z-10">
+            <div className="max-w-7xl mx-auto px-6">
+              <Card className="p-8 bg-card border-border dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm">
+                <div className="text-center text-text-body dark:text-white/70">
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-accent" />
+                  Loading courses...
+                </div>
+              </Card>
             </div>
-          </div>
-        </main>
-        <Footer />
-      </div>
+          </main>
+          <Footer />
+        </div>
+      </MotionConfig>
     );
   }
 
   return (
-    <div className="min-h-screen bg-canvas">
-      <Navigation />
+    <MotionConfig
+      reducedMotion="user"
+      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+    >
+      <div
+        className="min-h-screen relative"
+        style={{
+          background: "var(--app-bg-gradient)",
+        }}
+      >
+        <motion.div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8 }}
+          style={{ background: "var(--app-bg-ambient)" }}
+        />
 
-      <main className="pt-24 pb-20">
-        {/* Header Section */}
-        <div className="max-w-7xl mx-auto px-6 mb-12">
-          <div className="text-center mb-8">
-            <h1 className="text-text-heading text-3xl font-semibold mb-4">
-              Browse All Courses
-            </h1>
-            <p className="text-text-body text-lg max-w-2xl mx-auto">
-              Discover the perfect courses for your academic journey with
-              comprehensive data on grades, difficulty, and professor insights.
-            </p>
-          </div>
+        <Navigation variant="glass" />
 
-          {/* Statistics Overview */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <Card className="p-4 bg-gradient-to-br from-blue-500 to-cyan-600 border-transparent text-white">
-              <div className="flex items-center gap-3">
-                <BookOpen className="w-6 h-6 text-white/80" />
-                <div>
-                  <p className="text-2xl font-bold text-white">
-                    {totalCoursesCount.toLocaleString()}
-                  </p>
-                  <p className="text-white/80 font-medium">Total Courses</p>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="p-4 bg-gradient-to-br from-emerald-500 to-teal-600 border-transparent text-white">
-              <div className="flex items-center gap-3">
-                <TrendingUp className="w-6 h-6 text-white/80" />
-                <div>
-                  <p className="text-2xl font-bold text-white">
-                    {avgGPA.toFixed(2)}
-                  </p>
-                  <p className="text-white/80 font-medium">Avg GPA</p>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="p-4 bg-gradient-to-br from-orange-500 to-red-600 border-transparent text-white">
-              <div className="flex items-center gap-3">
-                <Users className="w-6 h-6 text-white/80" />
-                <div>
-                  <p className="text-2xl font-bold text-white">
-                    {totalProfessors.toLocaleString()}
-                  </p>
-                  <p className="text-white/80 font-medium">Total Professors</p>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="p-4 bg-gradient-to-br from-purple-500 to-pink-600 border-transparent text-white">
-              <div className="flex items-center gap-3">
-                <Star className="w-6 h-6 text-white/80" />
-                <div>
-                  <p className="text-2xl font-bold text-white">
-                    {totalDepartments}
-                  </p>
-                  <p className="text-white/80 font-medium">Departments</p>
-                </div>
-              </div>
-            </Card>
-          </div>
-        </div>
-
-        {/* Error Message */}
-        {error && (
-          <div className="max-w-7xl mx-auto px-6 mb-8">
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-              Error loading courses: {error}
-            </div>
-          </div>
-        )}
-
-        {/* Search and Filters */}
-        <div className="max-w-7xl mx-auto px-6 mb-8">
-          <Card className="bg-card border-border p-6">
-            {/* Search Bar */}
-            <div className="flex flex-col md:flex-row gap-4 mb-6">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-text-body" />
-                {searchTerm !== debouncedSearchTerm && (
-                  <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 animate-spin text-[#500000]" />
-                )}
-                <Input
-                  placeholder="Search courses by code or name..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-10 bg-canvas border-border"
-                />
-              </div>
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-48 bg-canvas border-border">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-canvas border-border">
-                  <SelectItem value="code">Sort by Code</SelectItem>
-                  <SelectItem value="gpa">Sort by GPA</SelectItem>
-                  <SelectItem value="difficulty">Sort by Difficulty</SelectItem>
-                  <SelectItem value="enrollment">Sort by Enrollment</SelectItem>
-                  <SelectItem value="rating">Sort by Rating</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Quick Filters */}
-            <div className="">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-lg font-semibold text-text-heading">
-                  Quick Filters
-                </h3>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setFiltersExpanded(!filtersExpanded)}
-                  className="border-border hover:bg-button-hover"
-                >
-                  <Filter className="w-4 h-4 mr-2" />
-                  {filtersExpanded ? "Less Filters" : "More Filters"}
-                  {filtersExpanded ? (
-                    <ChevronUp className="w-4 h-4 ml-2" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4 ml-2" />
-                  )}
-                </Button>
+        <main className="pt-20 pb-20 relative z-10">
+          {/* Hero / Header Section */}
+          <section className="pb-4">
+            <div className="max-w-7xl mx-auto px-6">
+              <div className="flex items-center justify-center gap-2 text-xs text-text-body mb-8 dark:text-white/70">
+                <span>Home</span>
+                <ChevronRight className="w-4 h-4 text-text-body/60 dark:text-white/40" />
+                <span className="text-text-heading dark:text-white/90">
+                  Courses
+                </span>
               </div>
 
-              <div
-                className={`flex flex-wrap gap-3 ${filtersExpanded ? "mb-4" : ""}`}
+              <motion.div
+                className="text-center mb-10"
+                initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
               >
-                {quickFilters.map((filter) => {
-                  const Icon = filter.icon;
+                <h1 className="text-text-heading dark:text-white text-[28px] sm:text-[34px] md:text-[42px] leading-tight font-semibold tracking-tight mb-4">
+                  Browse All Courses
+                </h1>
+                <p className="text-text-body dark:text-white/80 text-[13px] sm:text-[14px] md:text-[15px] max-w-2xl mx-auto leading-relaxed">
+                  Discover the perfect courses for your academic journey with
+                  comprehensive data on grades, difficulty, and professor
+                  insights.
+                </p>
+
+                {/* Prominent Search Bar (match other pages) */}
+                <div className="relative max-w-lg mx-auto mt-8">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-body/70 w-5 h-5 dark:text-white/60" />
+                  {searchTerm !== debouncedSearchTerm && (
+                    <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-accent" />
+                  )}
+                  <Input
+                    type="text"
+                    placeholder="Search courses..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-12 pr-10 h-12 sm:h-14 text-[14px] sm:text-[15px] bg-card border border-border rounded-full text-text-body placeholder:text-text-body/55 backdrop-blur-sm focus-visible:ring-2 focus-visible:ring-[#FFCF3F]/70 focus-visible:ring-offset-0 dark:bg-black/45 dark:border-white/15 dark:text-white dark:placeholder:text-white/40"
+                  />
+                </div>
+              </motion.div>
+
+              {/* Statistics Overview */}
+              <motion.div
+                className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-12"
+                initial={shouldReduceMotion ? false : "hidden"}
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.35 }}
+                variants={{
+                  hidden: { opacity: 0 },
+                  visible: {
+                    opacity: 1,
+                    transition: { staggerChildren: 0.08 },
+                  },
+                }}
+              >
+                {[
+                  {
+                    label: "Total Courses",
+                    value: totalCoursesCount,
+                    decimals: 0,
+                    icon: BookOpen,
+                  },
+                  {
+                    label: "Avg GPA",
+                    value: Number(avgGPA),
+                    decimals: 2,
+                    icon: TrendingUp,
+                  },
+                  {
+                    label: "Total Professors",
+                    value: totalProfessors,
+                    decimals: 0,
+                    icon: Users,
+                  },
+                  {
+                    label: "Departments",
+                    value: totalDepartments,
+                    decimals: 0,
+                    icon: Star,
+                  },
+                ].map((s) => {
+                  const StatIcon = s.icon;
                   return (
-                    <Button
-                      key={filter.id}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => toggleQuickFilter(filter.id)}
-                      className={`${
-                        selectedQuickFilters.includes(filter.id)
-                          ? `${filter.color} ${filter.hoverColor} text-white border-transparent`
-                          : "border-border hover:bg-button-hover"
-                      } transition-all duration-200`}
+                    <motion.div
+                      key={s.label}
+                      variants={{
+                        hidden: { opacity: 0, y: 14 },
+                        visible: { opacity: 1, y: 0 },
+                      }}
+                      whileHover={shouldReduceMotion ? undefined : { y: -2 }}
+                      className="rounded-2xl border border-border bg-card px-4 py-4 dark:border-white/10 dark:bg-black/45 dark:backdrop-blur-sm"
                     >
-                      <Icon className="w-4 h-4 mr-2" />
-                      {filter.label}
-                    </Button>
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-xl bg-canvas border border-border flex items-center justify-center text-accent dark:bg-white/10 dark:border-white/10">
+                          <StatIcon className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <div className="text-accent text-xl sm:text-2xl font-semibold tracking-tight">
+                            <CountUpNumber
+                              value={s.value}
+                              decimals={s.decimals}
+                            />
+                          </div>
+                          <div className="text-text-body text-xs sm:text-sm dark:text-white/80">
+                            {s.label}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
                   );
                 })}
-              </div>
+              </motion.div>
             </div>
+          </section>
 
-            {/* Expandable Filters */}
-            <div
-              className={`transition-all duration-300 overflow-hidden ${filtersExpanded ? "max-h-[1000px] opacity-100  mt-6" : "max-h-0 opacity-0"}`}
-            >
-              {/* Section Attribute Filters */}
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-text-heading mb-3">
-                  Section Attributes
-                </h3>
-                <div className="flex flex-wrap gap-3 mb-4 max-h-48 overflow-y-auto md:max-h-none md:overflow-visible">
-                  {sectionAttributeFilters.map((filter) => {
+          {/* Error Message */}
+          {error && (
+            <div className="max-w-7xl mx-auto px-6 mb-8">
+              <Card className="p-8 rounded-2xl shadow-none bg-red-50 border border-red-200">
+                <div className="text-center">
+                  <div className="text-red-700 font-semibold mb-2">
+                    Error loading courses
+                  </div>
+                  <div className="text-sm text-red-700">{error}</div>
+                </div>
+              </Card>
+            </div>
+          )}
+
+          {/* Filters */}
+          <div className="max-w-7xl mx-auto px-6 mb-8">
+            <Card className="bg-card border-border p-6 rounded-2xl shadow-none dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm">
+              {/* Top row (match Departments/Professors) */}
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-2">
+                  <Filter className="w-4 h-4 text-text-body/70 dark:text-white/60" />
+                  <div className="text-sm font-semibold text-text-heading dark:text-white">
+                    Filters
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="text-xs text-text-body/70 dark:text-white/60">
+                    Sort
+                  </div>
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="w-48 bg-canvas border-border text-text-body dark:bg-black/30 dark:border-white/10 dark:text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-canvas border-border text-text-body dark:bg-black/85 dark:border-white/10 dark:text-white">
+                      <SelectItem value="code">Sort by Code</SelectItem>
+                      <SelectItem value="gpa">Sort by GPA</SelectItem>
+                      <SelectItem value="difficulty">
+                        Sort by Difficulty
+                      </SelectItem>
+                      <SelectItem value="enrollment">
+                        Sort by Enrollment
+                      </SelectItem>
+                      <SelectItem value="rating">Sort by Rating</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="h-px bg-border my-5 dark:bg-white/10" />
+
+              {/* Quick Filters */}
+              <div className="">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-semibold text-text-heading dark:text-white">
+                    Quick Filters
+                  </h3>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setFiltersExpanded(!filtersExpanded)}
+                    className="border-border hover:bg-button-hover dark:border-white/15 dark:bg-black/20 dark:text-white dark:hover:bg-black/35 dark:hover:text-white"
+                  >
+                    <Filter className="w-4 h-4 mr-2" />
+                    {filtersExpanded ? "Less Filters" : "More Filters"}
+                    {filtersExpanded ? (
+                      <ChevronUp className="w-4 h-4 ml-2" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 ml-2" />
+                    )}
+                  </Button>
+                </div>
+
+                <div
+                  className={`flex flex-wrap gap-3 ${filtersExpanded ? "mb-4" : ""}`}
+                >
+                  {quickFilters.map((filter) => {
                     const Icon = filter.icon;
                     return (
                       <Button
                         key={filter.id}
                         variant="outline"
                         size="sm"
-                        onClick={() => toggleSectionAttribute(filter.id)}
+                        onClick={() => toggleQuickFilter(filter.id)}
                         className={`${
-                          selectedSectionAttributes.includes(filter.id)
+                          selectedQuickFilters.includes(filter.id)
                             ? `${filter.color} ${filter.hoverColor} text-white border-transparent`
-                            : "border-border hover:bg-button-hover"
-                        } transition-all duration-200 flex-shrink-0`}
+                            : "border-border hover:bg-button-hover dark:border-white/15 dark:bg-black/20 dark:text-white dark:hover:bg-black/35 dark:hover:text-white"
+                        } transition-all duration-200 rounded-full`}
                       >
                         <Icon className="w-4 h-4 mr-2" />
                         {filter.label}
@@ -871,331 +1231,426 @@ function CoursesPageContent() {
                 </div>
               </div>
 
-              {/* Department Filter */}
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-text-heading mb-3">
-                  Departments
-                </h3>
-                <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto md:max-h-none md:overflow-visible">
-                  {departmentNames.map((deptName) => (
-                    <Badge
-                      key={deptName}
-                      variant="outline"
-                      className={`cursor-pointer transition-all duration-200 flex-shrink-0 ${
-                        selectedDepartment === deptName
-                          ? `${getDepartmentColor(deptName)} text-white border-transparent hover:opacity-90`
-                          : "border-border hover:bg-button-hover"
-                      }`}
-                      onClick={() => setSelectedDepartment(deptName)}
-                    >
-                      {deptName}
-                    </Badge>
-                  ))}
+              {/* Expandable Filters */}
+              <div
+                className={`transition-all duration-300 overflow-hidden ${filtersExpanded ? "max-h-[1000px] opacity-100  mt-6" : "max-h-0 opacity-0"}`}
+              >
+                {/* Section Attribute Filters */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-text-heading dark:text-white mb-3">
+                    Section Attributes
+                  </h3>
+                  <div className="flex flex-wrap gap-3 mb-4 max-h-48 overflow-y-auto md:max-h-none md:overflow-visible">
+                    {sectionAttributeFilters.map((filter) => {
+                      const Icon = filter.icon;
+                      return (
+                        <Button
+                          key={filter.id}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => toggleSectionAttribute(filter.id)}
+                          className={`${
+                            selectedSectionAttributes.includes(filter.id)
+                              ? `${filter.color} ${filter.hoverColor} text-white border-transparent`
+                              : "border-border hover:bg-button-hover dark:border-white/15 dark:bg-black/20 dark:text-white dark:hover:bg-black/35 dark:hover:text-white"
+                          } transition-all duration-200 flex-shrink-0 rounded-full`}
+                        >
+                          <Icon className="w-4 h-4 mr-2" />
+                          {filter.label}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Department Filter */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-text-heading dark:text-white mb-3">
+                    Departments
+                  </h3>
+                  <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto md:max-h-none md:overflow-visible">
+                    {departmentNames.map((deptName) => (
+                      <Badge
+                        key={deptName}
+                        variant="outline"
+                        className={`cursor-pointer transition-all duration-200 flex-shrink-0 rounded-full ${
+                          selectedDepartment === deptName
+                            ? `${getDepartmentColor(deptName)} text-white border-transparent hover:opacity-90`
+                            : "border-border hover:bg-button-hover dark:border-white/15 dark:bg-black/20 dark:text-white dark:hover:bg-black/35"
+                        }`}
+                        onClick={() => setSelectedDepartment(deptName)}
+                      >
+                        {deptName}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          </Card>
-        </div>
+            </Card>
+          </div>
 
-        {/* Courses Grid */}
-        <div className="max-w-7xl mx-auto px-6">
-          {isLoadingAll ? (
-            <div className="text-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-[#500000]" />
-              <div className="text-text-body">Loading courses...</div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {paginatedCourses.map((course) => (
-                <Card
-                  key={course.id}
-                  className="bg-gradient-to-br from-card to-card/50 border-border hover:border-[#500000] transition-all duration-200 hover:shadow-xl hover:scale-[1.02] relative overflow-hidden group"
-                >
-                  <CardContent className="">
-                    {/* Decorative gradient accent */}
-                    <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#500000]/10 to-transparent rounded-bl-3xl group-hover:from-[#500000]/20 transition-all duration-200 dark:block hidden"></div>
-
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h3 className="text-lg font-semibold text-text-heading mb-1">
-                          {course.code}
-                        </h3>
-                        <p className="text-sm text-text-body mb-2 line-clamp-2">
-                          {course.name}
-                        </p>
-                        <Badge
-                          variant="outline"
-                          className={`text-xs ${getDepartmentColor(course.department.name)} text-white border-transparent`}
-                        >
-                          {course.department.name}
-                        </Badge>
-                      </div>
-                      <div className="text-right">
-                        <div className="flex items-center gap-1 mb-1">
-                          <Star className="w-4 h-4 text-[#FFCF3F] fill-current" />
-                          <span className="text-sm font-medium text-text-heading">
-                            {course.rating.toFixed(1)}
-                          </span>
-                        </div>
-                        <p className="text-xs text-text-body">
-                          {course.sections} sections
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-4 mb-4">
-                      <div className="text-center">
-                        <div className="flex items-center justify-center gap-1 mb-1">
-                          <TrendingUp className="w-4 h-4 text-[#500000]" />
-                          <span className="text-lg font-semibold text-text-heading">
-                            {course.avgGPA !== -1
-                              ? course.avgGPA.toFixed(2)
-                              : "N/A"}
-                          </span>
-                        </div>
-                        <div className="text-xs text-text-body">GPA</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="flex items-center justify-center gap-1 mb-1">
-                          <BookOpen className="w-4 h-4 text-[#500000]" />
-                          <span className="text-lg font-semibold text-text-heading">
-                            {course.credits}
-                          </span>
-                        </div>
-                        <div className="text-xs text-text-body">Credits</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="flex items-center justify-center gap-1 mb-1">
-                          <Users className="w-4 h-4 text-[#500000]" />
-                          <span className="text-lg font-semibold text-text-heading">
-                            {course.enrollment}
-                          </span>
-                        </div>
-                        <div className="text-xs text-text-body">Students</div>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-1 mb-4">
-                      <Badge
-                        className={getDifficultyBadgeColor(course.difficulty)}
-                      >
-                        {course.difficulty}
-                      </Badge>
-                      {/* </div> */}
-
-                      {/* <div className="flex flex-wrap gap-1 mb-4"> */}
-                      {course.tags.slice(0, 3).map((tag, index) => (
-                        <Badge
-                          key={`tag-${index}`}
-                          variant="outline"
-                          className={`text-xs ${getCourseTagColor(tag)} font-medium`}
-                        >
-                          {tag}
-                        </Badge>
-                      ))}
-                      {course.sectionAttributes.map((attr, index) => {
-                        const filter = sectionAttributeFilters.find(
-                          (f) => f.id === attr.split(" - ")[1],
-                        );
-                        return filter ? (
-                          <Badge
-                            key={`attr-${index}`}
-                            variant="outline"
-                            className={`text-xs ${filter.color} text-white border-transparent font-medium`}
-                          >
-                            {filter.label}
-                          </Badge>
-                        ) : null;
-                      })}
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex gap-2">
-                        <Link
-                          href={`/course/${course.code.replace(/\s+/g, "")}`}
-                          className="flex-1"
-                        >
-                          <Button className="w-full bg-[#500000] hover:bg-[#600000] text-white group-hover:bg-[#600000] transition-all duration-normal">
-                            View Details
-                            <ChevronRight className="w-4 h-4 ml-2" />
-                          </Button>
-                        </Link>
-                        <Button
-                          variant={
-                            isSelected(course.code) ? "default" : "outline"
-                          }
-                          size="sm"
-                          onClick={() => {
-                            if (isSelected(course.code)) {
-                              removeCourse(course.code);
-                            } else {
-                              addCourse(course.code);
-                            }
-                          }}
-                          disabled={!isSelected(course.code) && !canAddMore()}
-                          className={`${
-                            isSelected(course.code)
-                              ? "bg-[#500000] text-white hover:bg-[#600000]"
-                              : "border-[#500000] text-[#500000] hover:bg-[#500000] bg-[#500000]/60 text-white dark:bg-[#500000]/30"
-                          } pt-4.25 pb-4.25 transition-all duration-200`}
-                        >
-                          {isSelected(course.code) ? (
-                            <Check className="w-4 h-4" />
-                          ) : (
-                            <BarChart className="w-4 h-4" />
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-
-          {/* Pagination */}
-          {!isLoadingAll && totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 flex-wrap">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className="border-border"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                Previous
-              </Button>
-
-              <div className="flex items-center gap-1">
-                {/* Smart pagination logic */}
-                {(() => {
-                  const maxVisible = 7; // Maximum number of page buttons to show
-                  const halfVisible = Math.floor(maxVisible / 2);
-                  let startPage = Math.max(1, currentPage - halfVisible);
-                  const endPage = Math.min(
-                    totalPages,
-                    startPage + maxVisible - 1,
-                  );
-
-                  // Adjust start if we're near the end
-                  if (endPage - startPage < maxVisible - 1) {
-                    startPage = Math.max(1, endPage - maxVisible + 1);
-                  }
-
-                  const pages = [];
-
-                  // First page + ellipsis
-                  if (startPage > 1) {
-                    pages.push(
-                      <Button
-                        key={1}
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage(1)}
-                        className="border-border"
-                      >
-                        1
-                      </Button>,
-                    );
-                    if (startPage > 2) {
-                      pages.push(
-                        <span
-                          key="start-ellipsis"
-                          className="px-2 text-text-body"
-                        >
-                          ...
-                        </span>,
-                      );
-                    }
-                  }
-
-                  // Main page range
-                  for (let page = startPage; page <= endPage; page++) {
-                    pages.push(
-                      <Button
-                        key={page}
-                        variant={currentPage === page ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setCurrentPage(page)}
-                        className={
-                          currentPage === page
-                            ? "bg-[#500000] text-white"
-                            : "border-border"
-                        }
-                      >
-                        {page}
-                      </Button>,
-                    );
-                  }
-
-                  // Last page + ellipsis
-                  if (endPage < totalPages) {
-                    if (endPage < totalPages - 1) {
-                      pages.push(
-                        <span
-                          key="end-ellipsis"
-                          className="px-2 text-text-body"
-                        >
-                          ...
-                        </span>,
-                      );
-                    }
-                    pages.push(
-                      <Button
-                        key={totalPages}
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage(totalPages)}
-                        className="border-border"
-                      >
-                        {totalPages}
-                      </Button>,
-                    );
-                  }
-
-                  return pages;
-                })()}
+          {/* Courses Grid */}
+          <div className="max-w-7xl mx-auto px-6">
+            {isLoadingAll ? (
+              <div className="text-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-accent" />
+                <div className="text-white/70">Loading courses...</div>
               </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            ) : (
+              <motion.div
+                key={`${currentPage}-${searchTerm}-${selectedDepartment}-${sortBy}`}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8"
+                initial={
+                  shouldReduceMotion ? false : hasMounted ? false : "hidden"
                 }
-                disabled={currentPage === totalPages}
-                className="border-border"
+                animate="visible"
+                variants={{
+                  hidden: { opacity: 1 },
+                  visible: {
+                    opacity: 1,
+                    transition: { staggerChildren: 0.04 },
+                  },
+                }}
+                layout
               >
-                Next
-                <ChevronRight className="w-4 h-4" />
-              </Button>
+                {paginatedCourses.map((course) => (
+                  <motion.div
+                    key={course.id}
+                    layout
+                    variants={{
+                      hidden: { opacity: 0, y: 20 },
+                      visible: { opacity: 1, y: 0 },
+                    }}
+                    transition={
+                      shouldReduceMotion
+                        ? undefined
+                        : { type: "spring", stiffness: 420, damping: 34 }
+                    }
+                    whileHover={
+                      shouldReduceMotion
+                        ? undefined
+                        : {
+                            y: -2,
+                            scale: 1.01,
+                            transition: { duration: 0.18 },
+                          }
+                    }
+                    whileTap={shouldReduceMotion ? undefined : { scale: 0.99 }}
+                  >
+                    <Card className="bg-card border-border hover:border-border transition-all duration-200 relative overflow-hidden group dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm dark:hover:border-white/20">
+                      {/* subtle corner highlight */}
+                      <motion.div
+                        aria-hidden
+                        className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-[#FFCF3F]/10 blur-2xl"
+                        initial={false}
+                        animate={
+                          shouldReduceMotion
+                            ? undefined
+                            : { scale: [1, 1.06, 1], opacity: [0.7, 1, 0.8] }
+                        }
+                        transition={{
+                          duration: 6,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                        }}
+                      />
 
-              {/* Page info */}
-              <div className="text-sm text-text-body ml-4">
-                Page {currentPage} of {totalPages} (
-                {filteredCourses.length.toLocaleString()} courses)
+                      <CardContent className="relative">
+                        <div className="flex items-start justify-between mb-4">
+                          <div>
+                            <h3 className="text-lg font-semibold text-text-heading dark:text-white mb-1">
+                              {course.code}
+                            </h3>
+                            <p className="text-sm text-text-body dark:text-white/80 mb-2 line-clamp-2">
+                              {course.name}
+                            </p>
+                            <Badge
+                              variant="outline"
+                              className={`text-xs ${getDepartmentColor(course.department.name)} text-white border-transparent`}
+                            >
+                              {course.department.name}
+                            </Badge>
+                          </div>
+                          <div className="text-right">
+                            <div className="flex items-center gap-1 mb-1">
+                              <Star className="w-4 h-4 text-accent fill-current" />
+                              <span className="text-sm font-medium text-text-heading dark:text-white">
+                                {course.rating.toFixed(1)}
+                              </span>
+                            </div>
+                            <p className="text-xs text-text-body/70 dark:text-white/60">
+                              {course.sections} sections
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-4 mb-4">
+                          <div className="text-center">
+                            <div className="flex items-center justify-center gap-1 mb-1">
+                              <TrendingUp className="w-4 h-4 text-accent" />
+                              <span className="text-lg font-semibold text-text-heading dark:text-white">
+                                {course.avgGPA !== -1
+                                  ? course.avgGPA.toFixed(2)
+                                  : "N/A"}
+                              </span>
+                            </div>
+                            <div className="text-xs text-text-body/70 dark:text-white/60">
+                              GPA
+                            </div>
+                          </div>
+                          <div className="text-center">
+                            <div className="flex items-center justify-center gap-1 mb-1">
+                              <BookOpen className="w-4 h-4 text-accent" />
+                              <span className="text-lg font-semibold text-text-heading dark:text-white">
+                                {course.credits}
+                              </span>
+                            </div>
+                            <div className="text-xs text-text-body/70 dark:text-white/60">
+                              Credits
+                            </div>
+                          </div>
+                          <div className="text-center">
+                            <div className="flex items-center justify-center gap-1 mb-1">
+                              <Users className="w-4 h-4 text-accent" />
+                              <span className="text-lg font-semibold text-text-heading dark:text-white">
+                                {course.enrollment}
+                              </span>
+                            </div>
+                            <div className="text-xs text-text-body/70 dark:text-white/60">
+                              Students
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-1 mb-4">
+                          <Badge
+                            className={getDifficultyBadgeColor(
+                              course.difficulty
+                            )}
+                          >
+                            {course.difficulty}
+                          </Badge>
+                          {/* </div> */}
+
+                          {/* <div className="flex flex-wrap gap-1 mb-4"> */}
+                          {course.tags.slice(0, 3).map((tag, index) => (
+                            <Badge
+                              key={`tag-${index}`}
+                              variant="outline"
+                              className={`text-xs ${getCourseTagColor(tag)} font-medium`}
+                            >
+                              {tag}
+                            </Badge>
+                          ))}
+                          {course.sectionAttributes.map((attr, index) => {
+                            const filter = sectionAttributeFilters.find(
+                              (f) => f.id === attr.split(" - ")[1]
+                            );
+                            return filter ? (
+                              <Badge
+                                key={`attr-${index}`}
+                                variant="outline"
+                                className={`text-xs ${filter.color} text-white border-transparent font-medium`}
+                              >
+                                {filter.label}
+                              </Badge>
+                            ) : null;
+                          })}
+                        </div>
+
+                        <div className="space-y-2">
+                          <div className="flex gap-2">
+                            <Link
+                              href={`/course/${course.code.replace(/\s+/g, "")}`}
+                              className="flex-1"
+                            >
+                              <Button className="w-full bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966] rounded-full">
+                                View Details
+                                <ChevronRight className="w-4 h-4 ml-2" />
+                              </Button>
+                            </Link>
+                            <Button
+                              variant={
+                                isSelected(course.code) ? "default" : "outline"
+                              }
+                              size="sm"
+                              onClick={() => {
+                                if (isSelected(course.code)) {
+                                  removeCourse(course.code);
+                                } else {
+                                  addCourse(course.code);
+                                }
+                              }}
+                              disabled={
+                                !isSelected(course.code) && !canAddMore()
+                              }
+                              className={`${
+                                isSelected(course.code)
+                                  ? "bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966]"
+                                  : "border-border bg-canvas text-text-body hover:bg-button-hover dark:border-white/15 dark:bg-black/30 dark:text-white/80 dark:hover:bg-black/45"
+                              } pt-4.25 pb-4.25 transition-all duration-200 rounded-full`}
+                            >
+                              {isSelected(course.code) ? (
+                                <Check className="w-4 h-4" />
+                              ) : (
+                                <BarChart className="w-4 h-4" />
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </motion.div>
+            )}
+
+            {/* Pagination */}
+            {!isLoadingAll && totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 flex-wrap">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
+                  disabled={currentPage === 1}
+                  className="border-border bg-canvas text-text-body hover:bg-button-hover dark:border-white/15 dark:bg-black/30 dark:text-white/80 dark:hover:bg-black/45"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Previous
+                </Button>
+
+                <div className="flex items-center gap-1">
+                  {/* Smart pagination logic */}
+                  {(() => {
+                    const maxVisible = 7; // Maximum number of page buttons to show
+                    const halfVisible = Math.floor(maxVisible / 2);
+                    let startPage = Math.max(1, currentPage - halfVisible);
+                    const endPage = Math.min(
+                      totalPages,
+                      startPage + maxVisible - 1
+                    );
+
+                    // Adjust start if we're near the end
+                    if (endPage - startPage < maxVisible - 1) {
+                      startPage = Math.max(1, endPage - maxVisible + 1);
+                    }
+
+                    const pages = [];
+
+                    // First page + ellipsis
+                    if (startPage > 1) {
+                      pages.push(
+                        <Button
+                          key={1}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCurrentPage(1)}
+                          className="border-border bg-canvas text-text-body hover:bg-button-hover dark:border-white/15 dark:bg-black/30 dark:text-white/80 dark:hover:bg-black/45"
+                        >
+                          1
+                        </Button>
+                      );
+                      if (startPage > 2) {
+                        pages.push(
+                          <span
+                            key="start-ellipsis"
+                            className="px-2 text-text-body/70 dark:text-white/60"
+                          >
+                            ...
+                          </span>
+                        );
+                      }
+                    }
+
+                    // Main page range
+                    for (let page = startPage; page <= endPage; page++) {
+                      pages.push(
+                        <Button
+                          key={page}
+                          variant={currentPage === page ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setCurrentPage(page)}
+                          className={
+                            currentPage === page
+                              ? "bg-[#FFCF3F] text-[#0f0f0f]"
+                              : "border-border bg-canvas text-text-body hover:bg-button-hover dark:border-white/15 dark:bg-black/30 dark:text-white/80 dark:hover:bg-black/45"
+                          }
+                        >
+                          {page}
+                        </Button>
+                      );
+                    }
+
+                    // Last page + ellipsis
+                    if (endPage < totalPages) {
+                      if (endPage < totalPages - 1) {
+                        pages.push(
+                          <span
+                            key="end-ellipsis"
+                            className="px-2 text-text-body/70 dark:text-white/60"
+                          >
+                            ...
+                          </span>
+                        );
+                      }
+                      pages.push(
+                        <Button
+                          key={totalPages}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCurrentPage(totalPages)}
+                          className="border-border bg-canvas text-text-body hover:bg-button-hover dark:border-white/15 dark:bg-black/30 dark:text-white/80 dark:hover:bg-black/45"
+                        >
+                          {totalPages}
+                        </Button>
+                      );
+                    }
+
+                    return pages;
+                  })()}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  }
+                  disabled={currentPage === totalPages}
+                  className="border-border bg-canvas text-text-body hover:bg-button-hover dark:border-white/15 dark:bg-black/30 dark:text-white/80 dark:hover:bg-black/45"
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+
+                {/* Page info */}
+                <div className="text-sm text-text-body/80 dark:text-white/70 ml-4">
+                  Page {currentPage} of {totalPages} (
+                  {filteredCourses.length.toLocaleString()} courses)
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {!isLoadingAll && filteredCourses.length === 0 && (
-            <div className="text-center py-16">
-              <div className="text-6xl mb-4">🔍</div>
-              <h3 className="text-2xl font-semibold text-text-heading mb-2">
-                No courses found
-              </h3>
-              <p className="text-text-body">
-                Try adjusting your search or filter criteria
-              </p>
-            </div>
-          )}
-        </div>
-      </main>
+            {!isLoadingAll && filteredCourses.length === 0 && (
+              <div className="text-center py-16">
+                <div className="text-6xl mb-4">🔍</div>
+                <h3 className="text-2xl font-semibold text-text-heading mb-2">
+                  No courses found
+                </h3>
+                <p className="text-text-body">
+                  Try adjusting your search or filter criteria
+                </p>
+              </div>
+            )}
+          </div>
+        </main>
 
-      <Footer />
-      <ComparisonWidget />
-    </div>
+        <Footer />
+        <ComparisonWidget />
+      </div>
+    </MotionConfig>
   );
 }
 
@@ -1203,8 +1658,16 @@ export default function CoursesPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-canvas">
-          <Navigation />
+        <div
+          className="min-h-screen relative"
+          style={{ background: "var(--app-bg-gradient)" }}
+        >
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            style={{ background: "var(--app-bg-ambient)" }}
+          />
+          <Navigation variant="glass" />
           <main className="pt-24 pb-20">
             <div className="max-w-7xl mx-auto px-6">
               <div className="text-center py-12">

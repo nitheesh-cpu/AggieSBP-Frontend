@@ -109,8 +109,16 @@ export default function ProfessorReviewsPage({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-canvas">
-        <Navigation />
+      <div
+        className="min-h-screen relative"
+        style={{ background: "var(--app-bg-gradient)" }}
+      >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{ background: "var(--app-bg-ambient)" }}
+        />
+        <Navigation variant="glass" />
         <main className="pt-24 pb-20">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center py-12">
@@ -126,8 +134,16 @@ export default function ProfessorReviewsPage({
 
   if (error || !professor || !reviewsData) {
     return (
-      <div className="min-h-screen bg-canvas">
-        <Navigation />
+      <div
+        className="min-h-screen relative"
+        style={{ background: "var(--app-bg-gradient)" }}
+      >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{ background: "var(--app-bg-ambient)" }}
+        />
+        <Navigation variant="glass" />
         <main className="pt-24 pb-20">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center py-12">
@@ -152,269 +168,234 @@ export default function ProfessorReviewsPage({
   const totalPages = Math.ceil(reviewsData.pagination.total / itemsPerPage);
   const availableCourses = [
     ...new Set(
-      professor.courses?.map((c) => c.course_id).filter(Boolean) || [],
+      professor.courses?.map((c) => c.course_id).filter(Boolean) || []
     ),
   ];
 
   return (
-    <div className="min-h-screen bg-canvas">
-      <Navigation />
+    <div
+      className="min-h-screen relative"
+      style={{ background: "var(--app-bg-gradient)" }}
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{ background: "var(--app-bg-ambient)" }}
+      />
+      <Navigation variant="glass" />
 
-      <main className="pt-24 pb-20">
-        <div className="max-w-7xl mx-auto px-6">
-          {/* Breadcrumb */}
+      <main className="pt-24 pb-20 relative z-10">
+        <div className="max-w-4xl mx-auto px-6">
+          {/* Back Button */}
           <div className="mb-6">
-            <div className="flex items-center gap-2 mb-4">
-              <Link href="/courses">
-                <Button variant="outline" className="flex items-center gap-2">
-                  <ArrowLeft className="w-4 h-4" />
-                  Back to Courses
-                </Button>
-              </Link>
-              <span className="text-text-body">/</span>
-              <Link href={`/professor/${professor.id}`}>
-                <Button
-                  variant="ghost"
-                  className="text-white hover:bg-[#500000]/10"
-                >
-                  {professor.name}
-                </Button>
-              </Link>
-            </div>
+            <Link href={`/professor/${professor.id}`}>
+              <Button variant="outline" className="flex items-center gap-2">
+                <ArrowLeft className="w-4 h-4" />
+                Back to {professor.name}
+              </Button>
+            </Link>
           </div>
 
-          {/* Professor Header */}
-          <div className="mb-8">
-            <Card className="p-8 bg-gradient-to-br from-card to-card/50 border-border">
-              <div className="flex items-center gap-6 mb-6">
-                <div className="w-20 h-20 bg-gradient-to-br from-[#500000] to-[#600000] rounded-full flex items-center justify-center">
-                  <span className="text-white text-2xl font-bold">
-                    {(
-                      professor.name
-                        ?.split(" ")
-                        .map((n) => n?.[0] || "")
-                        .join("") || "PR"
-                    ).slice(0, 2)}
+          {/* Professor Header - Compact */}
+          <div className="mb-6">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-14 h-14 bg-gradient-to-br from-[#500000] to-[#700000] rounded-full flex items-center justify-center shrink-0">
+                <span className="text-white text-lg font-bold">
+                  {(
+                    professor.name
+                      ?.split(" ")
+                      .map((n) => n?.[0] || "")
+                      .join("") || "PR"
+                  ).slice(0, 2)}
+                </span>
+              </div>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-text-heading dark:text-white">
+                  {professor.name}
+                </h1>
+                <div className="flex items-center gap-3 mt-1">
+                  <div className="flex items-center gap-1.5 text-yellow-600 dark:text-yellow-400">
+                    <Star className="w-4 h-4 fill-current" />
+                    <span className="font-semibold">
+                      {reviewsData.summary.avg_overall.toFixed(1)}
+                    </span>
+                  </div>
+                  <span className="text-text-body/30 dark:text-white/20">•</span>
+                  <span className="text-text-body dark:text-white/70">
+                    {reviewsData.summary.total_reviews} reviews
                   </span>
                 </div>
-                <div>
-                  <h1 className="text-4xl font-bold text-text-heading mb-3">
-                    {professor.name} - All Reviews
-                  </h1>
-                  <div className="flex items-center gap-6 text-md">
-                    <div className="flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-4 py-1 rounded-full shadow-md">
-                      <Star className="w-5 h-5 fill-current" />
-                      <span className="font-semibold">
-                        {reviewsData.summary.avg_overall.toFixed(1)}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-1 rounded-full shadow-md">
-                      <MessageSquare className="w-5 h-5" />
-                      <span className="font-semibold">
-                        {reviewsData.summary.total_reviews} total reviews
-                      </span>
-                    </div>
-                  </div>
-                </div>
               </div>
-            </Card>
+            </div>
           </div>
 
-          {/* Filters */}
-          <Card className="bg-card border-border p-8 mb-8">
-            <div className="flex items-center gap-3 mb-6">
-              <Filter className="w-6 h-6 text-[#500000]" />
-              <h3 className="text-2xl font-bold text-text-heading">
-                Filter Reviews
-              </h3>
-            </div>
+          {/* Filters - Compact inline */}
+          <div className="flex flex-wrap items-center gap-3 mb-6 pb-6 border-b border-border dark:border-white/10">
+            <Filter className="w-4 h-4 text-text-body/50 dark:text-white/40" />
+            <Select
+              value={courseFilter || "all"}
+              onValueChange={(value) =>
+                setCourseFilter(value === "all" ? "" : value)
+              }
+            >
+              <SelectTrigger className="w-[140px] h-9 bg-canvas border-border text-sm dark:bg-white/5 dark:border-white/10">
+                <SelectValue placeholder="All Courses" />
+              </SelectTrigger>
+              <SelectContent className="bg-canvas border-border dark:bg-black dark:border-white/10">
+                <SelectItem value="all">All Courses</SelectItem>
+                {availableCourses.map((course) => (
+                  <SelectItem key={course} value={course}>
+                    {course}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div>
-                <label className="text-sm font-semibold text-text-heading mb-3 block uppercase tracking-wider">
-                  Course
-                </label>
-                <Select
-                  value={courseFilter || "all"}
-                  onValueChange={(value) =>
-                    setCourseFilter(value === "all" ? "" : value)
-                  }
-                >
-                  <SelectTrigger className="bg-canvas border-border h-12">
-                    <SelectValue placeholder="All Courses" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-canvas border-border">
-                    <SelectItem value="all">All Courses</SelectItem>
-                    {availableCourses.map((course) => (
-                      <SelectItem key={course} value={course}>
-                        {course}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <Select
+              value={sortBy}
+              onValueChange={(value: "date" | "rating" | "course") =>
+                setSortBy(value)
+              }
+            >
+              <SelectTrigger className="w-[140px] h-9 bg-canvas border-border text-sm dark:bg-white/5 dark:border-white/10">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-canvas border-border dark:bg-black dark:border-white/10">
+                <SelectItem value="date">Newest</SelectItem>
+                <SelectItem value="rating">Highest Rated</SelectItem>
+                <SelectItem value="course">By Course</SelectItem>
+              </SelectContent>
+            </Select>
 
-              <div>
-                <label className="text-sm font-semibold text-text-heading mb-3 block uppercase tracking-wider">
-                  Sort By
-                </label>
-                <Select
-                  value={sortBy}
-                  onValueChange={(value: "date" | "rating" | "course") =>
-                    setSortBy(value)
-                  }
-                >
-                  <SelectTrigger className="bg-canvas border-border h-12">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-canvas border-border">
-                    <SelectItem value="date">Date (Newest)</SelectItem>
-                    <SelectItem value="rating">Rating (Highest)</SelectItem>
-                    <SelectItem value="course">Course</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <Select
+              value={minRating?.toString() || "none"}
+              onValueChange={(value) =>
+                setMinRating(value === "none" ? undefined : Number(value))
+              }
+            >
+              <SelectTrigger className="w-[120px] h-9 bg-canvas border-border text-sm dark:bg-white/5 dark:border-white/10">
+                <SelectValue placeholder="Any Rating" />
+              </SelectTrigger>
+              <SelectContent className="bg-canvas border-border dark:bg-black dark:border-white/10">
+                <SelectItem value="none">Any Rating</SelectItem>
+                <SelectItem value="4">4+ Stars</SelectItem>
+                <SelectItem value="3">3+ Stars</SelectItem>
+                <SelectItem value="2">2+ Stars</SelectItem>
+              </SelectContent>
+            </Select>
 
-              <div>
-                <label className="text-sm font-semibold text-text-heading mb-3 block uppercase tracking-wider">
-                  Min Rating
-                </label>
-                <Select
-                  value={minRating?.toString() || "none"}
-                  onValueChange={(value) =>
-                    setMinRating(value === "none" ? undefined : Number(value))
-                  }
-                >
-                  <SelectTrigger className="bg-canvas border-border h-12">
-                    <SelectValue placeholder="Any Rating" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-canvas border-border">
-                    <SelectItem value="none">Any Rating</SelectItem>
-                    <SelectItem value="4">4+ Stars</SelectItem>
-                    <SelectItem value="3">3+ Stars</SelectItem>
-                    <SelectItem value="2">2+ Stars</SelectItem>
-                    <SelectItem value="1">1+ Stars</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            {(courseFilter || minRating) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setCourseFilter("");
+                  setSortBy("date");
+                  setMinRating(undefined);
+                }}
+                className="text-text-body/70 hover:text-text-heading dark:text-white/60 dark:hover:text-white h-9"
+              >
+                Clear
+              </Button>
+            )}
+          </div>
 
-              <div className="flex items-end">
-                <Button
-                  variant="default"
-                  onClick={() => {
-                    setCourseFilter("");
-                    setSortBy("date");
-                    setMinRating(undefined);
-                  }}
-                  className="w-full h-12 bg-[#500000] hover:bg-[#600000] text-white hover:scale-105 transition-all duration-200 text-md"
-                >
-                  Clear Filters
-                </Button>
-              </div>
-            </div>
-          </Card>
+          {/* Reviews Section Header */}
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-text-heading dark:text-white flex items-center gap-2">
+              <MessageSquare className="w-5 h-5" />
+              Student Reviews
+            </h2>
+            <span className="text-sm text-text-body/60 dark:text-white/50">
+              {reviewsData.reviews.length} shown
+            </span>
+          </div>
 
           {/* Reviews List */}
           <div className="space-y-4 mb-8">
             {reviewsData.reviews.map((review) => (
               <Card
                 key={review.id}
-                className="bg-card border-border hover:border-[#500000] hover:scale-101 transition-all duration-300 hover:shadow-lg/20"
+                className="bg-card border-border hover:border-[#500000]/50 transition-all duration-300 hover:shadow-lg dark:bg-black/45 dark:border-white/10"
               >
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1 bg-yellow-600 dark:bg-yellow-500 text-white px-2 py-1 rounded-full shadow-md">
+                <CardContent className="p-5">
+                  {/* Header Row: Rating, Course, Grade, Date */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {/* Overall Rating - Larger and more prominent */}
+                      <div className="flex items-center gap-1.5 bg-yellow-500 text-black px-3 py-1.5 rounded-lg shadow-sm font-bold">
                         <Star className="w-4 h-4 fill-current" />
-                        <span className="text-sm font-bold">
+                        <span className="text-base">
                           {review.overall_rating.toFixed(1)}
                         </span>
                       </div>
-                      <Badge
-                        variant="outline"
-                        className="bg-button-primary dark:bg-button-primary text-white border-transparent px-2 py-1 text-xs font-medium"
-                      >
+                      {/* Course Code */}
+                      <Badge className="bg-[#500000] text-white border-transparent px-2.5 py-0.5 text-xs font-semibold">
                         {review.course.code}
                       </Badge>
-                      <Badge
-                        variant="outline"
-                        className="bg-emerald-600 dark:bg-emerald-500 text-white border-transparent px-2 py-1 text-xs font-medium"
-                      >
-                        Grade: {review.grade}
+                      {/* Grade */}
+                      <Badge className="bg-emerald-600 dark:bg-emerald-500 text-white border-transparent px-2.5 py-0.5 text-xs font-semibold">
+                        {review.grade}
+                      </Badge>
+                      {/* Would Take Again */}
+                      <Badge className={`${review.would_take_again ? 'bg-blue-600 dark:bg-blue-500' : 'bg-gray-500 dark:bg-gray-600'} text-white border-transparent px-2.5 py-0.5 text-xs font-semibold`}>
+                        {review.would_take_again ? "Would retake ✓" : "Wouldn't retake"}
                       </Badge>
                     </div>
-                    <div className="flex items-center gap-1 text-text-body px-2 py-1 rounded-full text-xs">
-                      <Calendar className="w-3 h-3" />
-                      <span className="font-medium">
-                        {formatDate(review.review_date)}
-                      </span>
+                    {/* Date */}
+                    <div className="flex items-center gap-1.5 text-text-body/70 dark:text-white/60 text-xs">
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span>{formatDate(review.review_date)}</span>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-4 gap-3 mb-4">
-                    <div className="text-center border-2 border-blue-500 bg-blue-400/10 p-2 rounded-lg">
-                      <div className="text-md font-bold text-white">
-                        {review.clarity_rating.toFixed(1)}
-                      </div>
-                      <div className="text-xs font-medium text-white">
-                        Clarity
-                      </div>
+                  {/* Compact Metrics Row */}
+                  <div className="flex flex-wrap items-center gap-3 mb-4 text-sm">
+                    <div className="flex items-center gap-1.5 text-text-body dark:text-white/80">
+                      <span className="text-blue-600 dark:text-blue-400 font-semibold">{review.clarity_rating.toFixed(1)}</span>
+                      <span className="text-text-body/60 dark:text-white/50">clarity</span>
                     </div>
-                    <div className="text-center border-2 border-red-500 bg-red-400/10 p-2 rounded-lg">
-                      <div className="text-md font-bold text-white">
-                        {review.difficulty_rating.toFixed(1)}
-                      </div>
-                      <div className="text-xs font-medium text-white">
-                        Difficulty
-                      </div>
+                    <span className="text-text-body/30 dark:text-white/20">•</span>
+                    <div className="flex items-center gap-1.5 text-text-body dark:text-white/80">
+                      <span className="text-red-600 dark:text-red-400 font-semibold">{review.difficulty_rating.toFixed(1)}</span>
+                      <span className="text-text-body/60 dark:text-white/50">difficulty</span>
                     </div>
-                    <div className="text-center border-2 border-green-500 bg-green-400/10 p-2 rounded-lg">
-                      <div className="text-md font-bold text-white">
-                        {review.helpful_rating.toFixed(1)}
-                      </div>
-                      <div className="text-xs font-medium text-white">
-                        Helpfulness
-                      </div>
-                    </div>
-                    <div className="text-center border-2 border-purple-500 bg-purple-400/10 p-2 rounded-lg">
-                      <div className="text-md font-bold text-white">
-                        {review.would_take_again ? "Yes" : "No"}
-                        <div className="text-xs font-medium text-white">
-                          Take Again
-                        </div>
-                      </div>
+                    <span className="text-text-body/30 dark:text-white/20">•</span>
+                    <div className="flex items-center gap-1.5 text-text-body dark:text-white/80">
+                      <span className="text-green-600 dark:text-green-400 font-semibold">{review.helpful_rating.toFixed(1)}</span>
+                      <span className="text-text-body/60 dark:text-white/50">helpful</span>
                     </div>
                   </div>
 
-                  <blockquote className="text-text-body mb-4 text-md leading-relaxed bg-[#500000]/10 p-3 rounded-lg border-l-4 border-[#500000] italic">
-                    &quot;{review.review_text}&quot;
-                  </blockquote>
+                  {/* Review Text */}
+                  <p className="text-text-body dark:text-white/90 mb-4 leading-relaxed">
+                    {review.review_text}
+                  </p>
 
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-wrap gap-1">
-                      {review.tags?.slice(0, 3).map((tag, index) => (
+                  {/* Footer: Tags & Votes */}
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-1.5">
+                      {review.tags?.slice(0, 4).map((tag, index) => (
                         <Badge
                           key={index}
                           variant="outline"
-                          className="bg-gray-600 dark:bg-gray-500 text-white border-transparent px-2 py-0.5 text-xs font-medium"
+                          className="bg-canvas dark:bg-white/5 text-text-body dark:text-white/70 border-border dark:border-white/10 px-2 py-0.5 text-xs font-medium"
                         >
                           {tag}
                         </Badge>
                       ))}
                     </div>
 
-                    <div className="flex items-center gap-3 text-text-body">
-                      <div className="flex items-center gap-1 bg-emerald-600 dark:bg-emerald-500 px-2 py-1 rounded-full">
-                        <ThumbsUp className="w-3 h-3 text-white" />
-                        <span className="font-medium text-white text-xs">
-                          {review.thumbs_up}
-                        </span>
+                    {/* Votes */}
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 text-text-body/60 dark:text-white/50 text-xs">
+                        <ThumbsUp className="w-3.5 h-3.5" />
+                        <span>{review.thumbs_up}</span>
                       </div>
-                      <div className="flex items-center gap-1 bg-red-600 dark:bg-red-500 px-2 py-1 rounded-full">
-                        <ThumbsDown className="w-3 h-3 text-white" />
-                        <span className="font-medium text-white text-xs">
-                          {review.thumbs_down}
-                        </span>
+                      <div className="flex items-center gap-1 text-text-body/60 dark:text-white/50 text-xs">
+                        <ThumbsDown className="w-3.5 h-3.5" />
+                        <span>{review.thumbs_down}</span>
                       </div>
                     </div>
                   </div>

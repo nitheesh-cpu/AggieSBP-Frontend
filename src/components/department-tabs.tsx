@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 
 interface DepartmentTab {
@@ -32,7 +33,7 @@ const departments: DepartmentTab[] = [
   },
   { id: "biol", label: "BIOL", href: "/courses?department=BIOL%20-%20Biology" },
   {
-    id: "hist",
+    id: "chem",
     label: "CHEM",
     href: "/courses?department=CHEM%20-%20Chemistry",
   },
@@ -40,67 +41,57 @@ const departments: DepartmentTab[] = [
 
 export const DepartmentTabs = () => {
   const [hoveredTab, setHoveredTab] = useState<string | null>(null);
+  const shouldReduceMotion = useReducedMotion();
 
   return (
-    <section className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
-      <div className="bg-card border border-border rounded-lg overflow-hidden">
-        {/* Mobile: Vertical stack */}
-        <div className="block sm:hidden">
-          {departments.map((department, index) => (
-            <div
-              key={department.id}
-              className={`relative ${
-                index < departments.length - 1 ? "border-b border-border" : ""
-              }`}
-              onTouchStart={() => setHoveredTab(department.id)}
-              onTouchEnd={() => setHoveredTab(null)}
-              onMouseEnter={() => setHoveredTab(department.id)}
-              onMouseLeave={() => setHoveredTab(null)}
-            >
-              <Link href={department.href}>
-                <div
-                  className={`py-4 px-6 text-center transition-all duration-[220ms] ease-out cursor-pointer min-h-[60px] flex items-center justify-center ${
-                    hoveredTab === department.id
-                      ? "bg-button-hover text-text-heading"
-                      : "text-text-body"
-                  }`}
-                >
-                  <span className="text-lg font-medium tracking-wide">
-                    {department.label}
-                  </span>
-                </div>
-              </Link>
-            </div>
-          ))}
+    <section className="w-full py-20" data-oid="ffx4gjv">
+      <div className="max-w-6xl mx-auto px-6">
+        <div className="text-center mb-6">
+          <div className="text-text-body text-[12px] sm:text-[13px] tracking-wide dark:text-white/80">
+            Pick a department to jump into its courses.
+          </div>
         </div>
-
-        {/* Desktop: Horizontal flex */}
-        <div className="hidden sm:flex">
-          {departments.map((department, index) => (
-            <div
-              key={department.id}
-              className={`flex-1 relative ${
-                index < departments.length - 1 ? "border-r border-border" : ""
-              }`}
-              onMouseEnter={() => setHoveredTab(department.id)}
-              onMouseLeave={() => setHoveredTab(null)}
-            >
-              <Link href={department.href}>
-                <div
-                  className={`py-4 sm:py-6 px-4 sm:px-8 text-center transition-all duration-[220ms] ease-out cursor-pointer ${
-                    hoveredTab === department.id
-                      ? "bg-button-hover text-text-heading"
-                      : "text-text-body"
-                  }`}
-                >
-                  <span className="text-sm sm:text-base font-medium tracking-wide">
-                    {department.label}
-                  </span>
-                </div>
-              </Link>
-            </div>
+        <motion.div
+          className="flex flex-wrap justify-center gap-6"
+          data-oid="o3ha5rp"
+          initial={shouldReduceMotion ? false : "hidden"}
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.4 }}
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: { staggerChildren: 0.06 },
+            },
+          }}
+        >
+          {departments.map((department) => (
+            <Link key={department.id} href={department.href} prefetch={false}>
+              <motion.span
+                onMouseEnter={() => setHoveredTab(department.id)}
+                onMouseLeave={() => setHoveredTab(null)}
+                className={`inline-flex items-center justify-center min-w-[120px] px-8 py-4 rounded-xl border transition-all duration-[220ms] ease-out cursor-pointer select-none ${
+                  hoveredTab === department.id
+                    ? "border-[#FFCF3F] bg-card dark:bg-black/75"
+                    : "border-border bg-card dark:border-[#4B5563] dark:bg-black/45"
+                }`}
+                data-oid="jj0_m:8"
+                variants={{
+                  hidden: { opacity: 0, y: 12 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+                whileHover={
+                  shouldReduceMotion ? undefined : { y: -2, scale: 1.03 }
+                }
+                whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
+              >
+                <span className="tracking-[0.18em] text-text-heading text-[11px] font-medium dark:text-white">
+                  {department.label}
+                </span>
+              </motion.span>
+            </Link>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

@@ -6,28 +6,28 @@ import Image from "next/image";
 export const Footer = () => {
   return (
     <footer className="bg-canvas border-t border-border">
-      <div className="max-w-7xl mx-auto px-4 py-12">
+      <div className="max-w-7xl mx-auto px-4 py-8 sm:py-10 lg:py-12">
         {/* Main footer content */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-14">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 sm:gap-10 lg:gap-14">
           {/* Brand section */}
           <div className="lg:col-span-2">
-            <div className="flex items-center space-x-3 mb-6">
+            <div className="flex items-center space-x-3 mb-4 sm:mb-6">
               <Image
                 src="/favicon.ico"
                 alt="AggieRMP Logo"
                 width={30}
                 height={30}
-                className="w-8 h-8"
+                className="w-7 h-7 sm:w-8 sm:h-8"
               />
-              <span className="text-xl font-semibold text-text-heading">
+              <span className="text-lg sm:text-xl font-semibold text-text-heading">
                 AggieSB+
               </span>
             </div>
-            <p className="text-text-body mb-8 max-w-sm">
+            <p className="text-text-body text-sm sm:text-base mb-5 sm:mb-8 max-w-sm">
               Real-time, multidimensional professor intelligence for every
               Aggie.
             </p>
-{/*             <div className="flex space-x-4">
+            {/*             <div className="flex space-x-4">
               <Link
                 href="https://github.com/nitheesh-cpu"
                 className="w-10 h-10 bg-card border border-border rounded-lg flex items-center justify-center text-text-body hover:text-text-heading hover:border-text-body transition-colors duration-[220ms]"
@@ -61,8 +61,10 @@ export const Footer = () => {
 
           {/* Resources column */}
           <div>
-            <h3 className="text-text-heading font-medium mb-6">Support</h3>
-            <div className="space-y-4">
+            <h3 className="text-text-heading font-medium mb-3 sm:mb-6">
+              Support
+            </h3>
+            <div className="space-y-2 sm:space-y-4 text-sm">
               {/* {["Report a Bug", "Request a Feature"].map((item) => ( */}
               <Link
                 key={"Report a Bug"}
@@ -88,8 +90,10 @@ export const Footer = () => {
 
           {/* Company column */}
           <div>
-            <h3 className="text-text-heading font-medium mb-6">Tools</h3>
-            <div className="space-y-4">
+            <h3 className="text-text-heading font-medium mb-3 sm:mb-6">
+              Tools
+            </h3>
+            <div className="space-y-2 sm:space-y-4 text-sm">
               {/* {["About", "API Docs"].map((item) => ( */}
               <Link
                 key={"Chrome Extension"}
@@ -111,8 +115,10 @@ export const Footer = () => {
 
           {/* Company column */}
           <div>
-            <h3 className="text-text-heading font-medium mb-6">Website</h3>
-            <div className="space-y-4">
+            <h3 className="text-text-heading font-medium mb-3 sm:mb-6">
+              Website
+            </h3>
+            <div className="space-y-2 sm:space-y-4 text-sm">
               {/* {["About", "API Docs"].map((item) => ( */}
               <Link
                 key={"About"}
@@ -127,18 +133,17 @@ export const Footer = () => {
         </div>
 
         {/* Bottom section */}
-        <div className="border-t border-border pt-8 mt-12 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
-          <div className="text-text-body text-sm">
+        <div className="border-t border-border pt-6 sm:pt-8 mt-8 sm:mt-12 flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0">
+          <div className="text-text-body text-xs sm:text-sm">
             © 2025 Nitheesh Kodarapu. All rights reserved.
           </div>
-          <div className="flex space-x-6 text-sm">
+          <div className="flex space-x-6 text-xs sm:text-sm">
             <Link
               href="/terms"
               className="text-text-body hover:text-text-heading transition-colors duration-[220ms]"
             >
               Terms of Service
             </Link>
-            
           </div>
         </div>
       </div>

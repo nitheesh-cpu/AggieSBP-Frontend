@@ -1,5 +1,5 @@
-const API_BASE_URL = "https://api-aggiesbp.servehttp.com";
-// const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL?.trim() || "http://localhost:8000";
 
 // Development mode - set to true to use mock data
 // const USE_MOCK_DATA = false; // Set to true if you want to use mock data
@@ -36,6 +36,15 @@ export interface Course {
   sectionAttributes: string[];
 }
 
+export interface CourseSummary {
+  teaching?: string | null;
+  exams?: string | null;
+  grading?: string | null;
+  workload?: string | null;
+  personality?: string | null;
+  policies?: string | null;
+}
+
 export interface CourseDetail {
   code: string;
   name: string;
@@ -46,11 +55,16 @@ export interface CourseDetail {
   enrollment?: number;
   sections?: number;
   rating?: number;
+  lectureHours?: number;
+  labHours?: number;
+  otherHours?: number | null;
   professors?: Array<{
     id?: string; // Optional for ANEX-only data
     name: string;
     rating?: number; // Optional for ANEX-only data
-    reviews?: number; // Optional for ANEX-only data
+    reviews?: number; // Legacy field
+    totalReviews?: number; // New field from API
+    confidence?: number; // Confidence score for AI summary
     gradeDistribution?: {
       A: number;
       B: number;
@@ -59,10 +73,21 @@ export interface CourseDetail {
       F: number;
     };
     teachingStyle?: string;
-    description?: string; // AI-generated summary of reviews for this professor in this course
+    description?: string; // Legacy AI-generated summary
+    courseSummary?: CourseSummary; // New structured AI-generated summary
     tag_frequencies?: { [tag: string]: number }; // Dictionary of tags and their frequencies
   }>;
-  prerequisites?: string[];
+  prerequisites?: string[] | {
+    text?: string;
+    courses?: string[];
+    groups?: string[][];
+  };
+  corequisites?: {
+    text?: string;
+    courses?: string[];
+    groups?: string[][];
+  };
+  crossListings?: string[];
   relatedCourses?: Array<{
     code: string;
     name: string;
@@ -159,6 +184,14 @@ export interface Professor {
   courses_taught: string[];
 }
 
+export interface OverallSummary {
+  sentiment: string;
+  strengths: string[];
+  complaints: string[];
+  consistency: string;
+  confidence: number;
+}
+
 export interface ProfessorDetail {
   id: string;
   name: string;
@@ -174,7 +207,8 @@ export interface ProfessorDetail {
   }>;
   recent_reviews?: Review[];
   tag_frequencies?: { [tag: string]: number }; // Dictionary of tags and their frequencies
-  overall_summary?: string; // AI-generated summary of reviews
+  overall_summary?: string; // AI-generated summary of reviews (legacy)
+  overallSummary?: OverallSummary; // Detailed AI-generated summary
 }
 
 export interface ProfessorReviews {
@@ -516,30 +550,30 @@ export async function getProfessorReviews(
       const avgOverall =
         totalReviews > 0
           ? reviews.reduce(
-              (sum, r) => sum + ((r.overall_rating as number) || 0),
-              0,
-            ) / totalReviews
+            (sum, r) => sum + ((r.overall_rating as number) || 0),
+            0,
+          ) / totalReviews
           : 0;
       const avgClarity =
         totalReviews > 0
           ? reviews.reduce(
-              (sum, r) => sum + ((r.clarity_rating as number) || 0),
-              0,
-            ) / totalReviews
+            (sum, r) => sum + ((r.clarity_rating as number) || 0),
+            0,
+          ) / totalReviews
           : 0;
       const avgDifficulty =
         totalReviews > 0
           ? reviews.reduce(
-              (sum, r) => sum + ((r.difficulty_rating as number) || 0),
-              0,
-            ) / totalReviews
+            (sum, r) => sum + ((r.difficulty_rating as number) || 0),
+            0,
+          ) / totalReviews
           : 0;
       const avgHelpfulness =
         totalReviews > 0
           ? reviews.reduce(
-              (sum, r) => sum + ((r.helpful_rating as number) || 0),
-              0,
-            ) / totalReviews
+            (sum, r) => sum + ((r.helpful_rating as number) || 0),
+            0,
+          ) / totalReviews
           : 0;
       const wouldTakeAgainCount = reviews.filter(
         (r) => r.would_take_again === true,
@@ -626,7 +660,7 @@ export async function getAllDepartmentIds(): Promise<SitemapEntry[]> {
         "Content-Type": "application/json",
       },
     });
-    
+
     const departments = await handleResponse<Department[]>(response);
     return departments.map(dept => ({
       id: dept.id,
@@ -640,12 +674,12 @@ export async function getAllDepartmentIds(): Promise<SitemapEntry[]> {
 
 export async function getAllCourseIds(): Promise<SitemapEntry[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/courses?limit=10000`, {
+    const response = await fetch(`${API_BASE_URL}/courses?limit=50000`, {
       headers: {
         "Content-Type": "application/json",
       },
     });
-    
+
     const courses = await handleResponse<Course[]>(response);
     return courses.map(course => ({
       id: course.id,
@@ -664,7 +698,7 @@ export async function getAllProfessorIds(): Promise<SitemapEntry[]> {
         "Content-Type": "application/json",
       },
     });
-    
+
     const professors = await handleResponse<Professor[]>(response);
     return professors.map(prof => ({
       id: prof.id,
@@ -684,7 +718,7 @@ export async function getSitemapCounts(): Promise<{
   try {
     const [courses, professors, departments] = await Promise.all([
       getAllCourseIds(),
-      getAllProfessorIds(), 
+      getAllProfessorIds(),
       getAllDepartmentIds()
     ]);
 
@@ -697,4 +731,98 @@ export async function getSitemapCounts(): Promise<{
     console.error("Error getting sitemap counts:", error);
     return { courses: 0, professors: 0, departments: 0 };
   }
+}
+
+// Data Stats API
+export interface DataStats {
+  reviews_count?: number;
+  courses_count?: number;
+  professors_count?: number;
+  gpa_data_count?: number;
+  sections_count?: number;
+  last_updated?: string;
+}
+
+export async function getDataStats(): Promise<DataStats> {
+  const response = await fetch(`${API_BASE_URL}/data_stats`);
+  return handleResponse<DataStats>(response);
+}
+
+// Terms API
+export interface Term {
+  termCode: string;
+  termDesc: string;
+  startDate: string;
+  endDate: string;
+  academicYear: string;
+}
+
+export async function getTerms(): Promise<Term[]> {
+  const response = await fetch(`${API_BASE_URL}/terms`);
+  return handleResponse<Term[]>(response);
+}
+
+// Course Sections API
+export interface SectionInstructor {
+  name: string;
+  isPrimary: boolean;
+  hasCv: boolean;
+  cvUrl?: string | null;
+}
+
+export interface SectionMeeting {
+  daysOfWeek: string[];
+  beginTime: string;
+  endTime: string;
+  startDate: string;
+  endDate: string;
+  building: string;
+  room: string;
+  meetingType: string;
+}
+
+export interface CourseSection {
+  id: string;
+  termCode: string;
+  crn: string;
+  dept: string;
+  deptDesc: string;
+  courseNumber: string;
+  sectionNumber: string;
+  courseTitle: string;
+  creditHours: string;
+  hoursLow: number;
+  hoursHigh: number | null;
+  campus: string;
+  partOfTerm: string;
+  sessionType: string;
+  scheduleType: string;
+  instructionType: string;
+  isOpen: boolean;
+  hasSyllabus: boolean;
+  syllabusUrl: string | null;
+  attributesText: string;
+  instructors: SectionInstructor[];
+  meetings: SectionMeeting[];
+}
+
+export async function getCourseSectionsForTerm(
+  termCode: string,
+  courseId: string,
+): Promise<CourseSection[]> {
+  const response = await fetch(
+    `${API_BASE_URL}/sections/${termCode}/course/${courseId}`,
+  );
+  return handleResponse<CourseSection[]>(response);
+}
+
+// Course Professors for Term API
+export async function getCourseProfessorsForTerm(
+  termCode: string,
+  courseId: string,
+): Promise<CourseDetail["professors"]> {
+  const response = await fetch(
+    `${API_BASE_URL}/sections/${termCode}/course/${courseId}/professors`,
+  );
+  return handleResponse<CourseDetail["professors"]>(response);
 }

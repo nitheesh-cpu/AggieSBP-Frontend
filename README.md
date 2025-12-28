@@ -16,12 +16,14 @@ AggieSB+ is a comprehensive course and professor evaluation platform designed sp
 - **Course Search**: Find courses by code, name, or department with real-time filtering
 - **Professor Search**: Discover professors with advanced filtering by rating, department, and more
 - **Department Browse**: Explore all TAMU departments with aggregated statistics
+- **Core Curriculum Discovery**: Find the easiest UCC courses ranked by our custom Easiness Score
 
 ### 📊 **Data-Driven Insights**
 
 - **GPA Statistics**: Real GPA data from anex.us for informed decision-making
 - **Professor Ratings**: Comprehensive ratings from Rate My Professor reviews
-- **Difficulty Ratings**: Course difficulty assessments based on student feedback
+- **Easiness Score**: Custom algorithm combining GPA (50%), difficulty (30%), and quality (20%)
+- **Confidence Indicators**: Know how reliable each score is based on available data
 - **Tag Analysis**: Frequency-based professor tags from student reviews
 
 ### 🔄 **Powerful Comparison Tools**
@@ -30,17 +32,24 @@ AggieSB+ is a comprehensive course and professor evaluation platform designed sp
 - **Professor Comparison**: Compare professors across multiple dimensions
 - **Interactive Widgets**: Persistent comparison state across the application
 
-### 📱 **Modern User Experience**
+### � **Reveille - Your Aggie Guide**
+
+- **8-Bit Mascot**: Pixel-art Reveille guides you through the platform
+- **Smart Explanations**: Reveille explains metrics and features in a friendly way
+- **UCC Helper**: Get personalized guidance on core curriculum requirements
+
+### �📱 **Modern User Experience**
 
 - **Responsive Design**: Optimized for desktop, tablet, and mobile devices
 - **Dark/Light Mode**: Theme switching with system preference detection
-- **Interactive Demos**: Built-in tutorials and sample searches
+- **Scroll-to-Explore**: Animated hero with scroll indicator for first-time users
+- **Smooth Animations**: Motion-based transitions and micro-interactions
 - **Accessibility**: WCAG compliant with keyboard navigation support
 
 ### 📈 **Advanced Analytics**
 
-- **Review Analysis**: Sentiment analysis and tag extraction from reviews
-- **Trend Visualization**: Charts and graphs for GPA and rating trends
+- **Review Analysis**: AI-powered sentiment analysis and summary generation
+- **A/B Rate Statistics**: See what percentage of students earn A's and B's
 - **Statistical Insights**: Enrollment data, section counts, and more
 
 ## 🏗️ Tech Stack
@@ -57,13 +66,13 @@ AggieSB+ is a comprehensive course and professor evaluation platform designed sp
 - **[Radix UI](https://www.radix-ui.com/)** - Accessible component primitives
 - **[Lucide React](https://lucide.dev/)** - Beautiful icon library
 - **[Recharts](https://recharts.org/)** - Composable charting library
-- **[Framer Motion](https://www.framer.com/motion/)** - Animation library
+- **[Motion](https://motion.dev/)** - Animation library (formerly Framer Motion)
 
 ### **State Management**
 
 - **React Context** - Global state management
 - **React Hook Form** - Form state and validation
-- **Local Storage** - Persistent user preferences
+- **Local Storage** - Persistent user preferences and caching
 
 ### **Development Tools**
 
@@ -81,13 +90,21 @@ src/
 │   ├── course/[id]/       # Individual course pages
 │   ├── courses/           # Course search and browse
 │   ├── departments/       # Department overview
+│   ├── discover/          # Discovery tools
+│   │   └── ucc/          # Core Curriculum finder
 │   ├── professor/[id]/    # Individual professor pages
+│   │   └── reviews/      # Professor reviews page
 │   ├── professors/        # Professor search and browse
 │   ├── layout.tsx         # Root layout
 │   └── page.tsx           # Home page
 ├── components/            # Reusable UI components
+│   ├── home/             # Home page components
+│   │   ├── home-hero-scroll.tsx
+│   │   ├── reveille-intro.tsx
+│   │   ├── quick-links.tsx
+│   │   └── ...
 │   ├── ui/               # Base UI components (Radix + Tailwind)
-│   ├── navigation.tsx    # Main navigation
+│   ├── navigation.tsx    # Main navigation with Discover dropdown
 │   ├── footer.tsx        # Site footer
 │   └── ...               # Feature-specific components
 ├── contexts/             # React Context providers
@@ -103,9 +120,19 @@ src/
 
 ### **Home Page** (`/`)
 
-- Hero section with search functionality
-- Featured departments and courses
-- Quick access to comparison tools
+- Scroll-reveal hero with Academic Plaza background
+- "Scroll to explore" indicator for new users
+- Reveille intro section explaining the platform
+- Data statistics (courses, professors, reviews)
+- Quick links to main features
+
+### **Core Curriculum Discovery** (`/discover/ucc`)
+
+- Find the easiest UCC courses by category
+- Easiness Score ranking with confidence indicators
+- Professor A/B rates and GPA statistics
+- Reveille explains the metrics in a friendly way
+- Term-based filtering
 
 ### **Course Search** (`/courses`)
 
@@ -125,25 +152,28 @@ src/
 - Professor listings with ratings
 - GPA statistics and trends
 - Related courses suggestions
+- Dynamic page titles (e.g., "CSCE 121 - Aggie Schedule Builder Plus")
 
 ### **Professor Details** (`/professor/[id]`)
 
 - Detailed professor profile
 - Course history and ratings
-- Student reviews and tags
+- AI-generated review summaries
 - Teaching statistics
+- Dynamic page titles with professor names
+
+### **Professor Reviews** (`/professor/[id]/reviews`)
+
+- Compact, scannable review cards
+- Inline metrics (clarity, difficulty, helpfulness)
+- Course and rating filters
+- Would-retake indicators
 
 ### **Comparison Tools** (`/compare`)
 
 - Side-by-side course comparison
-- Professor comparison with multiple tabs
+- Professor comparison with multiple metrics
 - Export and share functionality
-
-### **About Page** (`/about`)
-
-- Interactive feature demonstrations
-- Platform overview and mission
-- Getting started guide
 
 ## 🌐 API Integration
 
@@ -153,6 +183,13 @@ AggieSB+ integrates with a custom backend API that provides:
 - **Professor Data**: Faculty information and ratings
 - **GPA Statistics**: Historical grade distributions from anex.us
 - **Review Data**: Student reviews and ratings from Rate My Professor
+- **UCC Data**: Core curriculum course listings with easiness scores
+
+### Environment Variables
+
+```env
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+```
 
 For detailed API documentation, see [API Docs](https://api-aggiesbp.servehttp.com/docs).
 
@@ -160,11 +197,45 @@ For detailed API documentation, see [API Docs](https://api-aggiesbp.servehttp.co
 
 The application uses a consistent design system built on:
 
-- **Color Palette**: TAMU maroon (#500000) with neutral grays
+- **Color Palette**: TAMU maroon (#500000) with gold accent (#FFCF3F)
 - **Typography**: System fonts with careful hierarchy
 - **Spacing**: 8px grid system
+- **Dark Mode**: Premium dark theme with glass morphism effects
 - **Components**: Accessible, reusable UI components
-- **Animations**: Subtle transitions and micro-interactions
+- **Animations**: Scroll-reveal effects and micro-interactions
+- **8-Bit Elements**: Pixel-art Reveille mascot with retro styling
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+ 
+- npm or yarn
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/nitheesh-cpu/aggiesbp-frontend.git
+cd aggiesbp-frontend
+
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env.local
+# Edit .env.local with your API URL
+
+# Start development server
+npm run dev
+```
+
+### Building for Production
+
+```bash
+npm run build
+npm start
+```
 
 ## 🤝 Contributing
 

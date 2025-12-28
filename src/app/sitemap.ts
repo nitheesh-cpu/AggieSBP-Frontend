@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next'
-import { getCachedCourseIds, getCachedProfessorIds, getCachedDepartmentIds, logSitemapGeneration } from '@/lib/sitemap-utils'
+import { getCachedCourseIds, getCachedProfessorIds, logSitemapGeneration } from '@/lib/sitemap-utils'
 
 const BASE_URL = "https://aggieschedulebuilderplus.vercel.app"
 
@@ -48,14 +48,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly',
       priority: 0.6,
     },
+    {
+      url: `${BASE_URL}/discover/ucc`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
   ]
 
   try {
     // Fetch dynamic content IDs (cached)
-    const [courseIds, professorIds, departmentIds] = await Promise.all([
+    const [courseIds, professorIds] = await Promise.all([
       getCachedCourseIds(),
       getCachedProfessorIds(),
-      getCachedDepartmentIds()
     ])
 
     // Generate dynamic pages
@@ -80,20 +85,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }))
 
-    const departmentPages: MetadataRoute.Sitemap = departmentIds.map((department) => ({
-      url: `${BASE_URL}/department/${department.id}`,
-      lastModified: department.lastModified,
-      changeFrequency: 'weekly' as const,
-      priority: 0.8,
-    }))
-
     // Combine all pages
     const allPages = [
       ...staticPages,
       ...coursePages.slice(0, 1000), // Limit to prevent overly large sitemaps
       ...professorPages.slice(0, 1000),
       ...professorReviewPages.slice(0, 1000),
-      ...departmentPages,
     ]
 
     logSitemapGeneration('main', allPages.length)

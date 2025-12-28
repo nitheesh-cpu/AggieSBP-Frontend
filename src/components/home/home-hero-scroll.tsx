@@ -50,6 +50,8 @@ export function HomeHeroScroll() {
   const contentYMv = useTransform(scrollYProgress, [0.0, 0.42], [84, 0]);
   const backdropOpacityMv = useTransform(scrollYProgress, [0.0, 0.22], [0, 1]);
   const imageScaleMv = useTransform(scrollYProgress, [0, 1], [1, 1.06]);
+  // Scroll indicator fades out quickly as user starts scrolling
+  const scrollIndicatorOpacity = useTransform(scrollYProgress, [0, 0.05], [1, 0]);
 
   return (
     <section className="relative isolate">
@@ -78,6 +80,37 @@ export function HomeHeroScroll() {
               background: "var(--hero-backdrop-gradient)",
             }}
           />
+
+          {/* Scroll indicator - fades out on scroll */}
+          <motion.div
+            className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 z-30"
+            style={{
+              opacity: shouldReduceMotion ? 0 : scrollIndicatorOpacity,
+            }}
+          >
+            <span className="text-white text-sm font-semibold tracking-widest uppercase drop-shadow-lg">
+              Scroll to explore
+            </span>
+            <motion.div
+              animate={{ y: [0, 10, 0] }}
+              transition={{
+                duration: 1.5,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+              className="w-8 h-14 rounded-full border-2 border-white/70 flex items-start justify-center p-2 backdrop-blur-sm bg-black/20"
+            >
+              <motion.div
+                className="w-2 h-4 bg-white rounded-full"
+                animate={{ y: [0, 16, 0] }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              />
+            </motion.div>
+          </motion.div>
 
           {/* Content reveals on scroll */}
           <motion.div

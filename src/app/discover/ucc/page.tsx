@@ -222,17 +222,17 @@ export default function UCCDiscoveryPage() {
                   ) : (
                     // Metrics Legend (Active State)
                     <>
-                      <h3 className="font-bold text-lg leading-relaxed text-primary mb-4">
+                      <h3 className="font-bold text-lg lg:text-xl leading-relaxed text-primary mb-4">
                         Here&apos;s what the numbers mean!
                       </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-sm">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-md xl:text-lg">
                         {/* Easiness Explanation */}
                         <div className="space-y-1">
                           <h4 className="font-bold text-emerald-500 flex items-center gap-2">
                             <span className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center text-xs">90</span>
                             Easiness Score
                           </h4>
-                          <p className="text-xs text-text-body/80 dark:text-white/70 leading-relaxed">
+                          <p className="text-xs xl:text-sm text-text-body/80 dark:text-white/70 leading-relaxed">
                             My custom formula! Combines <strong>Average GPA</strong> (50%), <strong>Difficulty Rating</strong> (30%), and <strong>Student Quality</strong> (20%).
                           </p>
                         </div>
@@ -243,7 +243,7 @@ export default function UCCDiscoveryPage() {
                             <span className="text-text-body/50 text-xs tracking-widest">●●●</span>
                             Confidence
                           </h4>
-                          <p className="text-xs text-text-body/80 dark:text-white/70 leading-relaxed">
+                          <p className="text-xs xl:text-sm text-text-body/80 dark:text-white/70 leading-relaxed">
                             <strong>3 Dots</strong> = Lots of data.<br />
                             <strong>1 Dot</strong> = Limited data, take it with a grain of salt!
                           </p>
@@ -254,7 +254,7 @@ export default function UCCDiscoveryPage() {
                           <h4 className="font-bold text-blue-500 flex items-center gap-2">
                             % A/B Rate
                           </h4>
-                          <p className="text-xs text-text-body/80 dark:text-white/70 leading-relaxed">
+                          <p className="text-xs xl:text-sm text-text-body/80 dark:text-white/70 leading-relaxed">
                             Percentage of students who earned an <strong>A</strong> or <strong>B</strong> in this professor&apos;s class.
                           </p>
                         </div>

@@ -8,7 +8,7 @@ export function ReveilleIntro() {
     return (
         <section className="py-16 md:py-24 overflow-hidden">
             <div className="max-w-6xl mx-auto px-6">
-                <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
+                <div className="flex flex-col md:flex-row items-center gap-8 lg:gap-12">
                     {/* Reveille Avatar */}
                     <motion.div
                         initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
@@ -21,7 +21,7 @@ export function ReveilleIntro() {
                             <img
                                 src="/pixel-reveille.png"
                                 alt="Reveille - The First Lady of Aggieland"
-                                className="w-48 h-48 md:w-64 md:h-64 object-contain drop-shadow-2xl"
+                                className="w-72 h-72 md:w-72 md:h-72 lg:w-108 lg:h-108 object-contain drop-shadow-2xl"
                                 style={{ imageRendering: "pixelated" }}
                             />
                             {/* Animated sparkles around Reveille */}
@@ -53,15 +53,15 @@ export function ReveilleIntro() {
                         {/* Speech bubble */}
                         <div className="bg-popover border-2 border-primary rounded-2xl p-6 md:p-8 relative shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.9)]">
                             {/* Pointer - mobile (top) */}
-                            <div className="absolute -top-3 left-8 w-5 h-5 bg-popover border-t-2 border-l-2 border-primary transform rotate-45 md:hidden" />
+                            <div className="absolute -top-3 left-1/2 w-5 h-5 bg-popover border-t-2 border-l-2 border-primary transform rotate-45 md:hidden" />
                             {/* Pointer - desktop (left) */}
-                            <div className="absolute top-10 -left-3 w-5 h-5 bg-popover border-b-2 border-l-2 border-primary transform rotate-45 hidden md:block" />
+                            <div className="absolute top-50 lg:top-40 -left-3 w-5 h-5 bg-popover border-b-2 border-l-2 border-primary transform rotate-45 hidden md:block" />
 
-                            <h2 className="font-bold text-xl md:text-2xl text-primary mb-4">
+                            <h2 className="font-bold text-xl lg:text-2xl text-primary mb-4">
                                 Howdy, Aggies! 🐾
                             </h2>
 
-                            <p className="text-base md:text-lg text-text-body dark:text-white/90 mb-6 leading-relaxed">
+                            <p className="text-base lg:text-lg text-text-body dark:text-white/90 mb-6 leading-relaxed">
                                 I&apos;m <strong className="text-primary">Reveille</strong>, and I&apos;m here to help you
                                 navigate your academic journey at Texas A&M! <strong className="text-[#FFCF3F]">AggieSB+</strong> is
                                 your ultimate schedule builder and course discovery tool.

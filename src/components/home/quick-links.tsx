@@ -100,20 +100,30 @@ export function QuickLinks() {
               >
                 <motion.div
                   whileHover={shouldReduceMotion ? undefined : { y: -4 }}
-                  className="h-full rounded-xl border border-border bg-canvas p-5 transition-all duration-200 hover:border-[#FFCF3F]/50 hover:shadow-md dark:border-white/10 dark:bg-black/45 dark:hover:border-[#FFCF3F]/50 dark:hover:bg-black/60"
+                  className=" h-full rounded-xl border border-border bg-canvas p-5 transition-all duration-200 hover:border-[#FFCF3F]/50 hover:shadow-md dark:border-white/10 dark:bg-black/45 dark:hover:border-[#FFCF3F]/50 dark:hover:bg-black/60"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="p-2 rounded-lg bg-[#FFCF3F]/10 text-[#FFCF3F] dark:bg-[#FFCF3F]/20 group-hover:bg-[#FFCF3F]/20 dark:group-hover:bg-[#FFCF3F]/30 transition-colors">
                       {link.icon}
                     </div>
+                    <div className="block md:hidden w-3/4">
+                      <h3 className="text-text-heading dark:text-white font-semibold text-sm mb-1 group-hover:text-[#FFCF3F] transition-colors">
+                        {link.name}
+                      </h3>
+                      <p className="text-text-body text-xs dark:text-white/60">
+                        {link.description}
+                      </p>
+                    </div>
                     <ArrowRight className="w-4 h-4 text-text-body dark:text-white/40 group-hover:text-[#FFCF3F] group-hover:translate-x-1 transition-all duration-200" />
                   </div>
-                  <h3 className="text-text-heading dark:text-white font-semibold text-sm mb-1 group-hover:text-[#FFCF3F] transition-colors">
-                    {link.name}
-                  </h3>
-                  <p className="text-text-body text-xs dark:text-white/60">
-                    {link.description}
-                  </p>
+                  <div className="hidden md:block">
+                    <h3 className="text-text-heading dark:text-white font-semibold text-sm mb-1 group-hover:text-[#FFCF3F] transition-colors">
+                      {link.name}
+                    </h3>
+                    <p className="text-text-body text-xs dark:text-white/60">
+                      {link.description}
+                    </p>
+                  </div>
                 </motion.div>
               </Link>
             </motion.div>

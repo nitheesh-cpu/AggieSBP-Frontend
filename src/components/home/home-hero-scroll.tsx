@@ -88,7 +88,7 @@ export function HomeHeroScroll() {
               opacity: shouldReduceMotion ? 0 : scrollIndicatorOpacity,
             }}
           >
-            <span className="text-white text-sm font-semibold tracking-widest uppercase drop-shadow-lg">
+            <span className="text-white text-sm font-semibold tracking-widest uppercase drop-shadow-[0_1.4px_1.4px_rgba(0,0,0,1)]">
               Scroll to explore
             </span>
             <motion.div

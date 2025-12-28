@@ -6,6 +6,7 @@ import { MotionConfig, motion, useReducedMotion } from "motion/react";
 import { Navigation } from "@/components/navigation";
 import { HomeHeroScroll } from "@/components/home/home-hero-scroll";
 import { HomeDataStats } from "@/components/home/home-data-stats";
+import { ReveilleIntro } from "@/components/home/reveille-intro";
 import { QuickLinks } from "@/components/home/quick-links";
 import { DepartmentTabs } from "@/components/department-tabs";
 import { ValueProposition } from "@/components/value-proposition";
@@ -77,6 +78,10 @@ export function HomePageMotion() {
 
           {/* Scroll reveal sections */}
           <AnimatedSection delay={0.02}>
+            <ReveilleIntro />
+          </AnimatedSection>
+
+          <AnimatedSection delay={0.04}>
             <QuickLinks />
           </AnimatedSection>
 

@@ -8,7 +8,7 @@ import {
   GraduationCap,
   Users,
   GitCompare,
-  Info,
+  Compass,
   ArrowRight,
 } from "lucide-react";
 
@@ -30,25 +30,25 @@ const QUICK_LINKS: QuickLink[] = [
     name: "Courses",
     href: "/courses",
     icon: <BookOpen className="w-5 h-5" />,
-    description: "Search courses",
+    description: "Search courses and find the best section",
   },
   {
     name: "Professors",
     href: "/professors",
     icon: <Users className="w-5 h-5" />,
-    description: "Find professors",
+    description: "Find professors and read AI insights",
   },
   {
     name: "Compare",
     href: "/compare",
     icon: <GitCompare className="w-5 h-5" />,
-    description: "Compare options",
+    description: "Compare different courses and professors",
   },
   {
-    name: "About",
-    href: "/about",
-    icon: <Info className="w-5 h-5" />,
-    description: "Learn more",
+    name: "Core Curriculum",
+    href: "/discover/ucc",
+    icon: <Compass className="w-5 h-5" />,
+    description: "Find the easiest courses to fulfil your core curriculum",
   },
 ];
 

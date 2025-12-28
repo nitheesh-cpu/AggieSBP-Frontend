@@ -51,6 +51,9 @@ interface UCCCategory {
   courses: Course[];
 }
 
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL?.trim() || "http://localhost:8000";
+
 // Map to keep track of how many courses are shown per category
 type ExpandedState = Record<string, number>;
 
@@ -75,7 +78,7 @@ export default function UCCDiscoveryPage() {
   useEffect(() => {
     async function fetchTerms() {
       try {
-        const res = await fetch("http://localhost:8000/terms");
+        const res = await fetch(`${API_BASE_URL}/terms`);
         if (!res.ok) throw new Error("Failed to fetch terms");
         const data = await res.json();
         setTerms(data);
@@ -96,7 +99,7 @@ export default function UCCDiscoveryPage() {
     setExpandedState({});
 
     try {
-      const res = await fetch(`http://localhost:8000/discover/${termCode}/ucc`);
+      const res = await fetch(`${API_BASE_URL}/discover/${termCode}/ucc`);
       if (!res.ok) throw new Error("Failed to fetch UCC data");
       const data = await res.json();
       setUccData(data);

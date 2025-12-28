@@ -550,30 +550,30 @@ export async function getProfessorReviews(
       const avgOverall =
         totalReviews > 0
           ? reviews.reduce(
-              (sum, r) => sum + ((r.overall_rating as number) || 0),
-              0,
-            ) / totalReviews
+            (sum, r) => sum + ((r.overall_rating as number) || 0),
+            0,
+          ) / totalReviews
           : 0;
       const avgClarity =
         totalReviews > 0
           ? reviews.reduce(
-              (sum, r) => sum + ((r.clarity_rating as number) || 0),
-              0,
-            ) / totalReviews
+            (sum, r) => sum + ((r.clarity_rating as number) || 0),
+            0,
+          ) / totalReviews
           : 0;
       const avgDifficulty =
         totalReviews > 0
           ? reviews.reduce(
-              (sum, r) => sum + ((r.difficulty_rating as number) || 0),
-              0,
-            ) / totalReviews
+            (sum, r) => sum + ((r.difficulty_rating as number) || 0),
+            0,
+          ) / totalReviews
           : 0;
       const avgHelpfulness =
         totalReviews > 0
           ? reviews.reduce(
-              (sum, r) => sum + ((r.helpful_rating as number) || 0),
-              0,
-            ) / totalReviews
+            (sum, r) => sum + ((r.helpful_rating as number) || 0),
+            0,
+          ) / totalReviews
           : 0;
       const wouldTakeAgainCount = reviews.filter(
         (r) => r.would_take_again === true,
@@ -660,7 +660,7 @@ export async function getAllDepartmentIds(): Promise<SitemapEntry[]> {
         "Content-Type": "application/json",
       },
     });
-    
+
     const departments = await handleResponse<Department[]>(response);
     return departments.map(dept => ({
       id: dept.id,
@@ -679,7 +679,7 @@ export async function getAllCourseIds(): Promise<SitemapEntry[]> {
         "Content-Type": "application/json",
       },
     });
-    
+
     const courses = await handleResponse<Course[]>(response);
     return courses.map(course => ({
       id: course.id,
@@ -698,7 +698,7 @@ export async function getAllProfessorIds(): Promise<SitemapEntry[]> {
         "Content-Type": "application/json",
       },
     });
-    
+
     const professors = await handleResponse<Professor[]>(response);
     return professors.map(prof => ({
       id: prof.id,
@@ -718,7 +718,7 @@ export async function getSitemapCounts(): Promise<{
   try {
     const [courses, professors, departments] = await Promise.all([
       getAllCourseIds(),
-      getAllProfessorIds(), 
+      getAllProfessorIds(),
       getAllDepartmentIds()
     ]);
 
@@ -735,7 +735,7 @@ export async function getSitemapCounts(): Promise<{
 
 // Data Stats API
 export interface DataStats {
-  reviews_count?:  number;
+  reviews_count?: number;
   courses_count?: number;
   professors_count?: number;
   gpa_data_count?: number;

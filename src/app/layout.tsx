@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Partytown } from "@qwik.dev/partytown/react";
 import "./globals.css";
 import { ComparisonProvider } from "@/contexts/ComparisonContext";
 import { ProfessorComparisonProvider } from "@/contexts/ProfessorComparisonContext";
@@ -34,6 +35,25 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className={pressStart2P.variable}>
+      <head>
+        <Partytown debug={true} forward={["dataLayer.push"]} />
+        <script
+          async
+          type="text/partytown"
+          src="https://www.googletagmanager.com/gtag/js?id=G-Q61ZEHN416"
+        />
+        <script
+          type="text/partytown"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-Q61ZEHN416');
+            `,
+          }}
+        />
+      </head>
       <body className={`${ibmPlexMono.className} antialiased`}>
         <ThemeProvider
           attribute="class"

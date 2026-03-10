@@ -19,13 +19,19 @@ export default function MyAlertsPage() {
 }
 
 function MyAlertsContent() {
-  const { isStandalone, permission, requestAndSubscribe } = usePushNotifications();
+  const { isStandalone, permission, requestAndSubscribe, subscribe } = usePushNotifications();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [testStatus, setTestStatus] = useState<string | null>(null);
   const [testError, setTestError] = useState<string | null>(null);
   const [testLoading, setTestLoading] = useState(false);
+
+  const saveSubscriptionToBackend = async (
+    subscription: { endpoint: string; keys?: { p256dh?: string; auth?: string } },
+  ) => {
+    await savePushSubscription(subscription);
+  };
 
   const handleEnable = async () => {
     setError(null);
@@ -34,13 +40,33 @@ function MyAlertsContent() {
     try {
       const subscription = await requestAndSubscribe();
       if (subscription && typeof subscription === "object") {
-        await savePushSubscription(subscription as { endpoint: string; keys?: { p256dh?: string; auth?: string } });
+        await saveSubscriptionToBackend(subscription as { endpoint: string; keys?: { p256dh?: string; auth?: string } });
       }
       setSuccess(true);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Failed to enable notifications";
       console.error("Push subscription error:", err);
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResave = async () => {
+    setError(null);
+    setSuccess(false);
+    setLoading(true);
+    try {
+      const subscription = await subscribe();
+      if (subscription && typeof subscription === "object") {
+        await saveSubscriptionToBackend(subscription as { endpoint: string; keys?: { p256dh?: string; auth?: string } });
+      }
+      setSuccess(true);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to re-save subscription";
+      console.error("Re-save subscription error:", err);
       setError(message);
     } finally {
       setLoading(false);
@@ -171,19 +197,32 @@ function MyAlertsContent() {
                   </h3>
                   <p className="text-sm text-body dark:text-gray-400 mb-4">
                     Allow AggieSB+ to send you alerts when a section you&apos;re
-                    watching opens up.
+                    watching opens up. If test notifications fail with &quot;no active
+                    subscription&quot;, tap &quot;Re-save subscription&quot; to sync this device.
                   </p>
-                  <Button
-                    onClick={handleEnable}
-                    disabled={loading || granted}
-                    className="bg-[#500000] text-white hover:bg-[#330000] dark:bg-[#FFCF3F] dark:text-black dark:hover:bg-[#FFD966]"
-                  >
-                    {granted
-                      ? "Alerts enabled"
-                      : loading
-                        ? "Enabling..."
-                        : "Enable alerts"}
-                  </Button>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Button
+                      onClick={handleEnable}
+                      disabled={loading || granted}
+                      className="bg-[#500000] text-white hover:bg-[#330000] dark:bg-[#FFCF3F] dark:text-black dark:hover:bg-[#FFD966]"
+                    >
+                      {granted
+                        ? "Alerts enabled"
+                        : loading
+                          ? "Enabling..."
+                          : "Enable alerts"}
+                    </Button>
+                    {granted && (
+                      <Button
+                        onClick={handleResave}
+                        disabled={loading}
+                        variant="outline"
+                        className="border-[#500000] dark:border-[#FFCF3F] text-[#500000] dark:text-[#FFCF3F] hover:bg-[#500000]/10 dark:hover:bg-[#FFCF3F]/10"
+                      >
+                        {loading ? "Saving..." : "Re-save subscription"}
+                      </Button>
+                    )}
+                  </div>
                   {success && (
                     <p className="mt-3 text-green-600 dark:text-green-400 text-sm flex items-center gap-1">
                       <CheckCircle2 className="h-4 w-4" /> You&apos;re all set!

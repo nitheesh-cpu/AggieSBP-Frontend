@@ -826,3 +826,76 @@ export async function getCourseProfessorsForTerm(
   );
   return handleResponse<CourseDetail["professors"]>(response);
 }
+
+// User Features API
+
+export interface ScheduleData {
+  name: string;
+  term_code: string;
+  courses: string[]; // CRNs or IDs
+}
+
+export interface Schedule extends ScheduleData {
+  id: string;
+  created_at?: string;
+  selected_courses?: any[];
+}
+
+export async function saveSchedule(schedule: ScheduleData): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/users/schedules`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(schedule),
+  });
+  return handleResponse<void>(response);
+}
+
+export async function getSchedules(): Promise<Schedule[]> {
+  const response = await fetch(`${API_BASE_URL}/users/schedules`);
+  return handleResponse<Schedule[]>(response);
+}
+
+export async function trackSection(
+  sectionId: string,
+  termCode: string,
+): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/users/tracking`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      section_id: sectionId,
+      term_code: termCode,
+    }),
+  });
+  return handleResponse<void>(response);
+}
+
+export async function untrackSection(sectionId: string): Promise<void> {
+  const response = await fetch(
+    `${API_BASE_URL}/users/tracking/${sectionId}`,
+    {
+      method: "DELETE",
+    },
+  );
+  return handleResponse<void>(response);
+}
+
+// Push Notification API
+export async function subscribeToSectionPush(
+  courseSectionId: string,
+  subscription: PushSubscriptionJSON
+): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/users/push/subscribe`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      course_section_id: courseSectionId,
+      subscription: subscription,
+    }),
+  });
+  return handleResponse<void>(response);
+}

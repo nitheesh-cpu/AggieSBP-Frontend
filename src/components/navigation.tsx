@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ChevronDown } from "lucide-react";
+import { UserMenu } from "@/components/user-menu";
 
 interface NavigationProps {
   className?: string;
@@ -159,10 +160,11 @@ export const Navigation = ({
 
             {/* Desktop CTA */}
             <div
-              className="hidden md:flex items-center gap-2"
+              className="hidden md:flex items-center gap-4"
               data-oid="llrkwuz"
             >
               <ThemeToggle />
+              <UserMenu />
               <Link href="/compare">
                 <Button className="bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966] rounded-full px-6">
                   Start comparing
@@ -289,7 +291,13 @@ export const Navigation = ({
                   </AnimatePresence>
                 </div>
 
-                <div className="pt-2">
+                <div className="pt-2 border-t border-border/10">
+                  <div className="flex items-center justify-between gap-3 pb-3">
+                    <span className="text-sm text-body dark:text-white/70">
+                      Account
+                    </span>
+                    <UserMenu />
+                  </div>
                   <div className="flex items-center justify-between gap-3 pb-3">
                     <span className="text-sm text-body dark:text-white/70">
                       Theme

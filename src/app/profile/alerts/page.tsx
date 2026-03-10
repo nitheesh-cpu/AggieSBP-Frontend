@@ -8,10 +8,7 @@ import { motion } from "motion/react";
 import { Bell, Smartphone, Share2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
-import { savePushSubscription } from "@/lib/api";
-
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL?.trim() || "http://localhost:8000";
+import { savePushSubscription, sendTestNotification } from "@/lib/api";
 
 export default function MyAlertsPage() {
   return (
@@ -55,14 +52,7 @@ function MyAlertsContent() {
     setTestError(null);
     setTestLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/users/test-notification`, {
-        method: "POST",
-        credentials: "include",
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.detail || `HTTP ${res.status}`);
-      }
+      await sendTestNotification();
       setTestStatus("Test notification sent. Check this device.");
     } catch (e) {
       setTestError(e instanceof Error ? e.message : "Failed to send");

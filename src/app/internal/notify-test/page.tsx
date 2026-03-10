@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL?.trim() || "http://localhost:8000";
+import { sendTestNotification } from "@/lib/api";
 
 export default function NotifyTestPage() {
   const [status, setStatus] = useState<string | null>(null);
@@ -13,14 +11,7 @@ export default function NotifyTestPage() {
     setStatus("Sending now...");
     setError(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/users/test-notification`, {
-        method: "POST",
-        credentials: "include",
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.detail || `HTTP ${res.status}`);
-      }
+      await sendTestNotification();
       setStatus("Test notification sent. Check this device.");
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Failed to send notification";
@@ -66,4 +57,3 @@ export default function NotifyTestPage() {
     </main>
   );
 }
-

@@ -1,6 +1,26 @@
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL?.trim() || "http://localhost:8000";
 
+/** Headers for authenticated API calls when frontend and API are on different origins (cookies won't be sent). */
+async function authHeaders(
+  extra?: Record<string, string>,
+): Promise<Record<string, string>> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...extra,
+  };
+  if (typeof window === "undefined") return headers;
+  try {
+    const Session = (await import("supertokens-auth-react/recipe/session"))
+      .default;
+    const token = await Session.getAccessToken();
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+  } catch {
+    // not logged in or Session not ready
+  }
+  return headers;
+}
+
 // Development mode - set to true to use mock data
 // const USE_MOCK_DATA = false; // Set to true if you want to use mock data
 
@@ -844,16 +864,16 @@ export interface Schedule extends ScheduleData {
 export async function saveSchedule(schedule: ScheduleData): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/users/schedules`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: await authHeaders(),
     body: JSON.stringify(schedule),
   });
   return handleResponse<void>(response);
 }
 
 export async function getSchedules(): Promise<Schedule[]> {
-  const response = await fetch(`${API_BASE_URL}/users/schedules`);
+  const response = await fetch(`${API_BASE_URL}/users/schedules`, {
+    headers: await authHeaders({ "Content-Type": "application/json" }),
+  });
   return handleResponse<Schedule[]>(response);
 }
 
@@ -863,7 +883,7 @@ export async function trackSection(
 ): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/users/tracking`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await authHeaders(),
     body: JSON.stringify({
       section_id: sectionId,
       term_code: termCode,
@@ -877,6 +897,7 @@ export async function untrackSection(sectionId: string): Promise<void> {
     `${API_BASE_URL}/users/tracking/${sectionId}`,
     {
       method: "DELETE",
+      headers: await authHeaders({ "Content-Type": "application/json" }),
     },
   );
   return handleResponse<void>(response);
@@ -888,16 +909,24 @@ export async function savePushSubscription(subscription: {
   keys?: { p256dh?: string; auth?: string };
 }): Promise<void> {
   const p256dh = subscription.keys?.p256dh ?? "";
-  const auth = subscription.keys?.auth ?? "";
+  const authKey = subscription.keys?.auth ?? "";
   const response = await fetch(`${API_BASE_URL}/users/push-subscription`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
+    headers: await authHeaders(),
     body: JSON.stringify({
       endpoint: subscription.endpoint,
       p256dh,
-      auth,
+      auth: authKey,
     }),
+  });
+  return handleResponse<void>(response);
+}
+
+/** Triggers a test push for the current user (requires auth). */
+export async function sendTestNotification(): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/users/test-notification`, {
+    method: "POST",
+    headers: await authHeaders({ "Content-Type": "application/json" }),
   });
   return handleResponse<void>(response);
 }

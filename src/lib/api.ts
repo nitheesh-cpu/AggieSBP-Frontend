@@ -882,7 +882,26 @@ export async function untrackSection(sectionId: string): Promise<void> {
   return handleResponse<void>(response);
 }
 
-// Push Notification API
+// Push Notification API - save subscription for test/section alerts
+export async function savePushSubscription(subscription: {
+  endpoint: string;
+  keys?: { p256dh?: string; auth?: string };
+}): Promise<void> {
+  const p256dh = subscription.keys?.p256dh ?? "";
+  const auth = subscription.keys?.auth ?? "";
+  const response = await fetch(`${API_BASE_URL}/users/push-subscription`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({
+      endpoint: subscription.endpoint,
+      p256dh,
+      auth,
+    }),
+  });
+  return handleResponse<void>(response);
+}
+
 export async function subscribeToSectionPush(
   courseSectionId: string,
   subscription: PushSubscriptionJSON

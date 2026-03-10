@@ -12,7 +12,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, Bell } from "lucide-react";
 import Link from "next/link";
 import { redirectToAuth } from "supertokens-auth-react";
 
@@ -66,6 +66,12 @@ export const UserMenu = () => {
                     <Link href="/profile" className="flex items-center cursor-pointer">
                         <User className="mr-2 h-4 w-4" />
                         <span>Profile</span>
+                    </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                    <Link href="/profile/alerts" className="flex items-center cursor-pointer">
+                        <Bell className="mr-2 h-4 w-4" />
+                        <span>My Alerts</span>
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

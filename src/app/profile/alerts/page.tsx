@@ -5,10 +5,15 @@ import { SessionAuth } from "supertokens-auth-react/recipe/session";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
 import { motion } from "motion/react";
-import { Bell, Smartphone, Share2, CheckCircle2 } from "lucide-react";
+import { Bell, Smartphone, Share2, CheckCircle2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { savePushSubscription, sendTestNotification } from "@/lib/api";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 export default function MyAlertsPage() {
   return (
@@ -26,6 +31,7 @@ function MyAlertsContent() {
   const [testStatus, setTestStatus] = useState<string | null>(null);
   const [testError, setTestError] = useState<string | null>(null);
   const [testLoading, setTestLoading] = useState(false);
+  const [setupOpen, setSetupOpen] = useState(true);
 
   const saveSubscriptionToBackend = async (
     subscription: { endpoint: string; keys?: { p256dh?: string; auth?: string } },
@@ -88,12 +94,6 @@ function MyAlertsContent() {
     }
   };
 
-  const sendTestIn5 = () => {
-    setTestStatus("Will send in 5 seconds...");
-    setTestError(null);
-    setTimeout(() => void sendTestNow(), 5000);
-  };
-
   const granted = permission === "granted";
 
   return (
@@ -139,121 +139,139 @@ function MyAlertsContent() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
-            className="bg-white/50 dark:bg-black/50 backdrop-blur-md border border-[#500000]/10 dark:border-[#FFCF3F]/10 rounded-2xl p-8 shadow-sm space-y-8"
+            className="bg-white/50 dark:bg-black/50 backdrop-blur-md border border-[#500000]/10 dark:border-[#FFCF3F]/10 rounded-2xl p-8 shadow-sm"
           >
-            <h2 className="text-lg font-semibold text-heading dark:text-white flex items-center gap-2">
-              <Smartphone className="h-5 w-5" />
-              Set up on your phone
-            </h2>
-
-            {/* Step 1: Add to Home Screen */}
-            <div className="space-y-4">
-              <div className="flex items-start gap-4">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#500000]/10 dark:bg-[#FFCF3F]/10 text-[#500000] dark:text-[#FFCF3F] font-semibold text-sm">
-                  1
-                </span>
-                <div>
-                  <h3 className="font-medium text-heading dark:text-white mb-2">
-                    Add AggieSB+ to your home screen
-                  </h3>
-                  <p className="text-sm text-body dark:text-gray-400 mb-3">
-                    Push notifications work best when the app is installed as a shortcut.
-                  </p>
-                  <ul className="text-sm text-body dark:text-gray-400 space-y-2 list-disc list-inside">
-                    <li>
-                      <strong>iPhone (Safari):</strong> Tap the{" "}
-                      <Share2 className="inline h-4 w-4 align-middle mx-0.5" /> Share
-                      button, then &quot;Add to Home Screen&quot;
-                    </li>
-                    <li>
-                      <strong>Android (Chrome):</strong> Tap the menu (⋮), then
-                      &quot;Add to Home screen&quot; or &quot;Install app&quot;
-                    </li>
-                  </ul>
-                  {!isStandalone && (
-                    <p className="mt-3 text-amber-600 dark:text-amber-400 text-sm font-medium">
-                      You&apos;re viewing in the browser. Add to home screen first for
-                      reliable alerts.
-                    </p>
-                  )}
-                  {isStandalone && (
-                    <p className="mt-3 text-green-600 dark:text-green-400 text-sm flex items-center gap-1">
-                      <CheckCircle2 className="h-4 w-4" /> App is installed
-                    </p>
-                  )}
-                </div>
+            <Collapsible open={setupOpen} onOpenChange={setSetupOpen}>
+              <div className="flex items-center justify-between gap-4">
+                <h2 className="text-lg font-semibold text-heading dark:text-white flex items-center gap-2">
+                  <Smartphone className="h-5 w-5" />
+                  Set up on your phone
+                </h2>
+                <CollapsibleTrigger asChild>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-2 text-sm font-medium text-[#500000] dark:text-[#FFCF3F] hover:opacity-90 transition-opacity"
+                    aria-label={setupOpen ? "Collapse setup steps" : "Expand setup steps"}
+                  >
+                    {setupOpen ? "Hide" : "Show"}
+                    <ChevronDown
+                      className={`h-4 w-4 transition-transform ${setupOpen ? "rotate-180" : ""}`}
+                    />
+                  </button>
+                </CollapsibleTrigger>
               </div>
-            </div>
 
-            {/* Step 2: Enable notifications */}
-            <div className="space-y-4">
-              <div className="flex items-start gap-4">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#500000]/10 dark:bg-[#FFCF3F]/10 text-[#500000] dark:text-[#FFCF3F] font-semibold text-sm">
-                  2
-                </span>
-                <div className="flex-1">
-                  <h3 className="font-medium text-heading dark:text-white mb-2">
-                    Enable notifications
-                  </h3>
-                  <p className="text-sm text-body dark:text-gray-400 mb-4">
-                    Allow AggieSB+ to send you alerts when a section you&apos;re
-                    watching opens up. If test notifications fail with &quot;no active
-                    subscription&quot;, tap &quot;Re-save subscription&quot; to sync this device.
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <Button
-                      onClick={handleEnable}
-                      disabled={loading || granted}
-                      className="bg-[#500000] text-white hover:bg-[#330000] dark:bg-[#FFCF3F] dark:text-black dark:hover:bg-[#FFD966]"
-                    >
-                      {granted
-                        ? "Alerts enabled"
-                        : loading
-                          ? "Enabling..."
-                          : "Enable alerts"}
-                    </Button>
-                    {granted && (
-                      <Button
-                        onClick={handleResave}
-                        disabled={loading}
-                        variant="outline"
-                        className="border-[#500000] dark:border-[#FFCF3F] text-[#500000] dark:text-[#FFCF3F] hover:bg-[#500000]/10 dark:hover:bg-[#FFCF3F]/10"
-                      >
-                        {loading ? "Saving..." : "Re-save subscription"}
-                      </Button>
-                    )}
+              <CollapsibleContent className="pt-6 space-y-8">
+                {/* Step 1: Add to Home Screen */}
+                <div className="space-y-4">
+                  <div className="flex items-start gap-4">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#500000]/10 dark:bg-[#FFCF3F]/10 text-[#500000] dark:text-[#FFCF3F] font-semibold text-sm">
+                      1
+                    </span>
+                    <div>
+                      <h3 className="font-medium text-heading dark:text-white mb-2">
+                        Add AggieSB+ to your home screen
+                      </h3>
+                      <p className="text-sm text-body dark:text-gray-400 mb-3">
+                        Push notifications work best when the app is installed as a shortcut.
+                      </p>
+                      <ul className="text-sm text-body dark:text-gray-400 space-y-2 list-disc list-inside">
+                        <li>
+                          <strong>iPhone (Safari):</strong> Tap the{" "}
+                          <Share2 className="inline h-4 w-4 align-middle mx-0.5" /> Share
+                          button, then &quot;Add to Home Screen&quot;
+                        </li>
+                        <li>
+                          <strong>Android (Chrome):</strong> Tap the menu (⋮), then
+                          &quot;Add to Home screen&quot; or &quot;Install app&quot;
+                        </li>
+                      </ul>
+                      {!isStandalone && (
+                        <p className="mt-3 text-amber-600 dark:text-amber-400 text-sm font-medium">
+                          You&apos;re viewing in the browser. Add to home screen first for
+                          reliable alerts.
+                        </p>
+                      )}
+                      {isStandalone && (
+                        <p className="mt-3 text-green-600 dark:text-green-400 text-sm flex items-center gap-1">
+                          <CheckCircle2 className="h-4 w-4" /> App is installed
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  {success && (
-                    <p className="mt-3 text-green-600 dark:text-green-400 text-sm flex items-center gap-1">
-                      <CheckCircle2 className="h-4 w-4" /> You&apos;re all set!
-                    </p>
-                  )}
-                  {error && (
-                    <p className="mt-3 text-red-500 dark:text-red-400 text-sm">
-                      {error}
-                    </p>
-                  )}
                 </div>
-              </div>
-            </div>
 
-            {/* Step 3: Watch sections */}
-            <div className="space-y-4">
-              <div className="flex items-start gap-4">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#500000]/10 dark:bg-[#FFCF3F]/10 text-[#500000] dark:text-[#FFCF3F] font-semibold text-sm">
-                  3
-                </span>
-                <div>
-                  <h3 className="font-medium text-heading dark:text-white mb-2">
-                    Watch sections
-                  </h3>
-                  <p className="text-sm text-body dark:text-gray-400">
-                    When browsing courses, tap &quot;Watch&quot; on any section you want
-                    to get notified about. We&apos;ll alert you as soon as a seat opens.
-                  </p>
+                {/* Step 2: Enable notifications */}
+                <div className="space-y-4">
+                  <div className="flex items-start gap-4">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#500000]/10 dark:bg-[#FFCF3F]/10 text-[#500000] dark:text-[#FFCF3F] font-semibold text-sm">
+                      2
+                    </span>
+                    <div className="flex-1">
+                      <h3 className="font-medium text-heading dark:text-white mb-2">
+                        Enable notifications
+                      </h3>
+                      <p className="text-sm text-body dark:text-gray-400 mb-4">
+                        Allow AggieSB+ to send you alerts when a section you&apos;re
+                        watching opens up. If test notifications fail with &quot;no active
+                        subscription&quot;, tap &quot;Re-save subscription&quot; to sync this device.
+                      </p>
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <Button
+                          onClick={handleEnable}
+                          disabled={loading || granted}
+                          className="bg-[#500000] text-white hover:bg-[#330000] dark:bg-[#FFCF3F] dark:text-black dark:hover:bg-[#FFD966]"
+                        >
+                          {granted
+                            ? "Alerts enabled"
+                            : loading
+                              ? "Enabling..."
+                              : "Enable alerts"}
+                        </Button>
+                        {granted && (
+                          <Button
+                            onClick={handleResave}
+                            disabled={loading}
+                            variant="outline"
+                            className="border-[#500000] dark:border-[#FFCF3F] text-[#500000] dark:text-[#FFCF3F] hover:bg-[#500000]/10 dark:hover:bg-[#FFCF3F]/10"
+                          >
+                            {loading ? "Saving..." : "Re-save subscription"}
+                          </Button>
+                        )}
+                      </div>
+                      {success && (
+                        <p className="mt-3 text-green-600 dark:text-green-400 text-sm flex items-center gap-1">
+                          <CheckCircle2 className="h-4 w-4" /> You&apos;re all set!
+                        </p>
+                      )}
+                      {error && (
+                        <p className="mt-3 text-red-500 dark:text-red-400 text-sm">
+                          {error}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
+
+                {/* Step 3: Watch sections */}
+                <div className="space-y-4">
+                  <div className="flex items-start gap-4">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#500000]/10 dark:bg-[#FFCF3F]/10 text-[#500000] dark:text-[#FFCF3F] font-semibold text-sm">
+                      3
+                    </span>
+                    <div>
+                      <h3 className="font-medium text-heading dark:text-white mb-2">
+                        Watch sections
+                      </h3>
+                      <p className="text-sm text-body dark:text-gray-400">
+                        When browsing courses, tap &quot;Watch&quot; on any section you want
+                        to get notified about. We&apos;ll alert you as soon as a seat opens.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
 
             {/* Test buttons */}
             <div className="pt-6 border-t border-[#500000]/10 dark:border-[#FFCF3F]/10">
@@ -271,14 +289,6 @@ function MyAlertsContent() {
                   className="border-[#500000] dark:border-[#FFCF3F] text-[#500000] dark:text-[#FFCF3F] hover:bg-[#500000]/10 dark:hover:bg-[#FFCF3F]/10"
                 >
                   {testLoading ? "Sending..." : "Send test now"}
-                </Button>
-                <Button
-                  onClick={sendTestIn5}
-                  disabled={testLoading || !granted}
-                  variant="outline"
-                  className="border-[#500000] dark:border-[#FFCF3F] text-[#500000] dark:text-[#FFCF3F] hover:bg-[#500000]/10 dark:hover:bg-[#FFCF3F]/10"
-                >
-                  Send test in 5 seconds
                 </Button>
               </div>
               {testStatus && (

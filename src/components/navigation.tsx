@@ -8,7 +8,6 @@ import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ChevronDown } from "lucide-react";
 import { UserMenu } from "@/components/user-menu";
-import { NotificationsToggle } from "@/components/notifications-toggle";
 
 interface NavigationProps {
   className?: string;
@@ -165,7 +164,6 @@ export const Navigation = ({
               data-oid="llrkwuz"
             >
               <ThemeToggle />
-              <NotificationsToggle />
               <UserMenu />
               <Link href="/compare">
                 <Button className="bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966] rounded-full px-6">

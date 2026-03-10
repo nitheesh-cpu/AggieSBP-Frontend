@@ -20,14 +20,6 @@ export default function NotifyTestPage() {
     }
   };
 
-  const sendAfterDelay = () => {
-    setStatus("Will send in 5 seconds...");
-    setError(null);
-    setTimeout(() => {
-      void sendNow();
-    }, 5000);
-  };
-
   return (
     <main className="min-h-screen flex items-center justify-center bg-black text-white">
       <div className="max-w-md w-full p-6 border border-yellow-400/50 rounded-xl bg-black/80 space-y-4">
@@ -43,12 +35,6 @@ export default function NotifyTestPage() {
             className="w-full rounded-md bg-yellow-400 text-black py-2 text-sm font-medium hover:bg-yellow-300 transition-colors"
           >
             Send test notification now
-          </button>
-          <button
-            onClick={sendAfterDelay}
-            className="w-full rounded-md border border-yellow-400 py-2 text-sm font-medium hover:bg-yellow-400/10 transition-colors"
-          >
-            Send test notification in 5 seconds
           </button>
         </div>
         {status && <p className="text-sm text-green-400">{status}</p>}

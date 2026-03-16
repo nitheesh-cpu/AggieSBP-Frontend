@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { SessionAuth } from "supertokens-auth-react/recipe/session";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
@@ -8,7 +8,13 @@ import { motion } from "motion/react";
 import { Bell, Smartphone, Share2, CheckCircle2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
-import { savePushSubscription, sendTestNotification } from "@/lib/api";
+import {
+  savePushSubscription,
+  sendTestNotification,
+  getTrackedSections,
+  untrackSection,
+  type TrackedSection,
+} from "@/lib/api";
 import {
   Collapsible,
   CollapsibleContent,
@@ -32,12 +38,41 @@ function MyAlertsContent() {
   const [testError, setTestError] = useState<string | null>(null);
   const [testLoading, setTestLoading] = useState(false);
   const [setupOpen, setSetupOpen] = useState(true);
+  const [tracked, setTracked] = useState<TrackedSection[]>([]);
+  const [trackedLoading, setTrackedLoading] = useState(true);
+  const [trackedError, setTrackedError] = useState<string | null>(null);
 
   const saveSubscriptionToBackend = async (
     subscription: { endpoint: string; keys?: { p256dh?: string; auth?: string } },
   ) => {
     await savePushSubscription(subscription);
   };
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadTracked = async () => {
+      setTrackedLoading(true);
+      setTrackedError(null);
+      try {
+        const data = await getTrackedSections();
+        if (!cancelled) setTracked(data);
+      } catch (e) {
+        if (!cancelled) {
+          setTrackedError(
+            e instanceof Error
+              ? e.message
+              : "Failed to load watched sections",
+          );
+        }
+      } finally {
+        if (!cancelled) setTrackedLoading(false);
+      }
+    };
+    void loadTracked();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleEnable = async () => {
     setError(null);
@@ -119,7 +154,7 @@ function MyAlertsContent() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="bg-white/50 dark:bg-black/50 backdrop-blur-md border border-[#500000]/10 dark:border-[#FFCF3F]/10 rounded-2xl p-8 flex items-center gap-6 shadow-sm"
+            className="bg-white/50 dark:bg-black/50 backdrop-blur-md border border-[#500000]/10 dark:border-[#FFCF3F]/10 rounded-2xl p-4 md:p-6 flex items-center gap-4 md:gap-6 shadow-sm"
           >
             <div className="h-16 w-16 rounded-full bg-[#500000]/5 dark:bg-[#FFCF3F]/10 flex items-center justify-center shrink-0">
               <Bell className="h-8 w-8 text-[#500000] dark:text-[#FFCF3F]" />
@@ -139,7 +174,7 @@ function MyAlertsContent() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
-            className="bg-white/50 dark:bg-black/50 backdrop-blur-md border border-[#500000]/10 dark:border-[#FFCF3F]/10 rounded-2xl p-8 shadow-sm"
+            className="bg-white/50 dark:bg-black/50 backdrop-blur-md border border-[#500000]/10 dark:border-[#FFCF3F]/10 rounded-2xl p-4 md:p-6 shadow-sm"
           >
             <Collapsible open={setupOpen} onOpenChange={setSetupOpen}>
               <div className="flex items-center justify-between gap-4">
@@ -161,9 +196,9 @@ function MyAlertsContent() {
                 </CollapsibleTrigger>
               </div>
 
-              <CollapsibleContent className="pt-6 space-y-8">
+              <CollapsibleContent className="pt-4 space-y-6">
                 {/* Step 1: Add to Home Screen */}
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <div className="flex items-start gap-4">
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#500000]/10 dark:bg-[#FFCF3F]/10 text-[#500000] dark:text-[#FFCF3F] font-semibold text-sm">
                       1
@@ -202,7 +237,7 @@ function MyAlertsContent() {
                 </div>
 
                 {/* Step 2: Enable notifications */}
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <div className="flex items-start gap-4">
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#500000]/10 dark:bg-[#FFCF3F]/10 text-[#500000] dark:text-[#FFCF3F] font-semibold text-sm">
                       2
@@ -254,7 +289,7 @@ function MyAlertsContent() {
                 </div>
 
                 {/* Step 3: Watch sections */}
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <div className="flex items-start gap-4">
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#500000]/10 dark:bg-[#FFCF3F]/10 text-[#500000] dark:text-[#FFCF3F] font-semibold text-sm">
                       3
@@ -300,6 +335,78 @@ function MyAlertsContent() {
                 <p className="mt-3 text-red-500 dark:text-red-400 text-sm">
                   {testError}
                 </p>
+              )}
+            </div>
+
+            {/* Watched sections */}
+            <div className="pt-6 border-t border-[#500000]/10 dark:border-[#FFCF3F]/10 mt-6">
+              <h3 className="font-medium text-heading dark:text-white mb-2">
+                Watched sections
+              </h3>
+              {trackedLoading && (
+                <p className="text-sm text-body dark:text-gray-400">
+                  Loading watched sections...
+                </p>
+              )}
+              {trackedError && (
+                <p className="text-sm text-red-500 dark:text-red-400">
+                  {trackedError}
+                </p>
+              )}
+              {!trackedLoading && !trackedError && tracked.length === 0 && (
+                <p className="text-sm text-body dark:text-gray-400">
+                  You&apos;re not watching any sections yet. Go to a course page
+                  and tap &quot;Watch&quot; on a section to start.
+                </p>
+              )}
+              {!trackedLoading && tracked.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  {tracked.map((item) => {
+                    const parts = item.section_id.split("-");
+                    const crn = parts[1] ?? item.section_id;
+                    const label =
+                      parts.length >= 5
+                        ? `${parts[2]} ${parts[3]}-${parts[4]}`
+                        : item.section_id;
+                    return (
+                      <div
+                        key={item.id}
+                        className="flex items-center justify-between rounded-md border border-border dark:border-white/10 bg-white/40 dark:bg-black/40 px-3 py-2 text-sm"
+                      >
+                        <div className="flex flex-col">
+                          <span className="font-medium text-heading dark:text-white">
+                            {label}
+                          </span>
+                          <span className="text-xs text-body dark:text-gray-400">
+                            Term {item.term_code} • CRN {crn}
+                          </span>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-[#500000] dark:text-[#FFCF3F] border-[#500000]/40 dark:border-[#FFCF3F]/40"
+                          onClick={async () => {
+                            try {
+                              await untrackSection(item.section_id);
+                              setTracked((prev) =>
+                                prev.filter((t) => t.id !== item.id),
+                              );
+                            } catch (e) {
+                              console.error("Failed to unwatch section", e);
+                              setTrackedError(
+                                e instanceof Error
+                                  ? e.message
+                                  : "Failed to stop watching section",
+                              );
+                            }
+                          }}
+                        >
+                          Stop watching
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
               )}
             </div>
           </motion.div>

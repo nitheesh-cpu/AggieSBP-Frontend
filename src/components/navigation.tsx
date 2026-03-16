@@ -60,6 +60,7 @@ export const Navigation = ({
   }, [isMobileMenuOpen]);
 
   const navItems = [
+    { name: "Dashboard", href: "/dashboard" },
     { name: "Departments", href: "/departments" },
     { name: "Courses", href: "/courses" },
     { name: "Professors", href: "/professors" },
@@ -68,6 +69,7 @@ export const Navigation = ({
 
   const discoverItems = [
     { name: "Core Curriculum", href: "/discover/ucc" },
+    { name: "By Department", href: "/discover/dept" },
   ] as const;
 
   return (
@@ -76,23 +78,23 @@ export const Navigation = ({
         className={`fixed top-0 left-0 right-0 z-50 ${headerClassName} ${className}`}
         data-oid="ilaa0s3"
       >
-        <div className="max-w-7xl mx-auto px-6" data-oid="6.rinbi">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6" data-oid="6.rinbi">
           <div
-            className="flex items-center justify-between h-16"
+            className="flex items-center justify-between h-14 sm:h-16"
             data-oid="l4-iau1"
           >
             {/* Logo */}
             <Link href="/" className="flex items-center" data-oid="h31:j-4">
-              <div className="flex items-center space-x-3" data-oid="p5rzkzk">
+              <div className="flex items-center space-x-2 sm:space-x-3" data-oid="p5rzkzk">
                 <img
                   src="/favicon.ico"
                   alt="AggieRMP Logo"
-                  className="w-8 h-8"
+                  className="w-6 h-6 sm:w-8 sm:h-8"
                   data-oid="bybc6ok"
                 />
 
                 <span
-                  className={`text-xl font-semibold tracking-tight ${isOverlay
+                  className={`text-lg sm:text-xl font-semibold tracking-tight ${isOverlay
                     ? "text-heading dark:text-white"
                     : "text-heading dark:text-white"
                     }`}
@@ -238,7 +240,7 @@ export const Navigation = ({
             {/* Panel */}
             <motion.div
               id="mobile-menu"
-              className="absolute top-16 left-0 right-0 border-b border-border bg-white/90 dark:border-white/10 dark:bg-black/85 backdrop-blur-md"
+              className="absolute top-14 sm:top-16 left-0 right-0 border-b border-border bg-white/90 dark:border-white/10 dark:bg-black/85 backdrop-blur-md"
               initial={{ y: -10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -10, opacity: 0 }}

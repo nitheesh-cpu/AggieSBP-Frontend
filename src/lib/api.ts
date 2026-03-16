@@ -847,6 +847,20 @@ export async function getCourseProfessorsForTerm(
   return handleResponse<CourseDetail["professors"]>(response);
 }
 
+// Course Professors with Details for Term API
+export async function getCourseProfessorsWithDetailsForTerm(
+  termCode: string,
+  courseId: string,
+): Promise<CourseDetail["professors"]> {
+  const response = await fetch(
+    `${API_BASE_URL}/sections/${termCode}/course/${courseId}/professors/details`,
+  );
+  const data = await handleResponse<{ professors: CourseDetail["professors"] }>(
+    response,
+  );
+  return data.professors || [];
+}
+
 // User Features API
 
 export interface ScheduleData {
@@ -877,6 +891,15 @@ export async function getSchedules(): Promise<Schedule[]> {
   return handleResponse<Schedule[]>(response);
 }
 
+export interface TrackedSection {
+  id: string;
+  user_id: string;
+  section_id: string;
+  term_code: string;
+  status: string;
+  created_at?: string;
+}
+
 export async function trackSection(
   sectionId: string,
   termCode: string,
@@ -903,6 +926,13 @@ export async function untrackSection(sectionId: string): Promise<void> {
   return handleResponse<void>(response);
 }
 
+export async function getTrackedSections(): Promise<TrackedSection[]> {
+  const response = await fetch(`${API_BASE_URL}/users/tracking`, {
+    headers: await authHeaders({ "Content-Type": "application/json" }),
+  });
+  return handleResponse<TrackedSection[]>(response);
+}
+
 // Push Notification API - save subscription for test/section alerts
 export async function savePushSubscription(subscription: {
   endpoint: string;
@@ -927,6 +957,15 @@ export async function sendTestNotification(): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/users/test-notification`, {
     method: "POST",
     headers: await authHeaders({ "Content-Type": "application/json" }),
+  });
+  return handleResponse<void>(response);
+}
+
+export async function removePushSubscription(endpoint: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/users/push-subscription`, {
+    method: "DELETE",
+    headers: await authHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify({ endpoint }),
   });
   return handleResponse<void>(response);
 }

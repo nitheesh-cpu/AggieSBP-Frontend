@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { User, LogOut, Bell } from "lucide-react";
 import Link from "next/link";
 import { redirectToAuth } from "supertokens-auth-react";
+import { removePushSubscription } from "@/lib/api";
 
 export const UserMenu = () => {
     const session = useSessionContext();
@@ -37,9 +38,30 @@ export const UserMenu = () => {
     }
 
     const handleLogout = async () => {
-        await signOut();
-        router.push("/");
-        router.refresh();
+        try {
+            if (typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window) {
+                const registration = await navigator.serviceWorker.ready;
+                const subscription = await registration.pushManager.getSubscription();
+                if (subscription) {
+                    try {
+                        await removePushSubscription(subscription.endpoint);
+                    } catch (err) {
+                        console.error("Failed to remove push subscription on logout:", err);
+                    }
+                    try {
+                        await subscription.unsubscribe();
+                    } catch (err) {
+                        console.error("Failed to unsubscribe from push on this device:", err);
+                    }
+                }
+            }
+        } catch (e) {
+            console.error("Logout cleanup error:", e);
+        } finally {
+            await signOut();
+            router.push("/");
+            router.refresh();
+        }
     };
 
     return (

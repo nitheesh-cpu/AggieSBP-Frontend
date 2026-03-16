@@ -44,6 +44,24 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={pressStart2P.variable}>
       <head>
         <Partytown debug={true} forward={["dataLayer.push"]} />
+        <meta
+          name="apple-mobile-web-app-title"
+          content="AggieSB+"
+        />
+        <link
+          rel="apple-touch-icon"
+          href="/icon-192x192.png"
+        />
+        <link
+          rel="apple-touch-icon"
+          sizes="152x152"
+          href="/icon-152x152.png"
+        />
+        <link
+          rel="apple-touch-icon"
+          sizes="180x180"
+          href="/icon-180x180.png"
+        />
         <script
           async
           type="text/partytown"

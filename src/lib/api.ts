@@ -1,6 +1,26 @@
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL?.trim() || "http://localhost:8000";
 
+/** Headers for authenticated API calls when frontend and API are on different origins (cookies won't be sent). */
+async function authHeaders(
+  extra?: Record<string, string>,
+): Promise<Record<string, string>> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...extra,
+  };
+  if (typeof window === "undefined") return headers;
+  try {
+    const Session = (await import("supertokens-auth-react/recipe/session"))
+      .default;
+    const token = await Session.getAccessToken();
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+  } catch {
+    // not logged in or Session not ready
+  }
+  return headers;
+}
+
 // Development mode - set to true to use mock data
 // const USE_MOCK_DATA = false; // Set to true if you want to use mock data
 
@@ -825,4 +845,144 @@ export async function getCourseProfessorsForTerm(
     `${API_BASE_URL}/sections/${termCode}/course/${courseId}/professors`,
   );
   return handleResponse<CourseDetail["professors"]>(response);
+}
+
+// Course Professors with Details for Term API
+export async function getCourseProfessorsWithDetailsForTerm(
+  termCode: string,
+  courseId: string,
+): Promise<CourseDetail["professors"]> {
+  const response = await fetch(
+    `${API_BASE_URL}/sections/${termCode}/course/${courseId}/professors/details`,
+  );
+  const data = await handleResponse<{ professors: CourseDetail["professors"] }>(
+    response,
+  );
+  return data.professors || [];
+}
+
+// User Features API
+
+export interface ScheduleData {
+  name: string;
+  term_code: string;
+  courses: string[]; // CRNs or IDs
+}
+
+export interface Schedule extends ScheduleData {
+  id: string;
+  created_at?: string;
+  selected_courses?: any[];
+}
+
+export async function saveSchedule(schedule: ScheduleData): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/users/schedules`, {
+    method: "POST",
+    headers: await authHeaders(),
+    body: JSON.stringify(schedule),
+  });
+  return handleResponse<void>(response);
+}
+
+export async function getSchedules(): Promise<Schedule[]> {
+  const response = await fetch(`${API_BASE_URL}/users/schedules`, {
+    headers: await authHeaders({ "Content-Type": "application/json" }),
+  });
+  return handleResponse<Schedule[]>(response);
+}
+
+export interface TrackedSection {
+  id: string;
+  user_id: string;
+  section_id: string;
+  term_code: string;
+  status: string;
+  created_at?: string;
+}
+
+export async function trackSection(
+  sectionId: string,
+  termCode: string,
+): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/users/tracking`, {
+    method: "POST",
+    headers: await authHeaders(),
+    body: JSON.stringify({
+      section_id: sectionId,
+      term_code: termCode,
+    }),
+  });
+  return handleResponse<void>(response);
+}
+
+export async function untrackSection(sectionId: string): Promise<void> {
+  const response = await fetch(
+    `${API_BASE_URL}/users/tracking/${sectionId}`,
+    {
+      method: "DELETE",
+      headers: await authHeaders({ "Content-Type": "application/json" }),
+    },
+  );
+  return handleResponse<void>(response);
+}
+
+export async function getTrackedSections(): Promise<TrackedSection[]> {
+  const response = await fetch(`${API_BASE_URL}/users/tracking`, {
+    headers: await authHeaders({ "Content-Type": "application/json" }),
+  });
+  return handleResponse<TrackedSection[]>(response);
+}
+
+// Push Notification API - save subscription for test/section alerts
+export async function savePushSubscription(subscription: {
+  endpoint: string;
+  keys?: { p256dh?: string; auth?: string };
+}): Promise<void> {
+  const p256dh = subscription.keys?.p256dh ?? "";
+  const authKey = subscription.keys?.auth ?? "";
+  const response = await fetch(`${API_BASE_URL}/users/push-subscription`, {
+    method: "POST",
+    headers: await authHeaders(),
+    body: JSON.stringify({
+      endpoint: subscription.endpoint,
+      p256dh,
+      auth: authKey,
+    }),
+  });
+  return handleResponse<void>(response);
+}
+
+/** Triggers a test push for the current user (requires auth). */
+export async function sendTestNotification(): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/users/test-notification`, {
+    method: "POST",
+    headers: await authHeaders({ "Content-Type": "application/json" }),
+  });
+  return handleResponse<void>(response);
+}
+
+export async function removePushSubscription(endpoint: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/users/push-subscription`, {
+    method: "DELETE",
+    headers: await authHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify({ endpoint }),
+  });
+  return handleResponse<void>(response);
+}
+
+export async function subscribeToSectionPush(
+  courseSectionId: string,
+  subscription: PushSubscriptionJSON
+): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/users/push/subscribe`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      course_section_id: courseSectionId,
+      subscription: subscription,
+    }),
+  });
+  return handleResponse<void>(response);
 }

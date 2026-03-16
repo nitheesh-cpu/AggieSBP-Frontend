@@ -6,24 +6,24 @@ import Image from "next/image";
 export const Footer = () => {
   return (
     <footer className="bg-canvas border-t border-border">
-      <div className="max-w-7xl mx-auto px-4 py-8 sm:py-10 lg:py-12">
+      <div className="max-w-7xl mx-auto px-4 py-3 sm:py-4">
         {/* Main footer content */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 sm:gap-10 lg:gap-14">
+        <div className="flex flex-row flex-wrap lg:flex-nowrap justify-between gap-4 sm:gap-6 lg:gap-8 pb-2">
           {/* Brand section */}
-          <div className="lg:col-span-2">
-            <div className="flex items-center space-x-3 mb-4 sm:mb-6">
+          <div className="flex-shrink-0 w-full md:w-1/3 lg:w-auto mb-4 md:mb-0">
+            <div className="flex items-center space-x-3 mb-2 sm:mb-3">
               <Image
                 src="/favicon.ico"
                 alt="AggieRMP Logo"
-                width={30}
-                height={30}
-                className="w-7 h-7 sm:w-8 sm:h-8"
+                width={24}
+                height={24}
+                className="w-6 h-6 sm:w-7 sm:h-7"
               />
-              <span className="text-lg sm:text-xl font-semibold text-text-heading">
+              <span className="text-base sm:text-lg font-semibold text-text-heading">
                 AggieSB+
               </span>
             </div>
-            <p className="text-text-body text-sm sm:text-base mb-5 sm:mb-8 max-w-sm">
+            <p className="text-text-body text-[11px] sm:text-xs mb-2 sm:mb-3 md:max-w-[200px] lg:max-w-xs">
               Real-time, multidimensional professor intelligence for every
               Aggie.
             </p>
@@ -60,12 +60,13 @@ export const Footer = () => {
           </div> */}
 
           {/* Resources column */}
-          <div>
-            <h3 className="text-text-heading font-medium mb-3 sm:mb-6">
-              Support
-            </h3>
-            <div className="space-y-2 sm:space-y-4 text-sm">
-              {/* {["Report a Bug", "Request a Feature"].map((item) => ( */}
+          <div className="flex flex-row justify-start md:justify-end gap-x-8 gap-y-4 sm:gap-12 flex-1 flex-wrap">
+            <div className="flex-shrink-0 min-w-24">
+              <h3 className="text-text-heading font-medium text-sm sm:text-base mb-1.5 sm:mb-2">
+                Support
+              </h3>
+              <div className="space-y-1 sm:space-y-1.5 text-[11px] sm:text-xs">
+                {/* {["Report a Bug", "Request a Feature"].map((item) => ( */}
               <Link
                 key={"Report a Bug"}
                 href="https://tally.so/r/nWb6re"
@@ -89,12 +90,12 @@ export const Footer = () => {
           </div>
 
           {/* Company column */}
-          <div>
-            <h3 className="text-text-heading font-medium mb-3 sm:mb-6">
-              Tools
-            </h3>
-            <div className="space-y-2 sm:space-y-4 text-sm">
-              {/* {["About", "API Docs"].map((item) => ( */}
+            <div className="flex-shrink-0 min-w-24">
+              <h3 className="text-text-heading font-medium text-sm sm:text-base mb-1.5 sm:mb-2">
+                Tools
+              </h3>
+              <div className="space-y-1 sm:space-y-1.5 text-[11px] sm:text-xs">
+                {/* {["About", "API Docs"].map((item) => ( */}
               <Link
                 key={"Chrome Extension"}
                 href="https://chromewebstore.google.com/detail/aggie-schedule-builder-pl/glckdcnecomhlmlegmjdceblibmaljpm?hl=en"
@@ -114,12 +115,12 @@ export const Footer = () => {
           </div>
 
           {/* Company column */}
-          <div>
-            <h3 className="text-text-heading font-medium mb-3 sm:mb-6">
-              Website
-            </h3>
-            <div className="space-y-2 sm:space-y-4 text-sm">
-              {/* {["About", "API Docs"].map((item) => ( */}
+            <div className="flex-shrink-0 min-w-24">
+              <h3 className="text-text-heading font-medium text-sm sm:text-base mb-1.5 sm:mb-2">
+                Website
+              </h3>
+              <div className="space-y-1 sm:space-y-1.5 text-[11px] sm:text-xs">
+                {/* {["About", "API Docs"].map((item) => ( */}
               <Link
                 key={"About"}
                 href="/about"
@@ -127,23 +128,8 @@ export const Footer = () => {
               >
                 About
               </Link>
-              {/* ))} */}
+              </div>
             </div>
-          </div>
-        </div>
-
-        {/* Bottom section */}
-        <div className="border-t border-border pt-6 sm:pt-8 mt-8 sm:mt-12 flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0">
-          <div className="text-text-body text-xs sm:text-sm">
-            © 2025 Nitheesh Kodarapu. All rights reserved.
-          </div>
-          <div className="flex space-x-6 text-xs sm:text-sm">
-            <Link
-              href="/terms"
-              className="text-text-body hover:text-text-heading transition-colors duration-[220ms]"
-            >
-              Terms of Service
-            </Link>
           </div>
         </div>
       </div>

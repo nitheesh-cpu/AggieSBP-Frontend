@@ -64,6 +64,10 @@ const UCC_CATEGORY_OPTIONS = [
   "Univ Req-Int'l&Cult Div (KICD)",
 ];
 
+function normalizeUccCategory(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
 function parseTimeToMinutes(time: string): number {
   const clean = time.replace(":", "");
   if (clean.length !== 4) return -1;
@@ -286,8 +290,11 @@ export default function DiscoverFitPage() {
     const res = await fetch(`${API_BASE_URL}/discover/${termCode}/ucc`);
     if (!res.ok) throw new Error("Failed to load UCC courses.");
     const data = (await res.json()) as UccGroup[];
+    const selectedNormalized = new Set(
+      selectedUccs.map((value) => normalizeUccCategory(value)),
+    );
     const groups = (Array.isArray(data) ? data : []).filter((g) =>
-      selectedUccs.includes(g.category),
+      selectedNormalized.has(normalizeUccCategory(g.category ?? "")),
     );
     const merged = groups.flatMap((g) => g.courses ?? []);
     const unique = new Map<string, DiscoverCourse>();
@@ -307,6 +314,17 @@ export default function DiscoverFitPage() {
     try {
       const candidates = await fetchCandidates();
       setCourses(candidates);
+      if (candidates.length === 0) {
+        setFitResults([]);
+        if (mode === "ucc") {
+          setError(
+            "No candidate courses found for the selected UCC categories in this term.",
+          );
+        } else {
+          setError("No candidate courses found for the selected departments.");
+        }
+        return;
+      }
       const courseKeys = candidates.map((c) => `${c.dept}-${c.courseNumber}`);
       const matches = await getDiscoverFitMatches(
         termCode,

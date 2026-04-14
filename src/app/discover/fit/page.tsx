@@ -287,16 +287,34 @@ export default function DiscoverFitPage() {
       return Array.from(unique.values()).slice(0, 120);
     }
 
-    const res = await fetch(`${API_BASE_URL}/discover/${termCode}/ucc`);
-    if (!res.ok) throw new Error("Failed to load UCC courses.");
-    const data = (await res.json()) as UccGroup[];
     const selectedNormalized = new Set(
       selectedUccs.map((value) => normalizeUccCategory(value)),
     );
-    const groups = (Array.isArray(data) ? data : []).filter((g) =>
+    const uccRes = await fetch(`${API_BASE_URL}/discover/${termCode}/ucc`);
+    if (!uccRes.ok) throw new Error("Failed to load UCC courses.");
+    const uccData = (await uccRes.json()) as UccGroup[];
+    const groups = (Array.isArray(uccData) ? uccData : []).filter((g) =>
       selectedNormalized.has(normalizeUccCategory(g.category ?? "")),
     );
-    const merged = groups.flatMap((g) => g.courses ?? []);
+    let merged = groups.flatMap((g) => g.courses ?? []);
+
+    // Fallback for terms where the heavy /ucc query returns no rows.
+    if (merged.length === 0) {
+      const fallbackRes = await fetch(
+        `${API_BASE_URL}/discover/${termCode}/ucc-fit-candidates`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ categories: selectedUccs }),
+        },
+      );
+      if (!fallbackRes.ok) {
+        throw new Error("Failed to load UCC courses.");
+      }
+      const fallbackData = (await fallbackRes.json()) as DiscoverCourse[];
+      merged = Array.isArray(fallbackData) ? fallbackData : [];
+    }
+
     const unique = new Map<string, DiscoverCourse>();
     for (const course of merged) {
       const key = `${course.dept}-${course.courseNumber}`;

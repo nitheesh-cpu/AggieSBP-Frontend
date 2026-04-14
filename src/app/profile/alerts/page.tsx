@@ -37,7 +37,7 @@ function MyAlertsContent() {
   const [testStatus, setTestStatus] = useState<string | null>(null);
   const [testError, setTestError] = useState<string | null>(null);
   const [testLoading, setTestLoading] = useState(false);
-  const [setupOpen, setSetupOpen] = useState(true);
+  const [setupOpen, setSetupOpen] = useState(false);
   const [tracked, setTracked] = useState<TrackedSection[]>([]);
   const [trackedLoading, setTrackedLoading] = useState(true);
   const [trackedError, setTrackedError] = useState<string | null>(null);
@@ -130,6 +130,20 @@ function MyAlertsContent() {
   };
 
   const granted = permission === "granted";
+  const hasDeviceSetup = granted;
+
+  useEffect(() => {
+    setSetupOpen(!hasDeviceSetup);
+  }, [hasDeviceSetup]);
+
+  const groupedTracked = tracked.reduce<Record<string, TrackedSection[]>>((acc, item) => {
+    const parts = item.section_id.split("-");
+    const courseCode =
+      parts.length >= 4 ? `${parts[2]} ${parts[3]}` : item.section_id;
+    acc[courseCode] = acc[courseCode] ?? [];
+    acc[courseCode].push(item);
+    return acc;
+  }, {});
 
   return (
     <div
@@ -169,7 +183,7 @@ function MyAlertsContent() {
             </div>
           </motion.div>
 
-          {/* Step-by-step instructions */}
+          {/* Setup */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -180,7 +194,7 @@ function MyAlertsContent() {
               <div className="flex items-center justify-between gap-4">
                 <h2 className="text-lg font-semibold text-heading dark:text-white flex items-center gap-2">
                   <Smartphone className="h-5 w-5" />
-                  Set up on your phone
+                  Set up alerts on your phone
                 </h2>
                 <CollapsibleTrigger asChild>
                   <button
@@ -307,7 +321,14 @@ function MyAlertsContent() {
                 </div>
               </CollapsibleContent>
             </Collapsible>
+          </motion.div>
 
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+            className="bg-white/50 dark:bg-black/50 backdrop-blur-md border border-[#500000]/10 dark:border-[#FFCF3F]/10 rounded-2xl p-4 md:p-6 shadow-sm"
+          >
             {/* Test buttons */}
             <div className="pt-6 border-t border-[#500000]/10 dark:border-[#FFCF3F]/10">
               <h3 className="font-medium text-heading dark:text-white mb-2">
@@ -338,10 +359,10 @@ function MyAlertsContent() {
               )}
             </div>
 
-            {/* Watched sections */}
+            {/* Watched classes */}
             <div className="pt-6 border-t border-[#500000]/10 dark:border-[#FFCF3F]/10 mt-6">
-              <h3 className="font-medium text-heading dark:text-white mb-2">
-                Watched sections
+              <h3 className="text-lg font-semibold text-heading dark:text-white mb-2">
+                Watched classes
               </h3>
               {trackedLoading && (
                 <p className="text-sm text-body dark:text-gray-400">
@@ -360,49 +381,66 @@ function MyAlertsContent() {
                 </p>
               )}
               {!trackedLoading && tracked.length > 0 && (
-                <div className="mt-3 space-y-2">
-                  {tracked.map((item) => {
-                    const parts = item.section_id.split("-");
-                    const crn = parts[1] ?? item.section_id;
-                    const label =
-                      parts.length >= 5
-                        ? `${parts[2]} ${parts[3]}-${parts[4]}`
-                        : item.section_id;
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {Object.entries(groupedTracked).map(([courseCode, sections]) => {
                     return (
                       <div
-                        key={item.id}
-                        className="flex items-center justify-between rounded-md border border-border dark:border-white/10 bg-white/40 dark:bg-black/40 px-3 py-2 text-sm"
+                        key={courseCode}
+                        className="rounded-xl border border-border dark:border-white/10 bg-white/40 dark:bg-black/40 p-4"
                       >
-                        <div className="flex flex-col">
-                          <span className="font-medium text-heading dark:text-white">
-                            {label}
-                          </span>
-                          <span className="text-xs text-body dark:text-gray-400">
-                            Term {item.term_code} • CRN {crn}
-                          </span>
+                        <div className="mb-3">
+                          <h4 className="text-base font-semibold text-heading dark:text-white">
+                            {courseCode}
+                          </h4>
+                          <p className="text-xs text-body dark:text-gray-400">
+                            {sections.length} watched section{sections.length === 1 ? "" : "s"}
+                          </p>
                         </div>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-[#500000] dark:text-[#FFCF3F] border-[#500000]/40 dark:border-[#FFCF3F]/40"
-                          onClick={async () => {
-                            try {
-                              await untrackSection(item.section_id);
-                              setTracked((prev) =>
-                                prev.filter((t) => t.id !== item.id),
-                              );
-                            } catch (e) {
-                              console.error("Failed to unwatch section", e);
-                              setTrackedError(
-                                e instanceof Error
-                                  ? e.message
-                                  : "Failed to stop watching section",
-                              );
-                            }
-                          }}
-                        >
-                          Stop watching
-                        </Button>
+
+                        <div className="space-y-2">
+                          {sections.map((item) => {
+                            const parts = item.section_id.split("-");
+                            const crn = parts[1] ?? item.section_id;
+                            const sectionNumber = parts[4] ?? "Unknown";
+                            return (
+                              <div
+                                key={item.id}
+                                className="flex items-center justify-between gap-3 rounded-md border border-border/60 dark:border-white/10 bg-white/70 dark:bg-black/50 px-3 py-2"
+                              >
+                                <div className="flex flex-col">
+                                  <span className="font-medium text-heading dark:text-white">
+                                    Section {sectionNumber}
+                                  </span>
+                                  <span className="text-xs text-body dark:text-gray-400">
+                                    Term {item.term_code} • CRN {crn}
+                                  </span>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-[#500000] dark:text-[#FFCF3F] border-[#500000]/40 dark:border-[#FFCF3F]/40"
+                                  onClick={async () => {
+                                    try {
+                                      await untrackSection(item.section_id);
+                                      setTracked((prev) =>
+                                        prev.filter((t) => t.id !== item.id),
+                                      );
+                                    } catch (e) {
+                                      console.error("Failed to unwatch section", e);
+                                      setTrackedError(
+                                        e instanceof Error
+                                          ? e.message
+                                          : "Failed to stop watching section",
+                                      );
+                                    }
+                                  }}
+                                >
+                                  Stop watching
+                                </Button>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     );
                   })}

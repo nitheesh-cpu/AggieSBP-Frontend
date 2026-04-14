@@ -106,6 +106,7 @@ import {
   Database,
   Server,
   Settings,
+  Loader2,
 } from "lucide-react";
 import {
   getDepartments,
@@ -603,6 +604,7 @@ export default function DepartmentsPage() {
   const shouldReduceMotion = useReducedMotion();
   const [hasMounted, setHasMounted] = React.useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [selectedCategory] = useState("all"); // Fixed: removed setSelectedCategory since categories are commented out
   const [sortBy, setSortBy] = useState("name");
   const [currentPage, setCurrentPage] = useState(1);
@@ -615,6 +617,15 @@ export default function DepartmentsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const itemsPerPage = 30;
+  const serverSearchMode = debouncedSearchTerm.trim().length > 0;
+
+  // Debounce search input for API-backed searching
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   // Cache keys for localStorage
   const CACHE_KEY = "aggie-rmp-all-departments";
@@ -673,6 +684,8 @@ export default function DepartmentsPage() {
 
   // Progressive loading: first few departments, then all departments
   useEffect(() => {
+    if (serverSearchMode) return;
+
     const loadDepartments = async () => {
       try {
         setLoading(true);
@@ -720,7 +733,48 @@ export default function DepartmentsPage() {
     };
 
     loadDepartments();
-  }, []);
+  }, [serverSearchMode]);
+
+  // Industry-standard approach: debounced server-side search prevents
+  // incomplete client datasets from hiding valid matches.
+  useEffect(() => {
+    if (!serverSearchMode) return;
+
+    let cancelled = false;
+
+    const searchDepartments = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        setCurrentPage(1);
+
+        const results = await getDepartments({
+          search: debouncedSearchTerm,
+          limit: 1000,
+        });
+
+        if (cancelled) return;
+
+        setDepartments(results);
+        setAllDepartments(results);
+        setAllDepartmentsLoaded(true);
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            err instanceof Error ? err.message : "Failed to search departments",
+          );
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    void searchDepartments();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [debouncedSearchTerm, serverSearchMode]);
 
   // Client-side filtering for category, search, and sorting
   const filteredDepartments = useMemo(() => {
@@ -728,10 +782,12 @@ export default function DepartmentsPage() {
 
     let filtered = dataToFilter.filter((dept) => {
       const matchesSearch =
-        !searchTerm ||
-        dept.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        dept.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        dept.description.toLowerCase().includes(searchTerm.toLowerCase());
+        !debouncedSearchTerm ||
+        dept.code.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        dept.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        dept.description
+          .toLowerCase()
+          .includes(debouncedSearchTerm.toLowerCase());
 
       const matchesCategory =
         selectedCategory === "all" || dept.category === selectedCategory;
@@ -760,7 +816,7 @@ export default function DepartmentsPage() {
     departments,
     allDepartments,
     allDepartmentsLoaded,
-    searchTerm,
+    debouncedSearchTerm,
     selectedCategory,
     sortBy,
   ]);
@@ -895,12 +951,15 @@ export default function DepartmentsPage() {
               {/* Search Bar */}
               <div className="relative max-w-lg mx-auto">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-body w-5 h-5 dark:text-white/60" />
+                {(searchTerm !== debouncedSearchTerm || loading) && (
+                  <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-accent" />
+                )}
                 <Input
                   type="text"
                   placeholder="Search departments..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-12 h-12 sm:h-14 text-[14px] sm:text-[15px] bg-canvas border border-border rounded-full text-text-body placeholder:text-text-body/60 dark:bg-black/45 dark:border-white/15 dark:text-white dark:placeholder:text-white/40 dark:backdrop-blur-sm"
+                  className="pl-12 pr-10 h-12 sm:h-14 text-[14px] sm:text-[15px] bg-canvas border border-border rounded-full text-text-body placeholder:text-text-body/60 dark:bg-black/45 dark:border-white/15 dark:text-white dark:placeholder:text-white/40 dark:backdrop-blur-sm"
                 />
               </div>
             </motion.div>

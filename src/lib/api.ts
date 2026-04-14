@@ -57,12 +57,16 @@ export interface Course {
 }
 
 export interface CourseSummary {
+  courseCode?: string | null;
   teaching?: string | null;
   exams?: string | null;
   grading?: string | null;
   workload?: string | null;
   personality?: string | null;
   policies?: string | null;
+  other?: string | null;
+  reviewCount?: number | null;
+  confidence?: number | null;
 }
 
 export interface CourseDetail {
@@ -95,6 +99,19 @@ export interface CourseDetail {
     teachingStyle?: string;
     description?: string; // Legacy AI-generated summary
     courseSummary?: CourseSummary; // New structured AI-generated summary
+    overallSummary?: OverallSummary | null;
+    otherCourseSummaries?: CourseSummary[] | null;
+    grades?: {
+      avgGpa?: number | null;
+      totalStudents?: number | null;
+      distribution?: {
+        A: number;
+        B: number;
+        C: number;
+        D: number;
+        F: number;
+      };
+    } | null;
     tag_frequencies?: { [tag: string]: number }; // Dictionary of tags and their frequencies
   }>;
   prerequisites?: string[] | {

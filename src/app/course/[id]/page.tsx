@@ -419,6 +419,9 @@ export default function CoursePage({ params }: CoursePageProps) {
   );
   const [sections, setSections] = useState<CourseSection[]>([]);
   const [loadingTermData, setLoadingTermData] = useState(false);
+  const [profSummaryMode, setProfSummaryMode] = useState<Record<string, string>>(
+    {}
+  );
 
   // Comparison context
   const { addCourse, removeCourse, isSelected, canAddMore } = useComparison();
@@ -1251,18 +1254,96 @@ export default function CoursePage({ params }: CoursePageProps) {
                                   Grade data only
                                 </Badge>
                               )}
-                              {/* AI Summary header - show if courseSummary available */}
+                              {/* AI Summary header - course vs overall dropdown when available */}
                               {(() => {
-                                const summary = prof.courseSummary;
-                                const hasSummary =
-                                  summary &&
-                                  (summary.teaching ||
-                                    summary.exams ||
-                                    summary.grading ||
-                                    summary.workload ||
-                                    summary.personality ||
-                                    summary.policies);
-                                if (!hasSummary) return null;
+                                const courseSummary = prof.courseSummary as any | null | undefined;
+                                const hasCourseSummary =
+                                  courseSummary &&
+                                  (courseSummary.teaching ||
+                                    courseSummary.exams ||
+                                    courseSummary.grading ||
+                                    courseSummary.workload ||
+                                    courseSummary.personality ||
+                                    courseSummary.policies ||
+                                    courseSummary.other);
+
+                                const overall = (prof as any).overallSummary as
+                                  | {
+                                      sentiment?: string | null;
+                                      strengths?: string[] | null;
+                                      complaints?: string[] | null;
+                                      consistency?: string | null;
+                                      reviewCount?: number | null;
+                                      confidence?: number | null;
+                                    }
+                                  | null
+                                  | undefined;
+                                const hasOverall =
+                                  !!overall &&
+                                  (!!overall.sentiment ||
+                                    (overall.strengths?.length || 0) > 0 ||
+                                    (overall.complaints?.length || 0) > 0 ||
+                                    !!overall.consistency);
+
+                                const otherCourseSummaries = ((prof as any)
+                                  .otherCourseSummaries || []) as any[];
+                                const hasOther =
+                                  Array.isArray(otherCourseSummaries) &&
+                                  otherCourseSummaries.length > 0;
+
+                                if (!hasCourseSummary && !hasOverall && !hasOther) return null;
+
+                                const key = (prof.id || prof.name) as string;
+                                const options: Array<{
+                                  value: string;
+                                  label: string;
+                                  reviewCount: number;
+                                  confidence?: number | null;
+                                }> = [];
+
+                                if (hasCourseSummary) {
+                                  options.push({
+                                    value: "course",
+                                    label: "This course",
+                                    reviewCount:
+                                      courseSummary.reviewCount ??
+                                      (prof.totalReviews ?? prof.reviews ?? 0),
+                                    confidence:
+                                      courseSummary.confidence ??
+                                      prof.confidence ??
+                                      null,
+                                  });
+                                }
+                                if (hasOverall) {
+                                  options.push({
+                                    value: "overall",
+                                    label: "Overall (all courses)",
+                                    reviewCount:
+                                      overall?.reviewCount ??
+                                      (prof.totalReviews ?? prof.reviews ?? 0),
+                                    confidence: overall?.confidence ?? null,
+                                  });
+                                }
+                                if (hasOther) {
+                                  for (const cs of otherCourseSummaries.slice(0, 3)) {
+                                    options.push({
+                                      value: `other:${cs.courseCode || "other"}`,
+                                      label: cs.courseCode || "Other course",
+                                      reviewCount: cs.reviewCount ?? 0,
+                                      confidence: cs.confidence ?? null,
+                                    });
+                                  }
+                                }
+
+                                const selected =
+                                  profSummaryMode[key] ??
+                                  (options.find((o) => o.value === "course")?.value ??
+                                    options[0]?.value ??
+                                    "course");
+                                const active =
+                                  options.find((o) => o.value === selected) ??
+                                  options[0];
+
                                 return (
                                   <div className="flex flex-wrap items-center gap-2 mt-1">
                                     <h5 className="text-xs font-semibold text-heading uppercase tracking-wide">
@@ -1270,19 +1351,38 @@ export default function CoursePage({ params }: CoursePageProps) {
                                     </h5>
                                     <span className="text-xs text-text-body/70 dark:text-white/60">
                                       based on{" "}
-                                      {prof.totalReviews ?? prof.reviews ?? 0}{" "}
+                                      {active?.reviewCount ??
+                                        (prof.totalReviews ?? prof.reviews ?? 0)}{" "}
                                       reviews
                                     </span>
-                                    {prof.confidence !== undefined &&
-                                      prof.confidence !== null && (
+                                    {active?.confidence !== undefined &&
+                                      active?.confidence !== null && (
                                         <Badge
                                           variant="outline"
                                           className="text-xs border-border bg-canvas text-text-body dark:border-white/15 dark:bg-black/30 dark:text-white/70 font-medium rounded-full"
                                         >
-                                          {(prof.confidence * 100).toFixed(0)}%
+                                          {((active.confidence as number) * 100).toFixed(0)}%
                                           confident
                                         </Badge>
                                       )}
+                                    {options.length > 1 && (
+                                      <select
+                                        className="ml-auto text-xs border border-border bg-canvas/70 rounded-full px-2 py-1 dark:bg-black/30 dark:border-white/15 dark:text-white/80"
+                                        value={selected}
+                                        onChange={(e) =>
+                                          setProfSummaryMode((prev) => ({
+                                            ...prev,
+                                            [key]: e.target.value,
+                                          }))
+                                        }
+                                      >
+                                        {options.map((o) => (
+                                          <option key={o.value} value={o.value}>
+                                            {o.label}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    )}
                                   </div>
                                 );
                               })()}
@@ -1303,20 +1403,52 @@ export default function CoursePage({ params }: CoursePageProps) {
                             )}
                           </div>
 
-                          {/* Professor AI Summary content - show courseSummary or legacy description */}
+                          {/* Professor AI Summary content - supports course/overall dropdown when available */}
                           {(() => {
-                            // Check if we have any courseSummary content
-                            const summary = prof.courseSummary;
-                            const hasSummary =
-                              summary &&
-                              (summary.teaching ||
-                                summary.exams ||
-                                summary.grading ||
-                                summary.workload ||
-                                summary.personality ||
-                                summary.policies);
+                            const courseSummary = prof.courseSummary as any | null | undefined;
+                            const hasCourseSummary =
+                              courseSummary &&
+                              (courseSummary.teaching ||
+                                courseSummary.exams ||
+                                courseSummary.grading ||
+                                courseSummary.workload ||
+                                courseSummary.personality ||
+                                courseSummary.policies ||
+                                courseSummary.other);
 
-                            // Fall back to legacy description if no courseSummary
+                            const overall = (prof as any).overallSummary as
+                              | {
+                                  sentiment?: string | null;
+                                  strengths?: string[] | null;
+                                  complaints?: string[] | null;
+                                  consistency?: string | null;
+                                }
+                              | null
+                              | undefined;
+                            const hasOverall =
+                              !!overall &&
+                              (!!overall.sentiment ||
+                                (overall.strengths?.length || 0) > 0 ||
+                                (overall.complaints?.length || 0) > 0 ||
+                                !!overall.consistency);
+
+                            const otherCourseSummaries = ((prof as any)
+                              .otherCourseSummaries || []) as any[];
+                            const key = (prof.id || prof.name) as string;
+                            const selected =
+                              profSummaryMode[key] ??
+                              (hasCourseSummary ? "course" : hasOverall ? "overall" : "");
+
+                            const activeCourseSummary =
+                              selected.startsWith("other:")
+                                ? otherCourseSummaries.find(
+                                    (x) =>
+                                      `other:${x.courseCode || "other"}` === selected,
+                                  )
+                                : selected === "course"
+                                  ? courseSummary
+                                  : null;
+
                             const legacyDesc =
                               prof.description &&
                               prof.description !== "Course instruction" &&
@@ -1324,34 +1456,51 @@ export default function CoursePage({ params }: CoursePageProps) {
                                 ? prof.description
                                 : null;
 
-                            if (!hasSummary && !legacyDesc) return null;
+                            if (!hasCourseSummary && !hasOverall && !legacyDesc && !activeCourseSummary) {
+                              return null;
+                            }
 
                             return (
                               <div className="mb-3 mt-3">
-                                <div className="flex items-center gap-2 mb-2 hidden">
-                                  <h5 className="text-xs font-semibold text-heading uppercase tracking-wide">
-                                    AI Summary
-                                  </h5>
-                                  <Badge
-                                    variant="outline"
-                                    className="text-xs border-border bg-canvas text-text-body dark:border-white/15 dark:bg-black/30 dark:text-white/70 font-medium rounded-full"
-                                  >
-                                    Generated by AI
-                                  </Badge>
-                                  {prof.confidence !== undefined && (
-                                    <Badge
-                                      variant="outline"
-                                      className="text-xs border-border bg-canvas text-text-body dark:border-white/15 dark:bg-black/30 dark:text-white/70 font-medium rounded-full"
-                                    >
-                                      {Math.round(prof.confidence * 100)}%
-                                      confidence
-                                    </Badge>
-                                  )}
-                                </div>
                                 <div className="bg-canvas/70 border border-border rounded-2xl p-3 dark:bg-black/30 dark:border-white/10 space-y-3">
-                                  {hasSummary ? (
+                                  {selected === "overall" && hasOverall ? (
+                                    <div className="space-y-2">
+                                      {overall?.sentiment && (
+                                        <p className="text-text-body dark:text-white/80 leading-relaxed text-sm">
+                                          <span className="font-semibold text-text-heading dark:text-white/90">
+                                            Sentiment:{" "}
+                                          </span>
+                                          {overall.sentiment}
+                                        </p>
+                                      )}
+                                      {(overall?.strengths?.length || 0) > 0 && (
+                                        <p className="text-text-body dark:text-white/80 leading-relaxed text-sm">
+                                          <span className="font-semibold text-text-heading dark:text-white/90">
+                                            Strengths:{" "}
+                                          </span>
+                                          {overall?.strengths?.slice(0, 3).join(" · ")}
+                                        </p>
+                                      )}
+                                      {(overall?.complaints?.length || 0) > 0 && (
+                                        <p className="text-text-body dark:text-white/80 leading-relaxed text-sm">
+                                          <span className="font-semibold text-text-heading dark:text-white/90">
+                                            Complaints:{" "}
+                                          </span>
+                                          {overall?.complaints?.slice(0, 3).join(" · ")}
+                                        </p>
+                                      )}
+                                      {overall?.consistency && (
+                                        <p className="text-text-body dark:text-white/80 leading-relaxed text-sm">
+                                          <span className="font-semibold text-text-heading dark:text-white/90">
+                                            Note:{" "}
+                                          </span>
+                                          {overall.consistency}
+                                        </p>
+                                      )}
+                                    </div>
+                                  ) : activeCourseSummary ? (
                                     <>
-                                      {summary.teaching && (
+                                      {activeCourseSummary.teaching && (
                                         <div>
                                           <div className="flex items-center gap-1.5 mb-1">
                                             <GraduationCap className="w-3.5 h-3.5 text-accent" />
@@ -1360,11 +1509,11 @@ export default function CoursePage({ params }: CoursePageProps) {
                                             </span>
                                           </div>
                                           <p className="text-text-body dark:text-white/80 leading-relaxed text-sm pl-5">
-                                            {summary.teaching}
+                                            {activeCourseSummary.teaching}
                                           </p>
                                         </div>
                                       )}
-                                      {summary.exams && (
+                                      {activeCourseSummary.exams && (
                                         <div>
                                           <div className="flex items-center gap-1.5 mb-1">
                                             <ClipboardList className="w-3.5 h-3.5 text-accent" />
@@ -1373,11 +1522,11 @@ export default function CoursePage({ params }: CoursePageProps) {
                                             </span>
                                           </div>
                                           <p className="text-text-body dark:text-white/80 leading-relaxed text-sm pl-5">
-                                            {summary.exams}
+                                            {activeCourseSummary.exams}
                                           </p>
                                         </div>
                                       )}
-                                      {summary.grading && (
+                                      {activeCourseSummary.grading && (
                                         <div>
                                           <div className="flex items-center gap-1.5 mb-1">
                                             <FileText className="w-3.5 h-3.5 text-accent" />
@@ -1386,11 +1535,11 @@ export default function CoursePage({ params }: CoursePageProps) {
                                             </span>
                                           </div>
                                           <p className="text-text-body dark:text-white/80 leading-relaxed text-sm pl-5">
-                                            {summary.grading}
+                                            {activeCourseSummary.grading}
                                           </p>
                                         </div>
                                       )}
-                                      {summary.workload && (
+                                      {activeCourseSummary.workload && (
                                         <div>
                                           <div className="flex items-center gap-1.5 mb-1">
                                             <Briefcase className="w-3.5 h-3.5 text-accent" />
@@ -1399,11 +1548,11 @@ export default function CoursePage({ params }: CoursePageProps) {
                                             </span>
                                           </div>
                                           <p className="text-text-body dark:text-white/80 leading-relaxed text-sm pl-5">
-                                            {summary.workload}
+                                            {activeCourseSummary.workload}
                                           </p>
                                         </div>
                                       )}
-                                      {summary.personality && (
+                                      {activeCourseSummary.personality && (
                                         <div>
                                           <div className="flex items-center gap-1.5 mb-1">
                                             <UserCircle className="w-3.5 h-3.5 text-accent" />
@@ -1412,11 +1561,11 @@ export default function CoursePage({ params }: CoursePageProps) {
                                             </span>
                                           </div>
                                           <p className="text-text-body dark:text-white/80 leading-relaxed text-sm pl-5">
-                                            {summary.personality}
+                                            {activeCourseSummary.personality}
                                           </p>
                                         </div>
                                       )}
-                                      {summary.policies && (
+                                      {activeCourseSummary.policies && (
                                         <div>
                                           <div className="flex items-center gap-1.5 mb-1">
                                             <ScrollText className="w-3.5 h-3.5 text-accent" />
@@ -1425,7 +1574,20 @@ export default function CoursePage({ params }: CoursePageProps) {
                                             </span>
                                           </div>
                                           <p className="text-text-body dark:text-white/80 leading-relaxed text-sm pl-5">
-                                            {summary.policies}
+                                            {activeCourseSummary.policies}
+                                          </p>
+                                        </div>
+                                      )}
+                                      {activeCourseSummary.other && (
+                                        <div>
+                                          <div className="flex items-center gap-1.5 mb-1">
+                                            <Sparkles className="w-3.5 h-3.5 text-accent" />
+                                            <span className="text-xs font-semibold text-text-heading dark:text-white/90">
+                                              Notes
+                                            </span>
+                                          </div>
+                                          <p className="text-text-body dark:text-white/80 leading-relaxed text-sm pl-5">
+                                            {activeCourseSummary.other}
                                           </p>
                                         </div>
                                       )}

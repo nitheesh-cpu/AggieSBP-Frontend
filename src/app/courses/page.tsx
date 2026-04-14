@@ -339,6 +339,7 @@ function CoursesPageContent() {
   >([]);
 
   const coursesPerPage = 30;
+  const serverSearchMode = debouncedSearchTerm.trim().length > 0;
 
   // Debounce search term
   useEffect(() => {
@@ -427,6 +428,8 @@ function CoursesPageContent() {
 
   // Progressive loading: first 30 courses, then all courses
   useEffect(() => {
+    if (serverSearchMode) return;
+
     const loadCourses = async () => {
       try {
         setLoading(true);
@@ -472,20 +475,67 @@ function CoursesPageContent() {
     };
 
     loadCourses();
-  }, [loadCachedCourses]);
+  }, [loadCachedCourses, serverSearchMode]);
+
+  // Industry-standard approach: debounced server-side search to avoid missing
+  // results when the full dataset is not loaded on the client yet.
+  useEffect(() => {
+    if (!serverSearchMode) return;
+
+    let cancelled = false;
+
+    const searchCourses = async () => {
+      try {
+        setIsLoadingAll(true);
+        setError(null);
+        setCurrentPage(1);
+
+        const results = await getCourses({
+          search: debouncedSearchTerm,
+          department:
+            selectedDepartment !== "All" ? selectedDepartment : undefined,
+          limit: 5000,
+        });
+
+        if (cancelled) return;
+
+        setCourses(results);
+        setAllCourses(results);
+        setAllCoursesLoaded(true);
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Failed to search courses");
+        }
+      } finally {
+        if (!cancelled) setIsLoadingAll(false);
+      }
+    };
+
+    void searchCourses();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [debouncedSearchTerm, selectedDepartment, serverSearchMode]);
 
   // Filter and search logic
   const filteredAndSearchedCourses = useMemo(() => {
-    const dataToFilter = allCoursesLoaded ? allCourses : courses;
+    const dataToFilter = serverSearchMode
+      ? courses
+      : allCoursesLoaded
+        ? allCourses
+        : courses;
 
     const filtered = dataToFilter.filter((course) => {
       const notNull = course !== null;
 
       const matchesSearch =
-        !searchTerm ||
-        course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        course.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        course.description.toLowerCase().includes(searchTerm.toLowerCase());
+        !debouncedSearchTerm ||
+        course.code.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        course.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        course.description
+          .toLowerCase()
+          .includes(debouncedSearchTerm.toLowerCase());
 
       const matchesDepartment =
         !selectedDepartment ||
@@ -603,6 +653,7 @@ function CoursesPageContent() {
     allCourses,
     allCoursesLoaded,
     searchTerm,
+    debouncedSearchTerm,
     selectedDepartment,
     selectedDifficulty,
     minGpa,
@@ -1046,7 +1097,7 @@ function CoursesPageContent() {
                 {/* Prominent Search Bar (match other pages) */}
                 <div className="relative max-w-lg mx-auto mt-8">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-body/70 w-5 h-5 dark:text-white/60" />
-                  {searchTerm !== debouncedSearchTerm && (
+                  {(searchTerm !== debouncedSearchTerm || isLoadingAll) && (
                     <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-accent" />
                   )}
                   <Input

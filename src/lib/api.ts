@@ -859,11 +859,23 @@ export interface DiscoverFitCourseMatch {
   sample_crn?: string | null;
 }
 
+export type DiscoverFitSeatFilter = "any" | "open" | "full";
+
+export interface DiscoverFitMatchFilters {
+  sectionAttributeDescs?: string[];
+  seatFilter?: DiscoverFitSeatFilter;
+  /** Howdy section site, e.g. College Station or Galveston (matches `sections.campus`). */
+  sectionCampus?: string;
+}
+
 export async function getDiscoverFitMatches(
   termCode: string,
   courseKeys: string[],
   scheduleBlocks: DiscoverScheduleBlock[],
+  filters?: DiscoverFitMatchFilters,
 ): Promise<DiscoverFitCourseMatch[]> {
+  const attrs = (filters?.sectionAttributeDescs ?? []).map((a) => a.trim()).filter(Boolean);
+  const campus = filters?.sectionCampus?.trim();
   const response = await fetch(`${API_BASE_URL}/discover/${termCode}/fit-sections`, {
     method: "POST",
     headers: {
@@ -872,9 +884,42 @@ export async function getDiscoverFitMatches(
     body: JSON.stringify({
       course_keys: courseKeys,
       schedule_blocks: scheduleBlocks,
+      seat_filter: filters?.seatFilter ?? "any",
+      ...(campus ? { campus } : {}),
+      ...(attrs.length > 0 ? { section_attribute_descs: attrs } : {}),
     }),
   });
   return handleResponse<DiscoverFitCourseMatch[]>(response);
+}
+
+export async function postDiscoverFitSectionAttributeOptions(
+  termCode: string,
+  courseKeys: string[],
+): Promise<string[]> {
+  const response = await fetch(
+    `${API_BASE_URL}/discover/${termCode}/fit-section-attribute-options`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ course_keys: courseKeys }),
+    },
+  );
+  return handleResponse<string[]>(response);
+}
+
+export async function postDiscoverFitSectionCampusOptions(
+  termCode: string,
+  courseKeys: string[],
+): Promise<string[]> {
+  const response = await fetch(
+    `${API_BASE_URL}/discover/${termCode}/fit-section-campus-options`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ course_keys: courseKeys }),
+    },
+  );
+  return handleResponse<string[]>(response);
 }
 
 export async function getCourseSectionsForTerm(

@@ -1,3 +1,6 @@
+/** Where taps on AggieSBP push notifications should open (College Scheduler). */
+const NOTIFICATION_CLICK_URL = "https://tamu.collegescheduler.com/terms";
+
 self.addEventListener("push", function (event) {
   if (event.data) {
     const data = event.data.json();
@@ -9,7 +12,7 @@ self.addEventListener("push", function (event) {
       data: {
         dateOfArrival: Date.now(),
         primaryKey: "2",
-        url: data.url || "/",
+        url: NOTIFICATION_CLICK_URL,
       },
     };
     event.waitUntil(self.registration.showNotification(data.title, options));
@@ -19,7 +22,7 @@ self.addEventListener("push", function (event) {
 self.addEventListener("notificationclick", function (event) {
   console.log("Notification click received.");
   event.notification.close();
-  const urlToOpen = event.notification.data.url || "/";
+  const urlToOpen = NOTIFICATION_CLICK_URL;
 
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {

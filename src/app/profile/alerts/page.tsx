@@ -44,6 +44,7 @@ function MyAlertsContent() {
   const [tracked, setTracked] = useState<TrackedSection[]>([]);
   const [trackedLoading, setTrackedLoading] = useState(true);
   const [trackedError, setTrackedError] = useState<string | null>(null);
+  const [devicesOpen, setDevicesOpen] = useState(false);
   const [devices, setDevices] = useState<PushSubscriptionDevice[]>([]);
   const [devicesLoading, setDevicesLoading] = useState(true);
   const [devicesError, setDevicesError] = useState<string | null>(null);
@@ -431,75 +432,93 @@ function MyAlertsContent() {
 
             {/* Watched classes */}
             <div className="pt-6 border-t border-[#500000]/10 dark:border-[#FFCF3F]/10 mt-6">
-              <h3 className="text-lg font-semibold text-heading dark:text-white mb-2">
-                Connected devices
-              </h3>
-              <p className="text-sm text-body dark:text-gray-400 mb-3">
-                Devices below are currently registered to receive push alerts.
-              </p>
-              {devicesLoading && (
-                <p className="text-sm text-body dark:text-gray-400">
-                  Loading connected devices...
-                </p>
-              )}
-              {devicesError && (
-                <p className="text-sm text-red-500 dark:text-red-400">
-                  {devicesError}
-                </p>
-              )}
-              {!devicesLoading && !devicesError && devices.length === 0 && (
-                <p className="text-sm text-body dark:text-gray-400">
-                  No devices are currently enabled for notifications.
-                </p>
-              )}
-              {!devicesLoading && devices.length > 0 && (
-                <div className="space-y-2 mb-6">
-                  {devices.map((device) => (
-                    <div
-                      key={device.id}
-                      className="rounded-md border border-border/60 dark:border-white/10 bg-white/60 dark:bg-black/40 px-3 py-2"
+              <Collapsible open={devicesOpen} onOpenChange={setDevicesOpen}>
+                <div className="flex items-center justify-between gap-4 mb-2">
+                  <h3 className="text-lg font-semibold text-heading dark:text-white">
+                    Connected devices
+                  </h3>
+                  <CollapsibleTrigger asChild>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-2 text-sm font-medium text-[#500000] dark:text-[#FFCF3F] hover:opacity-90 transition-opacity"
+                      aria-label={devicesOpen ? "Collapse connected devices" : "Expand connected devices"}
                     >
-                      <p className="font-medium text-heading dark:text-white">
-                        {getDeviceDisplayName(device)}
-                      </p>
-                      <p className="text-xs text-body dark:text-gray-400 break-all">
-                        {device.endpoint}
-                      </p>
-                      {(device.last_seen_at || device.created_at) && (
-                        <p className="text-xs text-body dark:text-gray-400 mt-1">
-                          Last active{" "}
-                          {new Date(
-                            device.last_seen_at ?? device.created_at ?? "",
-                          ).toLocaleString()}
-                        </p>
-                      )}
-                      <div className="mt-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-[#500000] dark:text-[#FFCF3F] border-[#500000]/40 dark:border-[#FFCF3F]/40"
-                          onClick={async () => {
-                            try {
-                              await removePushSubscription(device.endpoint);
-                              setDevices((prev) =>
-                                prev.filter((d) => d.id !== device.id),
-                              );
-                            } catch (e) {
-                              setDevicesError(
-                                e instanceof Error
-                                  ? e.message
-                                  : "Failed to remove device",
-                              );
-                            }
-                          }}
-                        >
-                          Remove device
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                      {devicesOpen ? "Hide" : "Show"}
+                      <ChevronDown
+                        className={`h-4 w-4 transition-transform ${devicesOpen ? "rotate-180" : ""}`}
+                      />
+                    </button>
+                  </CollapsibleTrigger>
                 </div>
-              )}
+                <p className="text-sm text-body dark:text-gray-400 mb-3">
+                  Devices below are currently registered to receive push alerts.
+                </p>
+                <CollapsibleContent className="space-y-2 mb-6">
+                  {devicesLoading && (
+                    <p className="text-sm text-body dark:text-gray-400">
+                      Loading connected devices...
+                    </p>
+                  )}
+                  {devicesError && (
+                    <p className="text-sm text-red-500 dark:text-red-400">
+                      {devicesError}
+                    </p>
+                  )}
+                  {!devicesLoading && !devicesError && devices.length === 0 && (
+                    <p className="text-sm text-body dark:text-gray-400">
+                      No devices are currently enabled for notifications.
+                    </p>
+                  )}
+                  {!devicesLoading && devices.length > 0 && (
+                    <>
+                      {devices.map((device) => (
+                        <div
+                          key={device.id}
+                          className="rounded-md border border-border/60 dark:border-white/10 bg-white/60 dark:bg-black/40 px-3 py-2"
+                        >
+                          <p className="font-medium text-heading dark:text-white">
+                            {getDeviceDisplayName(device)}
+                          </p>
+                          <p className="text-xs text-body dark:text-gray-400 break-all">
+                            {device.endpoint}
+                          </p>
+                          {(device.last_seen_at || device.created_at) && (
+                            <p className="text-xs text-body dark:text-gray-400 mt-1">
+                              Last active{" "}
+                              {new Date(
+                                device.last_seen_at ?? device.created_at ?? "",
+                              ).toLocaleString()}
+                            </p>
+                          )}
+                          <div className="mt-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-[#500000] dark:text-[#FFCF3F] border-[#500000]/40 dark:border-[#FFCF3F]/40"
+                              onClick={async () => {
+                                try {
+                                  await removePushSubscription(device.endpoint);
+                                  setDevices((prev) =>
+                                    prev.filter((d) => d.id !== device.id),
+                                  );
+                                } catch (e) {
+                                  setDevicesError(
+                                    e instanceof Error
+                                      ? e.message
+                                      : "Failed to remove device",
+                                  );
+                                }
+                              }}
+                            >
+                              Remove device
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                </CollapsibleContent>
+              </Collapsible>
             </div>
 
             <div className="pt-6 border-t border-[#500000]/10 dark:border-[#FFCF3F]/10 mt-6">

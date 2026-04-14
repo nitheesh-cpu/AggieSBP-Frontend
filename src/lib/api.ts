@@ -843,6 +843,40 @@ export interface CourseSection {
   meetings: SectionMeeting[];
 }
 
+export interface DiscoverScheduleBlock {
+  days: string[];
+  start: string;
+  end: string;
+}
+
+export interface DiscoverFitCourseMatch {
+  course_key: string;
+  dept: string;
+  course_number: string;
+  course_title: string;
+  compatible_section_count: number;
+  sample_section_id?: string | null;
+  sample_crn?: string | null;
+}
+
+export async function getDiscoverFitMatches(
+  termCode: string,
+  courseKeys: string[],
+  scheduleBlocks: DiscoverScheduleBlock[],
+): Promise<DiscoverFitCourseMatch[]> {
+  const response = await fetch(`${API_BASE_URL}/discover/${termCode}/fit-sections`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      course_keys: courseKeys,
+      schedule_blocks: scheduleBlocks,
+    }),
+  });
+  return handleResponse<DiscoverFitCourseMatch[]>(response);
+}
+
 export async function getCourseSectionsForTerm(
   termCode: string,
   courseId: string,

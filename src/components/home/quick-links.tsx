@@ -21,16 +21,16 @@ type QuickLink = {
 
 const QUICK_LINKS: QuickLink[] = [
   {
-    name: "Departments",
-    href: "/departments",
-    icon: <GraduationCap className="w-5 h-5" />,
-    description: "Browse by department",
+    name: "Core Curriculum",
+    href: "/discover/ucc",
+    icon: <Compass className="w-5 h-5" />,
+    description: "Find the easiest courses to fulfil your core curriculum",
   },
   {
-    name: "Courses",
-    href: "/courses",
-    icon: <BookOpen className="w-5 h-5" />,
-    description: "Search courses and find the best section",
+    name: "Discover courses",
+    href: "/discover/dept",
+    icon: <GraduationCap className="w-5 h-5" />,
+    description: "Find the easiest courses by department",
   },
   {
     name: "Professors",
@@ -45,10 +45,10 @@ const QUICK_LINKS: QuickLink[] = [
     description: "Compare different courses and professors",
   },
   {
-    name: "Core Curriculum",
-    href: "/discover/ucc",
-    icon: <Compass className="w-5 h-5" />,
-    description: "Find the easiest courses to fulfil your core curriculum",
+    name: "Courses",
+    href: "/courses",
+    icon: <BookOpen className="w-5 h-5" />,
+    description: "Search courses and find the best section",
   },
 ];
 

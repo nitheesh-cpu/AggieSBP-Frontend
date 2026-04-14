@@ -11,8 +11,10 @@ import { usePushNotifications } from "@/hooks/usePushNotifications";
 import {
   savePushSubscription,
   sendTestNotification,
+  getPushSubscriptions,
   getTrackedSections,
   untrackSection,
+  type PushSubscriptionDevice,
   type TrackedSection,
 } from "@/lib/api";
 import {
@@ -41,6 +43,9 @@ function MyAlertsContent() {
   const [tracked, setTracked] = useState<TrackedSection[]>([]);
   const [trackedLoading, setTrackedLoading] = useState(true);
   const [trackedError, setTrackedError] = useState<string | null>(null);
+  const [devices, setDevices] = useState<PushSubscriptionDevice[]>([]);
+  const [devicesLoading, setDevicesLoading] = useState(true);
+  const [devicesError, setDevicesError] = useState<string | null>(null);
 
   const saveSubscriptionToBackend = async (
     subscription: { endpoint: string; keys?: { p256dh?: string; auth?: string } },
@@ -74,6 +79,32 @@ function MyAlertsContent() {
     };
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadDevices = async () => {
+      setDevicesLoading(true);
+      setDevicesError(null);
+      try {
+        const data = await getPushSubscriptions();
+        if (!cancelled) setDevices(data);
+      } catch (e) {
+        if (!cancelled) {
+          setDevicesError(
+            e instanceof Error ? e.message : "Failed to load connected devices",
+          );
+        }
+      } finally {
+        if (!cancelled) setDevicesLoading(false);
+      }
+    };
+
+    void loadDevices();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const handleEnable = async () => {
     setError(null);
     setSuccess(false);
@@ -84,6 +115,8 @@ function MyAlertsContent() {
         await saveSubscriptionToBackend(subscription as { endpoint: string; keys?: { p256dh?: string; auth?: string } });
       }
       setSuccess(true);
+      const refreshedDevices = await getPushSubscriptions();
+      setDevices(refreshedDevices);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Failed to enable notifications";
@@ -104,6 +137,8 @@ function MyAlertsContent() {
         await saveSubscriptionToBackend(subscription as { endpoint: string; keys?: { p256dh?: string; auth?: string } });
       }
       setSuccess(true);
+      const refreshedDevices = await getPushSubscriptions();
+      setDevices(refreshedDevices);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Failed to re-save subscription";
@@ -144,6 +179,15 @@ function MyAlertsContent() {
     acc[courseCode].push(item);
     return acc;
   }, {});
+
+  const formatDeviceLabel = (endpoint: string) => {
+    try {
+      const url = new URL(endpoint);
+      return url.hostname;
+    } catch {
+      return "Unknown device";
+    }
+  };
 
   return (
     <div
@@ -360,6 +404,52 @@ function MyAlertsContent() {
             </div>
 
             {/* Watched classes */}
+            <div className="pt-6 border-t border-[#500000]/10 dark:border-[#FFCF3F]/10 mt-6">
+              <h3 className="text-lg font-semibold text-heading dark:text-white mb-2">
+                Connected devices
+              </h3>
+              <p className="text-sm text-body dark:text-gray-400 mb-3">
+                Devices below are currently registered to receive push alerts.
+              </p>
+              {devicesLoading && (
+                <p className="text-sm text-body dark:text-gray-400">
+                  Loading connected devices...
+                </p>
+              )}
+              {devicesError && (
+                <p className="text-sm text-red-500 dark:text-red-400">
+                  {devicesError}
+                </p>
+              )}
+              {!devicesLoading && !devicesError && devices.length === 0 && (
+                <p className="text-sm text-body dark:text-gray-400">
+                  No devices are currently enabled for notifications.
+                </p>
+              )}
+              {!devicesLoading && devices.length > 0 && (
+                <div className="space-y-2 mb-6">
+                  {devices.map((device) => (
+                    <div
+                      key={device.id}
+                      className="rounded-md border border-border/60 dark:border-white/10 bg-white/60 dark:bg-black/40 px-3 py-2"
+                    >
+                      <p className="font-medium text-heading dark:text-white">
+                        {formatDeviceLabel(device.endpoint)}
+                      </p>
+                      <p className="text-xs text-body dark:text-gray-400 break-all">
+                        {device.endpoint}
+                      </p>
+                      {device.created_at && (
+                        <p className="text-xs text-body dark:text-gray-400 mt-1">
+                          Added {new Date(device.created_at).toLocaleString()}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div className="pt-6 border-t border-[#500000]/10 dark:border-[#FFCF3F]/10 mt-6">
               <h3 className="text-lg font-semibold text-heading dark:text-white mb-2">
                 Watched classes

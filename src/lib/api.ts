@@ -987,6 +987,19 @@ export async function removePushSubscription(endpoint: string): Promise<void> {
   return handleResponse<void>(response);
 }
 
+export interface PushSubscriptionDevice {
+  id: string;
+  endpoint: string;
+  created_at?: string | null;
+}
+
+export async function getPushSubscriptions(): Promise<PushSubscriptionDevice[]> {
+  const response = await fetch(`${API_BASE_URL}/users/push-subscriptions`, {
+    headers: await authHeaders({ "Content-Type": "application/json" }),
+  });
+  return handleResponse<PushSubscriptionDevice[]>(response);
+}
+
 export async function subscribeToSectionPush(
   courseSectionId: string,
   subscription: PushSubscriptionJSON

@@ -954,6 +954,8 @@ export async function getTrackedSections(): Promise<TrackedSection[]> {
 export async function savePushSubscription(subscription: {
   endpoint: string;
   keys?: { p256dh?: string; auth?: string };
+  device_name?: string;
+  user_agent?: string;
 }): Promise<void> {
   const p256dh = subscription.keys?.p256dh ?? "";
   const authKey = subscription.keys?.auth ?? "";
@@ -964,6 +966,8 @@ export async function savePushSubscription(subscription: {
       endpoint: subscription.endpoint,
       p256dh,
       auth: authKey,
+      device_name: subscription.device_name ?? null,
+      user_agent: subscription.user_agent ?? null,
     }),
   });
   return handleResponse<void>(response);
@@ -990,7 +994,10 @@ export async function removePushSubscription(endpoint: string): Promise<void> {
 export interface PushSubscriptionDevice {
   id: string;
   endpoint: string;
+  device_name?: string | null;
+  user_agent?: string | null;
   created_at?: string | null;
+  last_seen_at?: string | null;
 }
 
 export async function getPushSubscriptions(): Promise<PushSubscriptionDevice[]> {

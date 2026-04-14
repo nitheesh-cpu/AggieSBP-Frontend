@@ -12,6 +12,7 @@ import {
   savePushSubscription,
   sendTestNotification,
   getPushSubscriptions,
+  removePushSubscription,
   getTrackedSections,
   untrackSection,
   type PushSubscriptionDevice,
@@ -50,7 +51,29 @@ function MyAlertsContent() {
   const saveSubscriptionToBackend = async (
     subscription: { endpoint: string; keys?: { p256dh?: string; auth?: string } },
   ) => {
-    await savePushSubscription(subscription);
+    const userAgent = typeof navigator !== "undefined" ? navigator.userAgent : "";
+    const platform =
+      typeof navigator !== "undefined"
+        ? (navigator as Navigator & { userAgentData?: { platform?: string } })
+            .userAgentData?.platform || navigator.platform || "Unknown"
+        : "Unknown";
+    const browser = /Edg\//.test(userAgent)
+      ? "Edge"
+      : /Chrome\//.test(userAgent)
+        ? "Chrome"
+        : /Firefox\//.test(userAgent)
+          ? "Firefox"
+          : /Safari\//.test(userAgent) && !/Chrome\//.test(userAgent)
+            ? "Safari"
+            : "Browser";
+    const mobile = /Mobi|Android|iPhone|iPad/i.test(userAgent) ? "Mobile" : "Desktop";
+    const deviceName = `${platform} (${browser}, ${mobile})`;
+
+    await savePushSubscription({
+      ...subscription,
+      device_name: deviceName,
+      user_agent: userAgent,
+    });
   };
 
   useEffect(() => {
@@ -180,9 +203,12 @@ function MyAlertsContent() {
     return acc;
   }, {});
 
-  const formatDeviceLabel = (endpoint: string) => {
+  const getDeviceDisplayName = (device: PushSubscriptionDevice) => {
+    if (device.device_name && device.device_name.trim().length > 0) {
+      return device.device_name;
+    }
     try {
-      const url = new URL(endpoint);
+      const url = new URL(device.endpoint);
       return url.hostname;
     } catch {
       return "Unknown device";
@@ -434,16 +460,42 @@ function MyAlertsContent() {
                       className="rounded-md border border-border/60 dark:border-white/10 bg-white/60 dark:bg-black/40 px-3 py-2"
                     >
                       <p className="font-medium text-heading dark:text-white">
-                        {formatDeviceLabel(device.endpoint)}
+                        {getDeviceDisplayName(device)}
                       </p>
                       <p className="text-xs text-body dark:text-gray-400 break-all">
                         {device.endpoint}
                       </p>
-                      {device.created_at && (
+                      {(device.last_seen_at || device.created_at) && (
                         <p className="text-xs text-body dark:text-gray-400 mt-1">
-                          Added {new Date(device.created_at).toLocaleString()}
+                          Last active{" "}
+                          {new Date(
+                            device.last_seen_at ?? device.created_at ?? "",
+                          ).toLocaleString()}
                         </p>
                       )}
+                      <div className="mt-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-[#500000] dark:text-[#FFCF3F] border-[#500000]/40 dark:border-[#FFCF3F]/40"
+                          onClick={async () => {
+                            try {
+                              await removePushSubscription(device.endpoint);
+                              setDevices((prev) =>
+                                prev.filter((d) => d.id !== device.id),
+                              );
+                            } catch (e) {
+                              setDevicesError(
+                                e instanceof Error
+                                  ? e.message
+                                  : "Failed to remove device",
+                              );
+                            }
+                          }}
+                        >
+                          Remove device
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>

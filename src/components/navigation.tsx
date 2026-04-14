@@ -21,7 +21,9 @@ export const Navigation = ({
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [isDiscoverOpen, setIsDiscoverOpen] = React.useState(false);
+  const [isSearchOpen, setIsSearchOpen] = React.useState(false);
   const [isMobileDiscoverOpen, setIsMobileDiscoverOpen] = React.useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = React.useState(false);
   const isOverlay = variant === "transparent" || variant === "glass";
 
   // IMPORTANT: Don't compute theme-dependent inline styles here.
@@ -47,6 +49,7 @@ export const Navigation = ({
   React.useEffect(() => {
     setIsMobileMenuOpen(false);
     setIsMobileDiscoverOpen(false);
+    setIsMobileSearchOpen(false);
   }, [pathname]);
 
   // Lock body scroll while menu is open.
@@ -61,13 +64,16 @@ export const Navigation = ({
 
   const navItems = [
     { name: "Dashboard", href: "/dashboard" },
+  ] as const;
+
+  const searchItems = [
     { name: "Departments", href: "/departments" },
     { name: "Courses", href: "/courses" },
     { name: "Professors", href: "/professors" },
-    { name: "Compare", href: "/compare" },
   ] as const;
 
   const discoverItems = [
+    { name: "Fit My Schedule", href: "/discover/fit" },
     { name: "Core Curriculum", href: "/discover/ucc" },
     { name: "By Department", href: "/discover/dept" },
   ] as const;
@@ -125,6 +131,43 @@ export const Navigation = ({
               {/* Discover Dropdown */}
               <div
                 className="relative"
+                onMouseEnter={() => setIsSearchOpen(true)}
+                onMouseLeave={() => setIsSearchOpen(false)}
+              >
+                <button
+                  className={`${linkClassName} flex items-center gap-1`}
+                  onClick={() => setIsSearchOpen(!isSearchOpen)}
+                >
+                  Search
+                  <ChevronDown className={`w-4 h-4 transition-transform ${isSearchOpen ? "rotate-180" : ""}`} />
+                </button>
+
+                <AnimatePresence>
+                  {isSearchOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -5 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-black/95 border-2 border-[#500000] dark:border-[#FFCF3F] rounded-lg shadow-lg overflow-hidden"
+                    >
+                      {searchItems.map((item) => (
+                        <Link
+                          key={item.name}
+                          href={item.href}
+                          className="block px-4 py-3 text-sm text-body hover:text-heading hover:bg-gray-100 dark:text-white/80 dark:hover:text-white dark:hover:bg-white/10 transition-colors"
+                        >
+                          {item.name}
+                        </Link>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Discover Dropdown */}
+              <div
+                className="relative"
                 onMouseEnter={() => setIsDiscoverOpen(true)}
                 onMouseLeave={() => setIsDiscoverOpen(false)}
               >
@@ -158,6 +201,11 @@ export const Navigation = ({
                   )}
                 </AnimatePresence>
               </div>
+
+              <Link href="/compare" className={linkClassName} data-oid="hxkolsn">
+                Compare
+                <span className={underlineClassName} data-oid="m-f3_qo" />
+              </Link>
             </nav>
 
             {/* Desktop CTA */}
@@ -258,6 +306,41 @@ export const Navigation = ({
                   </Link>
                 ))}
 
+                {/* Mobile Search Dropdown */}
+                <div>
+                  <button
+                    onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
+                    className="flex items-center justify-between w-full text-heading hover:text-heading dark:text-white/90 dark:hover:text-white text-base font-medium"
+                  >
+                    Search
+                    <ChevronDown className={`w-4 h-4 transition-transform ${isMobileSearchOpen ? "rotate-180" : ""}`} />
+                  </button>
+                  <AnimatePresence>
+                    {isMobileSearchOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="pl-4 pt-2 space-y-2">
+                          {searchItems.map((item) => (
+                            <Link
+                              key={item.name}
+                              href={item.href}
+                              onClick={() => setIsMobileMenuOpen(false)}
+                              className="block text-body hover:text-heading dark:text-white/70 dark:hover:text-white text-sm"
+                            >
+                              {item.name}
+                            </Link>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
                 {/* Mobile Discover Dropdown */}
                 <div>
                   <button
@@ -292,6 +375,14 @@ export const Navigation = ({
                     )}
                   </AnimatePresence>
                 </div>
+
+                <Link
+                  href="/compare"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block text-heading hover:text-heading dark:text-white/90 dark:hover:text-white text-base font-medium"
+                >
+                  Compare
+                </Link>
 
                 <div className="pt-2 border-t border-border/10">
                   <div className="flex items-center justify-between gap-3 pb-3">

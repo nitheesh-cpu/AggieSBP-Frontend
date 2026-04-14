@@ -11,8 +11,11 @@ import { usePushNotifications } from "@/hooks/usePushNotifications";
 import {
   savePushSubscription,
   sendTestNotification,
+  getPushSubscriptions,
+  removePushSubscription,
   getTrackedSections,
   untrackSection,
+  type PushSubscriptionDevice,
   type TrackedSection,
 } from "@/lib/api";
 import {
@@ -41,11 +44,37 @@ function MyAlertsContent() {
   const [tracked, setTracked] = useState<TrackedSection[]>([]);
   const [trackedLoading, setTrackedLoading] = useState(true);
   const [trackedError, setTrackedError] = useState<string | null>(null);
+  const [devicesOpen, setDevicesOpen] = useState(false);
+  const [devices, setDevices] = useState<PushSubscriptionDevice[]>([]);
+  const [devicesLoading, setDevicesLoading] = useState(true);
+  const [devicesError, setDevicesError] = useState<string | null>(null);
 
   const saveSubscriptionToBackend = async (
     subscription: { endpoint: string; keys?: { p256dh?: string; auth?: string } },
   ) => {
-    await savePushSubscription(subscription);
+    const userAgent = typeof navigator !== "undefined" ? navigator.userAgent : "";
+    const platform =
+      typeof navigator !== "undefined"
+        ? (navigator as Navigator & { userAgentData?: { platform?: string } })
+            .userAgentData?.platform || navigator.platform || "Unknown"
+        : "Unknown";
+    const browser = /Edg\//.test(userAgent)
+      ? "Edge"
+      : /Chrome\//.test(userAgent)
+        ? "Chrome"
+        : /Firefox\//.test(userAgent)
+          ? "Firefox"
+          : /Safari\//.test(userAgent) && !/Chrome\//.test(userAgent)
+            ? "Safari"
+            : "Browser";
+    const mobile = /Mobi|Android|iPhone|iPad/i.test(userAgent) ? "Mobile" : "Desktop";
+    const deviceName = `${platform} (${browser}, ${mobile})`;
+
+    await savePushSubscription({
+      ...subscription,
+      device_name: deviceName,
+      user_agent: userAgent,
+    });
   };
 
   useEffect(() => {
@@ -74,6 +103,32 @@ function MyAlertsContent() {
     };
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadDevices = async () => {
+      setDevicesLoading(true);
+      setDevicesError(null);
+      try {
+        const data = await getPushSubscriptions();
+        if (!cancelled) setDevices(data);
+      } catch (e) {
+        if (!cancelled) {
+          setDevicesError(
+            e instanceof Error ? e.message : "Failed to load connected devices",
+          );
+        }
+      } finally {
+        if (!cancelled) setDevicesLoading(false);
+      }
+    };
+
+    void loadDevices();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const handleEnable = async () => {
     setError(null);
     setSuccess(false);
@@ -84,6 +139,8 @@ function MyAlertsContent() {
         await saveSubscriptionToBackend(subscription as { endpoint: string; keys?: { p256dh?: string; auth?: string } });
       }
       setSuccess(true);
+      const refreshedDevices = await getPushSubscriptions();
+      setDevices(refreshedDevices);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Failed to enable notifications";
@@ -104,6 +161,8 @@ function MyAlertsContent() {
         await saveSubscriptionToBackend(subscription as { endpoint: string; keys?: { p256dh?: string; auth?: string } });
       }
       setSuccess(true);
+      const refreshedDevices = await getPushSubscriptions();
+      setDevices(refreshedDevices);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Failed to re-save subscription";
@@ -144,6 +203,18 @@ function MyAlertsContent() {
     acc[courseCode].push(item);
     return acc;
   }, {});
+
+  const getDeviceDisplayName = (device: PushSubscriptionDevice) => {
+    if (device.device_name && device.device_name.trim().length > 0) {
+      return device.device_name;
+    }
+    try {
+      const url = new URL(device.endpoint);
+      return url.hostname;
+    } catch {
+      return "Unknown device";
+    }
+  };
 
   return (
     <div
@@ -360,6 +431,96 @@ function MyAlertsContent() {
             </div>
 
             {/* Watched classes */}
+            <div className="pt-6 border-t border-[#500000]/10 dark:border-[#FFCF3F]/10 mt-6">
+              <Collapsible open={devicesOpen} onOpenChange={setDevicesOpen}>
+                <div className="flex items-center justify-between gap-4 mb-2">
+                  <h3 className="text-lg font-semibold text-heading dark:text-white">
+                    Connected devices
+                  </h3>
+                  <CollapsibleTrigger asChild>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-2 text-sm font-medium text-[#500000] dark:text-[#FFCF3F] hover:opacity-90 transition-opacity"
+                      aria-label={devicesOpen ? "Collapse connected devices" : "Expand connected devices"}
+                    >
+                      {devicesOpen ? "Hide" : "Show"}
+                      <ChevronDown
+                        className={`h-4 w-4 transition-transform ${devicesOpen ? "rotate-180" : ""}`}
+                      />
+                    </button>
+                  </CollapsibleTrigger>
+                </div>
+                <p className="text-sm text-body dark:text-gray-400 mb-3">
+                  Devices below are currently registered to receive push alerts.
+                </p>
+                <CollapsibleContent className="space-y-2 mb-6">
+                  {devicesLoading && (
+                    <p className="text-sm text-body dark:text-gray-400">
+                      Loading connected devices...
+                    </p>
+                  )}
+                  {devicesError && (
+                    <p className="text-sm text-red-500 dark:text-red-400">
+                      {devicesError}
+                    </p>
+                  )}
+                  {!devicesLoading && !devicesError && devices.length === 0 && (
+                    <p className="text-sm text-body dark:text-gray-400">
+                      No devices are currently enabled for notifications.
+                    </p>
+                  )}
+                  {!devicesLoading && devices.length > 0 && (
+                    <>
+                      {devices.map((device) => (
+                        <div
+                          key={device.id}
+                          className="rounded-md border border-border/60 dark:border-white/10 bg-white/60 dark:bg-black/40 px-3 py-2"
+                        >
+                          <p className="font-medium text-heading dark:text-white">
+                            {getDeviceDisplayName(device)}
+                          </p>
+                          <p className="text-xs text-body dark:text-gray-400 break-all">
+                            {device.endpoint}
+                          </p>
+                          {(device.last_seen_at || device.created_at) && (
+                            <p className="text-xs text-body dark:text-gray-400 mt-1">
+                              Last active{" "}
+                              {new Date(
+                                device.last_seen_at ?? device.created_at ?? "",
+                              ).toLocaleString()}
+                            </p>
+                          )}
+                          <div className="mt-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-[#500000] dark:text-[#FFCF3F] border-[#500000]/40 dark:border-[#FFCF3F]/40"
+                              onClick={async () => {
+                                try {
+                                  await removePushSubscription(device.endpoint);
+                                  setDevices((prev) =>
+                                    prev.filter((d) => d.id !== device.id),
+                                  );
+                                } catch (e) {
+                                  setDevicesError(
+                                    e instanceof Error
+                                      ? e.message
+                                      : "Failed to remove device",
+                                  );
+                                }
+                              }}
+                            >
+                              Remove device
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                </CollapsibleContent>
+              </Collapsible>
+            </div>
+
             <div className="pt-6 border-t border-[#500000]/10 dark:border-[#FFCF3F]/10 mt-6">
               <h3 className="text-lg font-semibold text-heading dark:text-white mb-2">
                 Watched classes

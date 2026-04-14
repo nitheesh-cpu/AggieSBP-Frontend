@@ -843,6 +843,40 @@ export interface CourseSection {
   meetings: SectionMeeting[];
 }
 
+export interface DiscoverScheduleBlock {
+  days: string[];
+  start: string;
+  end: string;
+}
+
+export interface DiscoverFitCourseMatch {
+  course_key: string;
+  dept: string;
+  course_number: string;
+  course_title: string;
+  compatible_section_count: number;
+  sample_section_id?: string | null;
+  sample_crn?: string | null;
+}
+
+export async function getDiscoverFitMatches(
+  termCode: string,
+  courseKeys: string[],
+  scheduleBlocks: DiscoverScheduleBlock[],
+): Promise<DiscoverFitCourseMatch[]> {
+  const response = await fetch(`${API_BASE_URL}/discover/${termCode}/fit-sections`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      course_keys: courseKeys,
+      schedule_blocks: scheduleBlocks,
+    }),
+  });
+  return handleResponse<DiscoverFitCourseMatch[]>(response);
+}
+
 export async function getCourseSectionsForTerm(
   termCode: string,
   courseId: string,
@@ -954,6 +988,8 @@ export async function getTrackedSections(): Promise<TrackedSection[]> {
 export async function savePushSubscription(subscription: {
   endpoint: string;
   keys?: { p256dh?: string; auth?: string };
+  device_name?: string;
+  user_agent?: string;
 }): Promise<void> {
   const p256dh = subscription.keys?.p256dh ?? "";
   const authKey = subscription.keys?.auth ?? "";
@@ -964,6 +1000,8 @@ export async function savePushSubscription(subscription: {
       endpoint: subscription.endpoint,
       p256dh,
       auth: authKey,
+      device_name: subscription.device_name ?? null,
+      user_agent: subscription.user_agent ?? null,
     }),
   });
   return handleResponse<void>(response);
@@ -985,6 +1023,22 @@ export async function removePushSubscription(endpoint: string): Promise<void> {
     body: JSON.stringify({ endpoint }),
   });
   return handleResponse<void>(response);
+}
+
+export interface PushSubscriptionDevice {
+  id: string;
+  endpoint: string;
+  device_name?: string | null;
+  user_agent?: string | null;
+  created_at?: string | null;
+  last_seen_at?: string | null;
+}
+
+export async function getPushSubscriptions(): Promise<PushSubscriptionDevice[]> {
+  const response = await fetch(`${API_BASE_URL}/users/push-subscriptions`, {
+    headers: await authHeaders({ "Content-Type": "application/json" }),
+  });
+  return handleResponse<PushSubscriptionDevice[]>(response);
 }
 
 export async function subscribeToSectionPush(

@@ -88,7 +88,7 @@ export function HomePageMotion() {
 
         <main>
           <HomeHeroScroll />
-          <HomeDataStats />
+          <QuickLinks />
 
           {/* Scroll reveal sections */}
           <AnimatedSection delay={0.02}>
@@ -96,7 +96,7 @@ export function HomePageMotion() {
           </AnimatedSection>
 
           <AnimatedSection delay={0.04}>
-            <QuickLinks />
+            <HomeDataStats />
           </AnimatedSection>
 
           <AnimatedSection delay={0.04}>

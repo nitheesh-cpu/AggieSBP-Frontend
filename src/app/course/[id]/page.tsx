@@ -46,6 +46,7 @@ import {
   Briefcase,
   UserCircle,
   ScrollText,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 import { useComparison } from "@/contexts/ComparisonContext";

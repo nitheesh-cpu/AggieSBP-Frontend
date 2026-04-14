@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
@@ -14,10 +14,21 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   getTerms,
   getDiscoverFitMatches,
+  postDiscoverFitSectionAttributeOptions,
+  postDiscoverFitSectionCampusOptions,
   type DiscoverFitCourseMatch,
+  type DiscoverFitSeatFilter,
 } from "@/lib/api";
 import {
   Loader2,
@@ -26,6 +37,8 @@ import {
   Plus,
   Trash2,
   CheckCircle2,
+  ChevronDown,
+  Filter,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -49,6 +62,9 @@ type DepartmentApiItem = { code?: string; name?: string };
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL?.trim() || "http://localhost:8000";
+
+/** Radix Select cannot use empty string as a value; maps to “any campus”. */
+const FIT_CAMPUS_SELECT_ANY = "__fit_campus_any__";
 
 const UCC_CATEGORY_OPTIONS = [
   "Core American History (KHIS)",
@@ -89,6 +105,28 @@ function formatMinutes(total: number): string {
   return `${hh}:${mm}`;
 }
 
+function buildFitResults(
+  candidates: DiscoverCourse[],
+  matches: DiscoverFitCourseMatch[],
+): FitResult[] {
+  const matchMap = new Map<string, DiscoverFitCourseMatch>();
+  for (const m of matches) {
+    matchMap.set(m.course_key.toUpperCase(), m);
+  }
+  return candidates
+    .map((c) => {
+      const key = `${c.dept}-${c.courseNumber}`.toUpperCase();
+      const found = matchMap.get(key);
+      if (!found) return null;
+      return {
+        course: c,
+        compatibleSectionCount: found.compatible_section_count,
+        sampleCrn: found.sample_crn ?? null,
+      };
+    })
+    .filter((v): v is FitResult => v !== null);
+}
+
 export default function DiscoverFitPage() {
   const [terms, setTerms] = useState<Term[]>([]);
   const [termCode, setTermCode] = useState("");
@@ -110,6 +148,22 @@ export default function DiscoverFitPage() {
   const [courses, setCourses] = useState<DiscoverCourse[]>([]);
   const [fitResults, setFitResults] = useState<FitResult[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [seatFilter, setSeatFilter] = useState<DiscoverFitSeatFilter>("any");
+  const [selectedAttributeDescs, setSelectedAttributeDescs] = useState<string[]>([]);
+  const [attributeOptions, setAttributeOptions] = useState<string[]>([]);
+  const [sectionCampus, setSectionCampus] = useState("");
+  const [campusOptions, setCampusOptions] = useState<string[]>([]);
+  const [attributeSearch, setAttributeSearch] = useState("");
+  const [filteringFit, setFilteringFit] = useState(false);
+  const [fitReady, setFitReady] = useState(false);
+  const hasCompletedFitOnceRef = useRef(false);
+  const filterRequestId = useRef(0);
+  const coursesRef = useRef(courses);
+  const blocksRef = useRef(blocks);
+  const termCodeRef = useRef(termCode);
+  coursesRef.current = courses;
+  blocksRef.current = blocks;
+  termCodeRef.current = termCode;
 
   React.useEffect(() => {
     if (typeof window === "undefined") return;
@@ -212,6 +266,49 @@ export default function DiscoverFitPage() {
     return null;
   }, [blocks]);
 
+  useEffect(() => {
+    if (!hasCompletedFitOnceRef.current) return;
+    if (!termCodeRef.current || coursesRef.current.length === 0) return;
+    if (blockValidationError) return;
+    const reqId = ++filterRequestId.current;
+    let cancelled = false;
+    void (async () => {
+      setFilteringFit(true);
+      try {
+        const list = coursesRef.current;
+        const matches = await getDiscoverFitMatches(
+          termCodeRef.current,
+          list.map((c) => `${c.dept}-${c.courseNumber}`),
+          blocksRef.current.map((b) => ({
+            days: b.days,
+            start: b.start,
+            end: b.end,
+          })),
+          {
+            seatFilter,
+            sectionAttributeDescs: selectedAttributeDescs,
+            ...(sectionCampus.trim()
+              ? { sectionCampus: sectionCampus.trim() }
+              : {}),
+          },
+        );
+        if (cancelled || filterRequestId.current !== reqId) return;
+        setFitResults(buildFitResults(list, matches));
+      } catch (e) {
+        if (!cancelled && filterRequestId.current === reqId) {
+          setError(e instanceof Error ? e.message : "Failed to update fit filters.");
+        }
+      } finally {
+        if (!cancelled && filterRequestId.current === reqId) {
+          setFilteringFit(false);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [seatFilter, selectedAttributeDescs, sectionCampus, blockValidationError]);
+
   const filteredDepartments = useMemo(() => {
     const source = termCode ? departments : allDepartments;
     const q = departmentSearch.trim().toLowerCase();
@@ -222,6 +319,17 @@ export default function DiscoverFitPage() {
         (d.name || "").toLowerCase().includes(q),
     );
   }, [departments, allDepartments, departmentSearch, termCode]);
+
+  const filteredAttributeOptions = useMemo(() => {
+    const q = attributeSearch.trim().toLowerCase();
+    if (!q) return attributeOptions;
+    return attributeOptions.filter((a) => a.toLowerCase().includes(q));
+  }, [attributeOptions, attributeSearch]);
+
+  const hasActiveSectionFilters =
+    seatFilter !== "any" ||
+    selectedAttributeDescs.length > 0 ||
+    sectionCampus.trim().length > 0;
 
   const addBlock = () =>
     setBlocks((prev) => [
@@ -329,6 +437,14 @@ export default function DiscoverFitPage() {
     setLoadingCandidates(true);
     setLoadingFit(true);
     setFitResults([]);
+    setSeatFilter("any");
+    setSelectedAttributeDescs([]);
+    setSectionCampus("");
+    setAttributeSearch("");
+    setAttributeOptions([]);
+    setCampusOptions([]);
+    hasCompletedFitOnceRef.current = false;
+    setFitReady(false);
     try {
       const candidates = await fetchCandidates();
       setCourses(candidates);
@@ -352,24 +468,22 @@ export default function DiscoverFitPage() {
           start: b.start,
           end: b.end,
         })),
+        { seatFilter: "any", sectionAttributeDescs: [] },
       );
-      const matchMap = new Map<string, DiscoverFitCourseMatch>();
-      for (const m of matches) {
-        matchMap.set(m.course_key.toUpperCase(), m);
+      setFitResults(buildFitResults(candidates, matches));
+      try {
+        const [attrOpts, siteOpts] = await Promise.all([
+          postDiscoverFitSectionAttributeOptions(termCode, courseKeys),
+          postDiscoverFitSectionCampusOptions(termCode, courseKeys),
+        ]);
+        setAttributeOptions(Array.isArray(attrOpts) ? attrOpts : []);
+        setCampusOptions(Array.isArray(siteOpts) ? siteOpts : []);
+      } catch {
+        setAttributeOptions([]);
+        setCampusOptions([]);
       }
-      const fits = candidates
-        .map((c) => {
-          const key = `${c.dept}-${c.courseNumber}`.toUpperCase();
-          const found = matchMap.get(key);
-          if (!found) return null;
-          return {
-            course: c,
-            compatibleSectionCount: found.compatible_section_count,
-            sampleCrn: found.sample_crn ?? null,
-          };
-        })
-        .filter((v): v is FitResult => v !== null);
-      setFitResults(fits);
+      hasCompletedFitOnceRef.current = true;
+      setFitReady(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load candidate classes.");
     } finally {
@@ -386,6 +500,13 @@ export default function DiscoverFitPage() {
     );
     setCourses([]);
     setFitResults([]);
+    hasCompletedFitOnceRef.current = false;
+    setFitReady(false);
+    setSeatFilter("any");
+    setSelectedAttributeDescs([]);
+    setSectionCampus("");
+    setAttributeOptions([]);
+    setCampusOptions([]);
   };
 
   const toggleUcc = (category: string) => {
@@ -396,6 +517,13 @@ export default function DiscoverFitPage() {
     );
     setCourses([]);
     setFitResults([]);
+    hasCompletedFitOnceRef.current = false;
+    setFitReady(false);
+    setSeatFilter("any");
+    setSelectedAttributeDescs([]);
+    setSectionCampus("");
+    setAttributeOptions([]);
+    setCampusOptions([]);
   };
 
   const toggleBlockDay = (id: string, day: Day) => {
@@ -444,6 +572,13 @@ export default function DiscoverFitPage() {
               setMode(v as "ucc" | "department");
               setCourses([]);
               setFitResults([]);
+              hasCompletedFitOnceRef.current = false;
+              setFitReady(false);
+              setSeatFilter("any");
+              setSelectedAttributeDescs([]);
+              setSectionCampus("");
+              setAttributeOptions([]);
+              setCampusOptions([]);
             }}
           >
             <SelectTrigger><SelectValue /></SelectTrigger>
@@ -470,6 +605,13 @@ export default function DiscoverFitPage() {
                     else setSelectedDepartments([]);
                     setCourses([]);
                     setFitResults([]);
+                    hasCompletedFitOnceRef.current = false;
+                    setFitReady(false);
+                    setSeatFilter("any");
+                    setSelectedAttributeDescs([]);
+                    setSectionCampus("");
+                    setAttributeOptions([]);
+                    setCampusOptions([]);
                   }}
                 >
                   Clear selected
@@ -649,77 +791,235 @@ export default function DiscoverFitPage() {
 
         {!loadingCandidates && courses.length > 0 && (
           <p className="text-sm text-text-body dark:text-white/70">
-            {fitResults.length} of {courses.length} candidate classes have at least one
-            section that fits your current schedule.
+            {fitResults.length} of {courses.length} candidate classes
+            {hasActiveSectionFilters
+              ? " have at least one section that fits your schedule and matches the filters below."
+              : " have at least one section that fits your current schedule."}
           </p>
         )}
 
-        {!loadingFit && fitResults.length > 0 && (
+        {!loadingCandidates && courses.length > 0 && !loadingFit && (
           <Card className="bg-white/55 dark:bg-black/45 backdrop-blur-md border-border">
-            <CardContent className="pt-4">
-              <div className="overflow-x-auto rounded-md border border-border">
-                <table className="w-full min-w-[760px] text-sm">
-                  <thead className="bg-black/5 dark:bg-white/5">
-                    <tr className="text-left">
-                      <th className="px-3 py-2 font-semibold text-text-heading dark:text-white">
-                        Course
-                      </th>
-                      <th className="px-3 py-2 font-semibold text-text-heading dark:text-white">
-                        Title
-                      </th>
-                      <th className="px-3 py-2 font-semibold text-text-heading dark:text-white whitespace-nowrap">
-                        Easiness
-                      </th>
-                      <th className="px-3 py-2 font-semibold text-text-heading dark:text-white whitespace-nowrap">
-                        Compatible Sections
-                      </th>
-                      <th className="px-3 py-2 font-semibold text-text-heading dark:text-white whitespace-nowrap">
-                        Example CRN
-                      </th>
-                      <th className="px-3 py-2 font-semibold text-text-heading dark:text-white text-right">
-                        Action
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {fitResults.map(({ course, compatibleSectionCount, sampleCrn }) => (
-                      <tr
-                        key={`${course.dept}-${course.courseNumber}`}
-                        className="border-t border-border/80"
+            <CardContent className="pt-4 space-y-4">
+              <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-end">
+                <div className="flex items-center gap-2 text-text-heading dark:text-white">
+                  <Filter className="w-4 h-4 shrink-0 text-accent" />
+                  <span className="text-sm font-semibold">Refine by section</span>
+                </div>
+                <div className="flex flex-col gap-1.5 min-w-[200px]">
+                  <Label className="text-xs text-text-body dark:text-white/70">
+                    Campus
+                  </Label>
+                  <Select
+                    value={sectionCampus.trim() ? sectionCampus : FIT_CAMPUS_SELECT_ANY}
+                    onValueChange={(v) =>
+                      setSectionCampus(v === FIT_CAMPUS_SELECT_ANY ? "" : v)
+                    }
+                  >
+                    <SelectTrigger className="h-9 w-full sm:w-[220px]">
+                      <SelectValue placeholder="Any campus" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={FIT_CAMPUS_SELECT_ANY}>Any campus</SelectItem>
+                      {campusOptions.map((c) => (
+                        <SelectItem key={c} value={c}>
+                          {c}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex flex-col gap-1.5 min-w-[200px]">
+                  <Label className="text-xs text-text-body dark:text-white/70">
+                    Seats
+                  </Label>
+                  <Select
+                    value={seatFilter}
+                    onValueChange={(v) => setSeatFilter(v as DiscoverFitSeatFilter)}
+                  >
+                    <SelectTrigger className="h-9 w-full sm:w-[200px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="any">Open or full</SelectItem>
+                      <SelectItem value="open">Open only</SelectItem>
+                      <SelectItem value="full">Full only</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex flex-col gap-1.5 min-w-[220px]">
+                  <Label className="text-xs text-text-body dark:text-white/70">
+                    Catalog attributes
+                  </Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="h-9 w-full sm:w-[260px] justify-between font-normal"
+                        type="button"
                       >
-                        <td className="px-3 py-2.5 font-medium text-text-heading dark:text-white whitespace-nowrap">
-                          {course.dept} {course.courseNumber}
-                        </td>
-                        <td className="px-3 py-2.5 text-text-body dark:text-white/75 max-w-[360px] truncate">
-                          {course.courseTitle}
-                        </td>
-                        <td className="px-3 py-2.5 whitespace-nowrap">
-                          <Badge className="bg-[#FFCF3F]/10 text-[#FFCF3F] border-transparent px-2 py-0.5">
-                            <Sparkles className="w-3 h-3 mr-1" />
-                            {course.easinessScore.toFixed(1)}
-                          </Badge>
-                        </td>
-                        <td className="px-3 py-2.5 text-text-body dark:text-white/75 whitespace-nowrap">
-                          {compatibleSectionCount}
-                        </td>
-                        <td className="px-3 py-2.5 text-text-body dark:text-white/75 whitespace-nowrap">
-                          {sampleCrn ?? "-"}
-                        </td>
-                        <td className="px-3 py-2.5 text-right">
-                          <Link
-                            href={`/course/${`${course.dept}${course.courseNumber}`.replace(/\s+/g, "")}`}
+                        <span className="truncate text-left">
+                          {selectedAttributeDescs.length === 0
+                            ? "Any attribute"
+                            : `${selectedAttributeDescs.length} selected`}
+                        </span>
+                        <ChevronDown className="w-4 h-4 shrink-0 opacity-60" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[min(100vw-2rem,380px)] p-0" align="start">
+                      <div className="p-2 border-b border-border">
+                        <Input
+                          placeholder="Search attributes…"
+                          value={attributeSearch}
+                          onChange={(e) => setAttributeSearch(e.target.value)}
+                          className="h-8 text-sm"
+                        />
+                      </div>
+                      <ScrollArea className="h-[min(50vh,280px)]">
+                        <div className="p-2 space-y-1">
+                          {attributeOptions.length === 0 && (
+                            <p className="text-xs text-text-body dark:text-white/60 px-1 py-2">
+                              No attribute list for these courses (data may be missing for this
+                              term).
+                            </p>
+                          )}
+                          {filteredAttributeOptions.map((attr) => {
+                            const checked = selectedAttributeDescs.includes(attr);
+                            return (
+                              <label
+                                key={attr}
+                                className="flex items-start gap-2 rounded-md px-2 py-1.5 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer"
+                              >
+                                <Checkbox
+                                  checked={checked}
+                                  onCheckedChange={() => {
+                                    setSelectedAttributeDescs((prev) =>
+                                      prev.includes(attr)
+                                        ? prev.filter((x) => x !== attr)
+                                        : [...prev, attr],
+                                    );
+                                  }}
+                                  className="mt-0.5"
+                                />
+                                <span className="text-xs leading-snug text-text-body dark:text-white/80">
+                                  {attr}
+                                </span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </ScrollArea>
+                      {selectedAttributeDescs.length > 0 && (
+                        <div className="p-2 border-t border-border">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-full text-xs"
+                            onClick={() => setSelectedAttributeDescs([])}
                           >
-                            <Button variant="outline" size="sm" className="h-8 text-xs">
-                              <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
-                              View
-                            </Button>
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                            Clear attributes
+                          </Button>
+                        </div>
+                      )}
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <p className="text-xs text-text-body dark:text-white/60 max-w-xl">
+                  <span className="font-medium text-text-heading/90 dark:text-white/70">
+                    Campus
+                  </span>{" "}
+                  uses the registration site on each section (College Station vs Galveston, etc.).
+                  <span className="font-medium text-text-heading/90 dark:text-white/70">
+                    {" "}
+                    Catalog attributes
+                  </span>{" "}
+                  come from Howdy’s attribute list (UCC tags, honors, distance, etc.); multiple
+                  selections match if a section has any one of them (OR). Counts only include
+                  sections that fit your time blocks and pass the seat filter.
+                </p>
               </div>
+
+              {filteringFit && (
+                <p className="text-sm text-text-body dark:text-white/75 flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                  Updating results…
+                </p>
+              )}
+
+              {!filteringFit && fitResults.length > 0 && (
+                <div className="overflow-x-auto rounded-md border border-border">
+                  <table className="w-full min-w-[760px] text-sm">
+                    <thead className="bg-black/5 dark:bg-white/5">
+                      <tr className="text-left">
+                        <th className="px-3 py-2 font-semibold text-text-heading dark:text-white">
+                          Course
+                        </th>
+                        <th className="px-3 py-2 font-semibold text-text-heading dark:text-white">
+                          Title
+                        </th>
+                        <th className="px-3 py-2 font-semibold text-text-heading dark:text-white whitespace-nowrap">
+                          Easiness
+                        </th>
+                        <th className="px-3 py-2 font-semibold text-text-heading dark:text-white whitespace-nowrap">
+                          Compatible Sections
+                        </th>
+                        <th className="px-3 py-2 font-semibold text-text-heading dark:text-white whitespace-nowrap">
+                          Example CRN
+                        </th>
+                        <th className="px-3 py-2 font-semibold text-text-heading dark:text-white text-right">
+                          Action
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {fitResults.map(({ course, compatibleSectionCount, sampleCrn }) => (
+                        <tr
+                          key={`${course.dept}-${course.courseNumber}`}
+                          className="border-t border-border/80"
+                        >
+                          <td className="px-3 py-2.5 font-medium text-text-heading dark:text-white whitespace-nowrap">
+                            {course.dept} {course.courseNumber}
+                          </td>
+                          <td className="px-3 py-2.5 text-text-body dark:text-white/75 max-w-[360px] truncate">
+                            {course.courseTitle}
+                          </td>
+                          <td className="px-3 py-2.5 whitespace-nowrap">
+                            <Badge className="bg-[#FFCF3F]/10 text-[#FFCF3F] border-transparent px-2 py-0.5">
+                              <Sparkles className="w-3 h-3 mr-1" />
+                              {course.easinessScore.toFixed(1)}
+                            </Badge>
+                          </td>
+                          <td className="px-3 py-2.5 text-text-body dark:text-white/75 whitespace-nowrap">
+                            {compatibleSectionCount}
+                          </td>
+                          <td className="px-3 py-2.5 text-text-body dark:text-white/75 whitespace-nowrap">
+                            {sampleCrn ?? "-"}
+                          </td>
+                          <td className="px-3 py-2.5 text-right">
+                            <Link
+                              href={`/course/${`${course.dept}${course.courseNumber}`.replace(/\s+/g, "")}`}
+                            >
+                              <Button variant="outline" size="sm" className="h-8 text-xs">
+                                <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+                                View
+                              </Button>
+                            </Link>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {!filteringFit && fitResults.length === 0 && fitReady && (
+                <p className="text-sm text-text-body dark:text-white/75">
+                  {hasActiveSectionFilters
+                    ? "No courses still have a compatible section under these filters. Try “Any campus”, “Open or full”, clearing catalog attributes, or broadening your search."
+                    : "None of the candidate courses have a section that fits your current time blocks."}
+                </p>
+              )}
             </CardContent>
           </Card>
         )}

@@ -971,6 +971,27 @@ export interface Schedule extends ScheduleData {
   selected_courses?: any[];
 }
 
+export interface SignInMethodSummary {
+  recipe: string;
+  label: string;
+  email?: string | null;
+  provider?: string | null;
+}
+
+export interface AccountSummary {
+  user_id: string;
+  emails: string[];
+  primary_email?: string | null;
+  sign_in_methods: SignInMethodSummary[];
+}
+
+export async function getAccountSummary(): Promise<AccountSummary> {
+  const response = await fetch(`${API_BASE_URL}/users/me`, {
+    headers: await authHeaders({ "Content-Type": "application/json" }),
+  });
+  return handleResponse<AccountSummary>(response);
+}
+
 export async function saveSchedule(schedule: ScheduleData): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/users/schedules`, {
     method: "POST",

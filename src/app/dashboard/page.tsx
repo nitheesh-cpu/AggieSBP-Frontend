@@ -107,34 +107,34 @@ export default function DashboardPage() {
       <main
         className={
           isStandalone
-            ? "relative z-10 flex flex-1 min-h-0 flex-col px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-14 sm:px-3 sm:pt-16"
+            ? "relative z-10 flex flex-1 min-h-0 flex-col px-5 pt-16 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:px-8 sm:pt-[4.25rem]"
             : "relative z-10 flex-grow px-4 pb-16 pt-20 sm:pt-24"
         }
       >
         {isStandalone ? (
-          <div className="flex min-h-0 flex-1 flex-col gap-2">
+          <div className="flex min-h-0 flex-1 flex-col gap-4">
             {standalonePrimary ? (
               <Link
                 href={standalonePrimary.href}
-                className="flex shrink-0 items-center justify-center gap-2 rounded-xl border border-[#500000] bg-[#500000] px-4 py-4 text-base font-semibold text-white transition-colors hover:bg-[#3d0000] dark:border-[#FFCF3F] dark:bg-[#FFCF3F] dark:text-black dark:hover:bg-[#FFD966] sm:py-5"
+                className="flex shrink-0 items-center justify-center gap-2 rounded-xl border border-[#500000] bg-[#500000] px-5 py-4 text-base font-semibold text-white transition-colors hover:bg-[#3d0000] dark:border-[#FFCF3F] dark:bg-[#FFCF3F] dark:text-black dark:hover:bg-[#FFD966] sm:py-5"
               >
                 <Bell className="h-5 w-5 shrink-0" aria-hidden />
                 {standalonePrimary.name}
               </Link>
             ) : null}
-            <div className="grid min-h-0 flex-1 grid-cols-2 gap-2 [grid-template-rows:repeat(4,minmax(0,1fr))]">
+            <div className="grid min-h-0 flex-1 grid-cols-2 gap-3 [grid-template-rows:repeat(4,minmax(0,1fr))] sm:gap-4">
               {standaloneRest.map((item) => (
                 <Link
                   key={`${item.href}-${item.name}`}
                   href={item.href}
-                  className="flex min-h-0 min-w-0 items-center justify-center rounded-xl border border-[#500000]/20 bg-white/90 px-2 py-2 text-center text-sm font-medium text-heading transition-colors hover:bg-[#500000]/5 dark:border-[#FFCF3F]/25 dark:bg-black/50 dark:text-white/90 dark:hover:bg-white/10 sm:text-[15px]"
+                  className="flex min-h-0 min-w-0 items-center justify-center rounded-xl border border-[#500000]/20 bg-white/90 px-3 py-4 text-center text-sm font-medium text-heading transition-colors hover:bg-[#500000]/5 dark:border-[#FFCF3F]/25 dark:bg-black/50 dark:text-white/90 dark:hover:bg-white/10 sm:px-4 sm:text-[15px]"
                 >
                   <span className="line-clamp-2 leading-snug">{item.name}</span>
                 </Link>
               ))}
             </div>
-            <Link href="/compare" className="shrink-0">
-              <Button className="h-12 w-full rounded-xl bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966] sm:h-14">
+            <Link href="/compare" className="shrink-0 pt-1">
+              <Button className="h-12 w-full rounded-xl bg-[#FFCF3F] px-4 text-[#0f0f0f] hover:bg-[#FFD966] sm:h-14">
                 Start comparing
               </Button>
             </Link>

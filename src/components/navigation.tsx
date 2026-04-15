@@ -6,8 +6,9 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { ChevronDown } from "lucide-react";
+import { Bell, ChevronDown } from "lucide-react";
 import { UserMenu } from "@/components/user-menu";
+import { MOBILE_APP_QUICK_LINKS } from "@/lib/nav-quick-links";
 
 interface NavigationProps {
   className?: string;
@@ -22,8 +23,6 @@ export const Navigation = ({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [isDiscoverOpen, setIsDiscoverOpen] = React.useState(false);
   const [isSearchOpen, setIsSearchOpen] = React.useState(false);
-  const [isMobileDiscoverOpen, setIsMobileDiscoverOpen] = React.useState(false);
-  const [isMobileSearchOpen, setIsMobileSearchOpen] = React.useState(false);
   const isOverlay = variant === "transparent" || variant === "glass";
 
   // IMPORTANT: Don't compute theme-dependent inline styles here.
@@ -48,8 +47,6 @@ export const Navigation = ({
   // Close the mobile menu on route change.
   React.useEffect(() => {
     setIsMobileMenuOpen(false);
-    setIsMobileDiscoverOpen(false);
-    setIsMobileSearchOpen(false);
   }, [pathname]);
 
   // Lock body scroll while menu is open.
@@ -294,113 +291,44 @@ export const Navigation = ({
               exit={{ y: -10, opacity: 0 }}
               transition={{ duration: 0.2 }}
             >
-              <div className="px-6 py-5 space-y-3">
-                {navItems.map((item) => (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="block text-heading hover:text-heading dark:text-white/90 dark:hover:text-white text-base font-medium"
-                  >
-                    {item.name}
-                  </Link>
-                ))}
-
-                {/* Mobile Search Dropdown */}
-                <div>
-                  <button
-                    onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
-                    className="flex items-center justify-between w-full text-heading hover:text-heading dark:text-white/90 dark:hover:text-white text-base font-medium"
-                  >
-                    Search
-                    <ChevronDown className={`w-4 h-4 transition-transform ${isMobileSearchOpen ? "rotate-180" : ""}`} />
-                  </button>
-                  <AnimatePresence>
-                    {isMobileSearchOpen && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="pl-4 pt-2 space-y-2">
-                          {searchItems.map((item) => (
-                            <Link
-                              key={item.name}
-                              href={item.href}
-                              onClick={() => setIsMobileMenuOpen(false)}
-                              className="block text-body hover:text-heading dark:text-white/70 dark:hover:text-white text-sm"
-                            >
-                              {item.name}
-                            </Link>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+              <div className="px-4 py-4 max-h-[min(70vh,calc(100dvh-5.5rem))] overflow-y-auto">
+                <p className="text-xs font-medium text-text-body dark:text-white/60 mb-3 px-1">
+                  Quick links
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {MOBILE_APP_QUICK_LINKS.map((item) => (
+                    <Link
+                      key={`${item.href}-${item.name}`}
+                      href={item.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={
+                        item.emphasis
+                          ? "col-span-2 flex items-center justify-center gap-2 min-h-[52px] rounded-xl px-4 py-3 text-sm font-semibold text-center transition-colors bg-[#500000] text-white border border-[#500000] hover:bg-[#3d0000] dark:bg-[#FFCF3F] dark:text-black dark:border-[#FFCF3F] dark:hover:bg-[#FFD966]"
+                          : "flex items-center justify-center min-h-[48px] rounded-xl px-2 py-2.5 text-sm font-medium text-center transition-colors border bg-white/90 text-heading border-[#500000]/20 hover:bg-[#500000]/5 dark:bg-black/50 dark:text-white/90 dark:border-[#FFCF3F]/25 dark:hover:bg-white/10"
+                      }
+                    >
+                      {item.emphasis ? (
+                        <>
+                          <Bell className="w-4 h-4 shrink-0" aria-hidden />
+                          {item.name}
+                        </>
+                      ) : (
+                        item.name
+                      )}
+                    </Link>
+                  ))}
                 </div>
 
-                {/* Mobile Discover Dropdown */}
-                <div>
-                  <button
-                    onClick={() => setIsMobileDiscoverOpen(!isMobileDiscoverOpen)}
-                    className="flex items-center justify-between w-full text-heading hover:text-heading dark:text-white/90 dark:hover:text-white text-base font-medium"
-                  >
-                    Discover
-                    <ChevronDown className={`w-4 h-4 transition-transform ${isMobileDiscoverOpen ? "rotate-180" : ""}`} />
-                  </button>
-                  <AnimatePresence>
-                    {isMobileDiscoverOpen && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="pl-4 pt-2 space-y-2">
-                          {discoverItems.map((item) => (
-                            <Link
-                              key={item.name}
-                              href={item.href}
-                              onClick={() => setIsMobileMenuOpen(false)}
-                              className="block text-body hover:text-heading dark:text-white/70 dark:hover:text-white text-sm"
-                            >
-                              {item.name}
-                            </Link>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-
-                <Link
-                  href="/compare"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block text-heading hover:text-heading dark:text-white/90 dark:hover:text-white text-base font-medium"
-                >
-                  Compare
-                </Link>
-
-                <div className="pt-2 border-t border-border/10">
-                  <div className="flex items-center justify-between gap-3 pb-3">
-                    <span className="text-sm text-body dark:text-white/70">
-                      Account
-                    </span>
+                <div className="mt-5 pt-4 border-t border-border/20 dark:border-white/10 space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-sm text-body dark:text-white/70">Account</span>
                     <UserMenu />
                   </div>
-                  <div className="flex items-center justify-between gap-3 pb-3">
-                    <span className="text-sm text-body dark:text-white/70">
-                      Theme
-                    </span>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-sm text-body dark:text-white/70">Theme</span>
                     <ThemeToggle />
                   </div>
-                  <Link
-                    href="/compare"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
+                  <Link href="/compare" onClick={() => setIsMobileMenuOpen(false)}>
                     <Button className="w-full bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966] rounded-full">
                       Start comparing
                     </Button>

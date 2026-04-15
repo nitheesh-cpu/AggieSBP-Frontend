@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
+import { Button } from "@/components/ui/button";
 import { motion } from "motion/react";
 import {
   BookOpen,
@@ -14,6 +15,7 @@ import {
   Award,
   Search,
 } from "lucide-react";
+import { MOBILE_APP_QUICK_LINKS } from "@/lib/nav-quick-links";
 
 type DashboardAction = {
   title: string;
@@ -23,6 +25,12 @@ type DashboardAction = {
 };
 
 const ACTIONS: DashboardAction[] = [
+  {
+    title: "My alerts & watched sections",
+    description: "Manage seat-open alerts and test notifications.",
+    href: "/profile/alerts",
+    icon: <Bell className="w-5 h-5 sm:w-6 sm:h-6" />,
+  },
   {
     title: "Browse courses",
     description: "Search courses, filter by difficulty and GPA, and pick sections.",
@@ -58,12 +66,6 @@ const ACTIONS: DashboardAction[] = [
     description: "See reviews, GPA data, and AI summaries.",
     href: "/professors",
     icon: <Users className="w-5 h-5 sm:w-6 sm:h-6" />,
-  },
-  {
-    title: "My alerts & watched sections",
-    description: "Manage seat-open alerts and test notifications.",
-    href: "/profile/alerts",
-    icon: <Bell className="w-5 h-5 sm:w-6 sm:h-6" />,
   },
 ];
 
@@ -111,34 +113,69 @@ export default function DashboardPage() {
             </h1>
             {isStandalone && (
               <p className="text-xs text-emerald-600 dark:text-emerald-400">
-                App mode detected — use the cards below to jump straight into
-                common tasks.
+                App mode detected — use the quick links below (same as the mobile
+                menu).
               </p>
             )}
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            {ACTIONS.map((action) => (
-              <Link key={action.title} href={action.href}>
-                <motion.div
-                  whileTap={{ scale: 0.97 }}
-                  className="h-full rounded-2xl border border-border/60 dark:border-white/10 bg-white/70 dark:bg-black/70 p-3 sm:p-4 flex gap-2.5 sm:gap-3 items-start shadow-sm active:shadow-none"
-                >
-                  <div className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-[#500000]/8 dark:bg-[#FFCF3F]/15 text-[#500000] dark:text-[#FFCF3F]">
-                    {action.icon}
-                  </div>
-                  <div className="flex-1">
-                    <h2 className="text-[13px] sm:text-sm font-semibold text-heading dark:text-white mb-0.5 sm:mb-1">
-                      {action.title}
-                    </h2>
-                    <p className="text-xs text-body dark:text-gray-400">
-                      {action.description}
-                    </p>
-                  </div>
-                </motion.div>
+          {isStandalone ? (
+            <div className="space-y-3">
+              <p className="text-xs font-medium text-text-body dark:text-white/60 px-1">
+                Quick links
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {MOBILE_APP_QUICK_LINKS.map((item) => (
+                  <Link
+                    key={`${item.href}-${item.name}`}
+                    href={item.href}
+                    className={
+                      item.emphasis
+                        ? "col-span-2 flex items-center justify-center gap-2 min-h-[52px] rounded-xl px-4 py-3 text-sm font-semibold text-center transition-colors bg-[#500000] text-white border border-[#500000] hover:bg-[#3d0000] dark:bg-[#FFCF3F] dark:text-black dark:border-[#FFCF3F] dark:hover:bg-[#FFD966]"
+                        : "flex items-center justify-center min-h-[48px] rounded-xl px-2 py-2.5 text-sm font-medium text-center transition-colors border bg-white/90 text-heading border-[#500000]/20 hover:bg-[#500000]/5 dark:bg-black/50 dark:text-white/90 dark:border-[#FFCF3F]/25 dark:hover:bg-white/10"
+                    }
+                  >
+                    {item.emphasis ? (
+                      <>
+                        <Bell className="w-4 h-4 shrink-0" aria-hidden />
+                        {item.name}
+                      </>
+                    ) : (
+                      item.name
+                    )}
+                  </Link>
+                ))}
+              </div>
+              <Link href="/compare">
+                <Button className="w-full mt-2 bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966] rounded-full">
+                  Start comparing
+                </Button>
               </Link>
-            ))}
-          </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              {ACTIONS.map((action) => (
+                <Link key={action.title} href={action.href}>
+                  <motion.div
+                    whileTap={{ scale: 0.97 }}
+                    className="h-full rounded-2xl border border-border/60 dark:border-white/10 bg-white/70 dark:bg-black/70 p-3 sm:p-4 flex gap-2.5 sm:gap-3 items-start shadow-sm active:shadow-none"
+                  >
+                    <div className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-[#500000]/8 dark:bg-[#FFCF3F]/15 text-[#500000] dark:text-[#FFCF3F]">
+                      {action.icon}
+                    </div>
+                    <div className="flex-1">
+                      <h2 className="text-[13px] sm:text-sm font-semibold text-heading dark:text-white mb-0.5 sm:mb-1">
+                        {action.title}
+                      </h2>
+                      <p className="text-xs text-body dark:text-gray-400">
+                        {action.description}
+                      </p>
+                    </div>
+                  </motion.div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </main>
 

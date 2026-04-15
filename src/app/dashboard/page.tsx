@@ -81,9 +81,16 @@ export default function DashboardPage() {
     setIsStandalone(mq.matches || iosStandalone);
   }, []);
 
+  const standalonePrimary = MOBILE_APP_QUICK_LINKS.find((l) => l.emphasis);
+  const standaloneRest = MOBILE_APP_QUICK_LINKS.filter((l) => !l.emphasis);
+
   return (
     <div
-      className="min-h-screen relative flex flex-col"
+      className={
+        isStandalone
+          ? "relative flex h-[100dvh] max-h-[100dvh] min-h-0 flex-col overflow-hidden"
+          : "relative flex min-h-screen flex-col"
+      }
       style={{ background: "var(--app-bg-gradient)" }}
     >
       <motion.div
@@ -97,74 +104,69 @@ export default function DashboardPage() {
 
       <Navigation variant="glass" />
 
-      <main className="flex-grow pt-20 sm:pt-24 px-4 pb-16 relative z-10">
-        <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="space-y-1 sm:space-y-2"
-          >
-            <p className="text-xs font-mono uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400 hidden sm:block">
-              AggieSB+ dashboard
-            </p>
-            <h1 className="text-xl sm:text-2xl font-bold text-heading dark:text-white leading-tight">
-              What do you want to do right now?
-            </h1>
-            {isStandalone && (
-              <p className="text-xs text-emerald-600 dark:text-emerald-400">
-                App mode detected — use the quick links below (same as the mobile
-                menu).
-              </p>
-            )}
-          </motion.div>
-
-          {isStandalone ? (
-            <div className="space-y-3">
-              <p className="text-xs font-medium text-text-body dark:text-white/60 px-1">
-                Quick links
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                {MOBILE_APP_QUICK_LINKS.map((item) => (
-                  <Link
-                    key={`${item.href}-${item.name}`}
-                    href={item.href}
-                    className={
-                      item.emphasis
-                        ? "col-span-2 flex items-center justify-center gap-2 min-h-[52px] rounded-xl px-4 py-3 text-sm font-semibold text-center transition-colors bg-[#500000] text-white border border-[#500000] hover:bg-[#3d0000] dark:bg-[#FFCF3F] dark:text-black dark:border-[#FFCF3F] dark:hover:bg-[#FFD966]"
-                        : "flex items-center justify-center min-h-[48px] rounded-xl px-2 py-2.5 text-sm font-medium text-center transition-colors border bg-white/90 text-heading border-[#500000]/20 hover:bg-[#500000]/5 dark:bg-black/50 dark:text-white/90 dark:border-[#FFCF3F]/25 dark:hover:bg-white/10"
-                    }
-                  >
-                    {item.emphasis ? (
-                      <>
-                        <Bell className="w-4 h-4 shrink-0" aria-hidden />
-                        {item.name}
-                      </>
-                    ) : (
-                      item.name
-                    )}
-                  </Link>
-                ))}
-              </div>
-              <Link href="/compare">
-                <Button className="w-full mt-2 bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966] rounded-full">
-                  Start comparing
-                </Button>
+      <main
+        className={
+          isStandalone
+            ? "relative z-10 flex flex-1 min-h-0 flex-col px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-14 sm:px-3 sm:pt-16"
+            : "relative z-10 flex-grow px-4 pb-16 pt-20 sm:pt-24"
+        }
+      >
+        {isStandalone ? (
+          <div className="flex min-h-0 flex-1 flex-col gap-2">
+            {standalonePrimary ? (
+              <Link
+                href={standalonePrimary.href}
+                className="flex shrink-0 items-center justify-center gap-2 rounded-xl border border-[#500000] bg-[#500000] px-4 py-4 text-base font-semibold text-white transition-colors hover:bg-[#3d0000] dark:border-[#FFCF3F] dark:bg-[#FFCF3F] dark:text-black dark:hover:bg-[#FFD966] sm:py-5"
+              >
+                <Bell className="h-5 w-5 shrink-0" aria-hidden />
+                {standalonePrimary.name}
               </Link>
+            ) : null}
+            <div className="grid min-h-0 flex-1 grid-cols-2 gap-2 [grid-template-rows:repeat(4,minmax(0,1fr))]">
+              {standaloneRest.map((item) => (
+                <Link
+                  key={`${item.href}-${item.name}`}
+                  href={item.href}
+                  className="flex min-h-0 min-w-0 items-center justify-center rounded-xl border border-[#500000]/20 bg-white/90 px-2 py-2 text-center text-sm font-medium text-heading transition-colors hover:bg-[#500000]/5 dark:border-[#FFCF3F]/25 dark:bg-black/50 dark:text-white/90 dark:hover:bg-white/10 sm:text-[15px]"
+                >
+                  <span className="line-clamp-2 leading-snug">{item.name}</span>
+                </Link>
+              ))}
             </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <Link href="/compare" className="shrink-0">
+              <Button className="h-12 w-full rounded-xl bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966] sm:h-14">
+                Start comparing
+              </Button>
+            </Link>
+          </div>
+        ) : (
+          <div className="mx-auto max-w-3xl space-y-4 sm:space-y-6">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-1 sm:space-y-2"
+            >
+              <p className="hidden text-xs font-mono uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400 sm:block">
+                AggieSB+ dashboard
+              </p>
+              <h1 className="text-xl font-bold leading-tight text-heading dark:text-white sm:text-2xl">
+                What do you want to do right now?
+              </h1>
+            </motion.div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
               {ACTIONS.map((action) => (
                 <Link key={action.title} href={action.href}>
                   <motion.div
                     whileTap={{ scale: 0.97 }}
-                    className="h-full rounded-2xl border border-border/60 dark:border-white/10 bg-white/70 dark:bg-black/70 p-3 sm:p-4 flex gap-2.5 sm:gap-3 items-start shadow-sm active:shadow-none"
+                    className="flex h-full items-start gap-2.5 rounded-2xl border border-border/60 bg-white/70 p-3 shadow-sm active:shadow-none dark:border-white/10 dark:bg-black/70 sm:gap-3 sm:p-4"
                   >
-                    <div className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-[#500000]/8 dark:bg-[#FFCF3F]/15 text-[#500000] dark:text-[#FFCF3F]">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#500000]/8 text-[#500000] dark:bg-[#FFCF3F]/15 dark:text-[#FFCF3F] sm:h-10 sm:w-10 sm:rounded-xl">
                       {action.icon}
                     </div>
                     <div className="flex-1">
-                      <h2 className="text-[13px] sm:text-sm font-semibold text-heading dark:text-white mb-0.5 sm:mb-1">
+                      <h2 className="mb-0.5 text-[13px] font-semibold text-heading dark:text-white sm:mb-1 sm:text-sm">
                         {action.title}
                       </h2>
                       <p className="text-xs text-body dark:text-gray-400">
@@ -175,11 +177,11 @@ export default function DashboardPage() {
                 </Link>
               ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </main>
 
-      <Footer />
+      {!isStandalone ? <Footer /> : null}
     </div>
   );
 }

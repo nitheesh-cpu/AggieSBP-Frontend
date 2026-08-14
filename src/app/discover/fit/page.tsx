@@ -51,7 +51,6 @@ type DiscoverCourse = {
   courseTitle: string;
   easinessScore: number;
 };
-type UccGroup = { category: string; courses: DiscoverCourse[] };
 type FitResult = {
   course: DiscoverCourse;
   compatibleSectionCount: number;
@@ -395,33 +394,17 @@ export default function DiscoverFitPage() {
       return Array.from(unique.values()).slice(0, 120);
     }
 
-    const selectedNormalized = new Set(
-      selectedUccs.map((value) => normalizeUccCategory(value)),
+    const res = await fetch(
+      `${API_BASE_URL}/discover/${termCode}/ucc-fit-candidates`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ categories: selectedUccs }),
+      },
     );
-    const uccRes = await fetch(`${API_BASE_URL}/discover/${termCode}/ucc`);
-    if (!uccRes.ok) throw new Error("Failed to load UCC courses.");
-    const uccData = (await uccRes.json()) as UccGroup[];
-    const groups = (Array.isArray(uccData) ? uccData : []).filter((g) =>
-      selectedNormalized.has(normalizeUccCategory(g.category ?? "")),
-    );
-    let merged = groups.flatMap((g) => g.courses ?? []);
-
-    // Fallback for terms where the heavy /ucc query returns no rows.
-    if (merged.length === 0) {
-      const fallbackRes = await fetch(
-        `${API_BASE_URL}/discover/${termCode}/ucc-fit-candidates`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ categories: selectedUccs }),
-        },
-      );
-      if (!fallbackRes.ok) {
-        throw new Error("Failed to load UCC courses.");
-      }
-      const fallbackData = (await fallbackRes.json()) as DiscoverCourse[];
-      merged = Array.isArray(fallbackData) ? fallbackData : [];
-    }
+    if (!res.ok) throw new Error("Failed to load UCC courses.");
+    const data = (await res.json()) as DiscoverCourse[];
+    const merged = Array.isArray(data) ? data : [];
 
     const unique = new Map<string, DiscoverCourse>();
     for (const course of merged) {
@@ -460,28 +443,25 @@ export default function DiscoverFitPage() {
         return;
       }
       const courseKeys = candidates.map((c) => `${c.dept}-${c.courseNumber}`);
-      const matches = await getDiscoverFitMatches(
-        termCode,
-        courseKeys,
-        blocks.map((b) => ({
-          days: b.days,
-          start: b.start,
-          end: b.end,
-        })),
-        { seatFilter: "any", sectionAttributeDescs: [] },
-      );
+      const [matches, attrOpts, siteOpts] = await Promise.all([
+        getDiscoverFitMatches(
+          termCode,
+          courseKeys,
+          blocks.map((b) => ({ days: b.days, start: b.start, end: b.end })),
+          { seatFilter: "any", sectionAttributeDescs: [] },
+        ),
+        postDiscoverFitSectionAttributeOptions(termCode, courseKeys).catch((e) => {
+          console.error("Failed to load attribute options:", e);
+          return [] as string[];
+        }),
+        postDiscoverFitSectionCampusOptions(termCode, courseKeys).catch((e) => {
+          console.error("Failed to load campus options:", e);
+          return [] as string[];
+        }),
+      ]);
       setFitResults(buildFitResults(candidates, matches));
-      try {
-        const [attrOpts, siteOpts] = await Promise.all([
-          postDiscoverFitSectionAttributeOptions(termCode, courseKeys),
-          postDiscoverFitSectionCampusOptions(termCode, courseKeys),
-        ]);
-        setAttributeOptions(Array.isArray(attrOpts) ? attrOpts : []);
-        setCampusOptions(Array.isArray(siteOpts) ? siteOpts : []);
-      } catch {
-        setAttributeOptions([]);
-        setCampusOptions([]);
-      }
+      setAttributeOptions(Array.isArray(attrOpts) ? attrOpts : []);
+      setCampusOptions(Array.isArray(siteOpts) ? siteOpts : []);
       hasCompletedFitOnceRef.current = true;
       setFitReady(true);
     } catch (e) {
@@ -558,7 +538,7 @@ export default function DiscoverFitPage() {
         <Card className="bg-white/55 dark:bg-black/45 backdrop-blur-md border-border">
           <CardContent className="pt-6 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <Select value={termCode} onValueChange={setTermCode}>
+          <Select value={termCode || undefined} onValueChange={setTermCode}>
             <SelectTrigger><SelectValue placeholder="Select term" /></SelectTrigger>
             <SelectContent>
               {terms.map((t) => (
@@ -987,7 +967,7 @@ export default function DiscoverFitPage() {
                           <td className="px-3 py-2.5 whitespace-nowrap">
                             <Badge className="bg-[#FFCF3F]/10 text-[#FFCF3F] border-transparent px-2 py-0.5">
                               <Sparkles className="w-3 h-3 mr-1" />
-                              {course.easinessScore.toFixed(1)}
+                              {(course.easinessScore ?? 0).toFixed(1)}
                             </Badge>
                           </td>
                           <td className="px-3 py-2.5 text-text-body dark:text-white/75 whitespace-nowrap">

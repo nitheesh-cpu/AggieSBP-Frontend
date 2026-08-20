@@ -105,7 +105,7 @@ export const Footer = () => {
               </Link>
               <Link
                 key={"API Docs"}
-                href="https://api-aggiesbp.servehttp.com/docs"
+                href="https://api-aggiesbp.nitheeshk.com/docs"
                 className="block text-text-body hover:text-text-heading transition-colors duration-[220ms]"
               >
                 API Docs

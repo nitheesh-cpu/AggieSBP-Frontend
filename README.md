@@ -191,7 +191,7 @@ AggieSB+ integrates with a custom backend API that provides:
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 ```
 
-For detailed API documentation, see [API Docs](https://api-aggiesbp.servehttp.com/docs).
+For detailed API documentation, see [API Docs](https://api-aggiesbp.nitheeshk.com/docs).
 
 ## 🎨 Design System
 

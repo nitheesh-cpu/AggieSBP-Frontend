@@ -9,12 +9,19 @@ import {
   useTransform,
   useScroll,
 } from "motion/react";
+import { Puzzle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { GlobalOmnibar } from "@/components/home/global-omnibar";
 
 export function HomeHeroScroll() {
   const shouldReduceMotion = useReducedMotion();
   const [isPortrait, setIsPortrait] = React.useState(false);
+  const [extensionUrl, setExtensionUrl] = React.useState(
+    "https://chromewebstore.google.com/detail/aggiesb+-registration-ass/glckdcnecomhlmlegmjdceblibmaljpm",
+  );
+  const [extensionLabel, setExtensionLabel] =
+    React.useState("Chrome extension");
 
   const targetRef = React.useRef<HTMLDivElement | null>(null);
   const { scrollYProgress } = useScroll({
@@ -31,6 +38,12 @@ export function HomeHeroScroll() {
 
     // Check on mount
     checkOrientation();
+    if (/Firefox|FxiOS/i.test(navigator.userAgent)) {
+      setExtensionUrl(
+        "https://addons.mozilla.org/en-US/firefox/addon/aggie-schedule-builder-plus/",
+      );
+      setExtensionLabel("Mozilla add-on");
+    }
 
     // Listen for orientation changes and window resize
     window.addEventListener("resize", checkOrientation);
@@ -52,6 +65,11 @@ export function HomeHeroScroll() {
   const imageScaleMv = useTransform(scrollYProgress, [0, 1], [1, 1.06]);
   // Scroll indicator fades out quickly as user starts scrolling
   const scrollIndicatorOpacity = useTransform(scrollYProgress, [0, 0.05], [1, 0]);
+  const searchOpacity = useTransform(scrollYProgress, [0, 0.16], [1, 0]);
+  const searchY = useTransform(scrollYProgress, [0, 0.16], [0, -36]);
+  const searchPointerEvents = useTransform(scrollYProgress, (progress) =>
+    progress < 0.16 ? "auto" : "none",
+  );
 
   return (
     <section className="relative isolate">
@@ -80,6 +98,34 @@ export function HomeHeroScroll() {
               background: "var(--hero-backdrop-gradient)",
             }}
           />
+
+          {/* Immediate homepage action, visible before the scroll reveal begins. */}
+          <motion.div
+            className="absolute inset-0 z-40 flex items-center justify-center"
+            style={{
+              opacity: shouldReduceMotion ? 1 : searchOpacity,
+              y: shouldReduceMotion ? 0 : searchY,
+              pointerEvents: shouldReduceMotion ? "auto" : searchPointerEvents,
+            }}
+          >
+            <div className="flex w-full flex-col items-center gap-4">
+              <GlobalOmnibar />
+              <Button
+                asChild
+                className="rounded-full bg-[#FFCF3F] px-6 font-semibold text-[#0f0f0f] shadow-lg hover:bg-[#FFD966]"
+              >
+                <a
+                  href={extensionUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Install the AggieSB+ ${extensionLabel}`}
+                >
+                  <Puzzle className="h-4 w-4" aria-hidden />
+                  Install {extensionLabel}
+                </a>
+              </Button>
+            </div>
+          </motion.div>
 
           {/* Scroll indicator - fades out on scroll */}
           <motion.div
@@ -131,9 +177,9 @@ export function HomeHeroScroll() {
               </p>
 
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-1">
-                <Link href="/compare" className="w-full sm:w-auto">
+                <Link href="/alerts" className="w-full sm:w-auto">
                   <Button className="w-full sm:w-auto bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966] rounded-full px-7">
-                    Start comparing
+                    Get seat alerts
                   </Button>
                 </Link>
 

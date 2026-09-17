@@ -57,14 +57,10 @@ import {
   Trophy,
   ChevronDown,
   ChevronUp,
-  BarChart,
-  Check,
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
-import { useComparison } from "@/contexts/ComparisonContext";
-import { ComparisonWidget } from "@/components/comparison-widget";
 
 function formatAnimatedNumber(n: number, decimals: number) {
   const fixed = n.toFixed(decimals);
@@ -302,7 +298,6 @@ const sectionAttributeFilters = [
 ];
 
 function CoursesPageContent() {
-  const { addCourse, removeCourse, isSelected, canAddMore } = useComparison();
   const searchParams = useSearchParams();
   const shouldReduceMotion = useReducedMotion();
   const [hasMounted, setHasMounted] = React.useState(false);
@@ -1105,7 +1100,7 @@ function CoursesPageContent() {
                     placeholder="Search courses..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-12 pr-10 h-12 sm:h-14 text-[14px] sm:text-[15px] bg-card border border-border rounded-full text-text-body placeholder:text-text-body/55 backdrop-blur-sm focus-visible:ring-2 focus-visible:ring-[#FFCF3F]/70 focus-visible:ring-offset-0 dark:bg-black/45 dark:border-white/15 dark:text-white dark:placeholder:text-white/40"
+                    className="h-12 rounded-full border-2 border-[#500000]/25 bg-card pl-12 pr-10 text-[14px] text-text-body shadow-sm backdrop-blur-sm transition-colors placeholder:text-text-body/55 hover:border-[#500000]/40 focus-visible:border-[#500000]/60 focus-visible:ring-2 focus-visible:ring-[#500000]/15 focus-visible:ring-offset-0 dark:border-white/25 dark:bg-black/45 dark:text-white dark:placeholder:text-white/40 dark:hover:border-[#FFCF3F]/40 dark:focus-visible:border-[#FFCF3F]/60 dark:focus-visible:ring-[#FFCF3F]/20 sm:h-14 sm:text-[15px]"
                   />
                 </div>
               </motion.div>
@@ -1350,7 +1345,7 @@ function CoursesPageContent() {
             ) : (
               <motion.div
                 key={`${currentPage}-${searchTerm}-${selectedDepartment}-${sortBy}`}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8"
+                className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:gap-4 xl:grid-cols-3"
                 initial={
                   shouldReduceMotion ? false : hasMounted ? false : "hidden"
                 }
@@ -1388,7 +1383,7 @@ function CoursesPageContent() {
                     }
                     whileTap={shouldReduceMotion ? undefined : { scale: 0.99 }}
                   >
-                    <Card className="bg-card border-border hover:border-border transition-all duration-200 relative overflow-hidden group dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm dark:hover:border-white/20">
+                    <Card className="group relative gap-0 overflow-hidden border-border bg-card p-4 transition-all duration-200 hover:border-[#500000]/25 hover:shadow-md dark:border-white/10 dark:bg-black/45 dark:backdrop-blur-sm dark:hover:border-[#FFCF3F]/25">
                       {/* subtle corner highlight */}
                       <motion.div
                         aria-hidden
@@ -1406,84 +1401,66 @@ function CoursesPageContent() {
                         }}
                       />
 
-                      <CardContent className="relative">
-                        <div className="flex items-start justify-between mb-4">
-                          <div>
-                            <h3 className="text-lg font-semibold text-text-heading dark:text-white mb-1">
+                      <CardContent className="relative p-0">
+                        <div className="mb-3 flex items-start justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <h3 className="mb-0.5 text-xl font-semibold tracking-tight text-text-heading dark:text-white">
                               {course.code}
                             </h3>
-                            <p className="text-sm text-text-body dark:text-white/80 mb-2 line-clamp-2">
+                            <p className="line-clamp-2 text-sm leading-snug text-text-body dark:text-white/75">
                               {course.name}
                             </p>
-                            <Badge
-                              variant="outline"
-                              className={`text-xs ${getDepartmentColor(course.department.name)} text-white border-transparent`}
-                            >
-                              {course.department.name}
-                            </Badge>
                           </div>
-                          <div className="text-right">
-                            <div className="flex items-center gap-1 mb-1">
-                              <Star className="w-4 h-4 text-accent fill-current" />
-                              <span className="text-sm font-medium text-text-heading dark:text-white">
+                          <div className="flex shrink-0 items-center gap-1 rounded-full border border-border/70 bg-canvas/60 px-2.5 py-1 dark:border-white/10 dark:bg-white/5">
+                              <Star className="h-3.5 w-3.5 fill-current text-accent" />
+                              <span className="text-sm font-semibold text-text-heading dark:text-white">
                                 {course.rating.toFixed(1)}
                               </span>
-                            </div>
-                            <p className="text-xs text-text-body/70 dark:text-white/60">
-                              {course.sections} sections
-                            </p>
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-3 gap-4 mb-4">
-                          <div className="text-center">
-                            <div className="flex items-center justify-center gap-1 mb-1">
-                              <TrendingUp className="w-4 h-4 text-accent" />
-                              <span className="text-lg font-semibold text-text-heading dark:text-white">
+                        <Badge
+                          variant="outline"
+                          title={course.department.name}
+                          className={`mb-3 max-w-full truncate border-transparent text-[11px] text-white ${getDepartmentColor(course.department.name)}`}
+                        >
+                          {course.department.name}
+                        </Badge>
+
+                        <div className={`mb-3 grid divide-x divide-border/70 rounded-xl border border-border/70 bg-canvas/60 py-2.5 dark:divide-white/10 dark:border-white/10 dark:bg-white/5 ${course.sections > 0 ? "grid-cols-3" : "grid-cols-2"}`}>
+                          <div className="flex items-center justify-center gap-1.5 px-2">
+                              <TrendingUp className="h-3.5 w-3.5 text-accent" />
+                              <span className="text-sm font-semibold text-text-heading dark:text-white">
                                 {course.avgGPA !== -1
                                   ? course.avgGPA.toFixed(2)
-                                  : "N/A"}
+                                  : "—"}
                               </span>
-                            </div>
-                            <div className="text-xs text-text-body/70 dark:text-white/60">
-                              GPA
-                            </div>
+                              <span className="text-[11px] text-text-body/65 dark:text-white/45">GPA</span>
                           </div>
-                          <div className="text-center">
-                            <div className="flex items-center justify-center gap-1 mb-1">
-                              <BookOpen className="w-4 h-4 text-accent" />
-                              <span className="text-lg font-semibold text-text-heading dark:text-white">
+                          <div className="flex items-center justify-center gap-1.5 px-2">
+                              <BookOpen className="h-3.5 w-3.5 text-accent" />
+                              <span className="text-sm font-semibold text-text-heading dark:text-white">
                                 {course.credits}
                               </span>
-                            </div>
-                            <div className="text-xs text-text-body/70 dark:text-white/60">
-                              Credits
-                            </div>
+                              <span className="text-[11px] text-text-body/65 dark:text-white/45">credits</span>
                           </div>
-                          <div className="text-center">
-                            <div className="flex items-center justify-center gap-1 mb-1">
-                              <Users className="w-4 h-4 text-accent" />
-                              <span className="text-lg font-semibold text-text-heading dark:text-white">
-                                {course.enrollment}
-                              </span>
+                          {course.sections > 0 && (
+                            <div className="flex items-center justify-center gap-1.5 px-2">
+                                <Users className="h-3.5 w-3.5 text-accent" />
+                                <span className="text-sm font-semibold text-text-heading dark:text-white">
+                                  {course.sections}
+                                </span>
+                                <span className="text-[11px] text-text-body/65 dark:text-white/45">sections</span>
                             </div>
-                            <div className="text-xs text-text-body/70 dark:text-white/60">
-                              Students
-                            </div>
-                          </div>
+                          )}
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-1 mb-4">
-                          <Badge
-                            className={getDifficultyBadgeColor(
-                              course.difficulty
-                            )}
-                          >
-                            {course.difficulty}
-                          </Badge>
-                          {/* </div> */}
-
-                          {/* <div className="flex flex-wrap gap-1 mb-4"> */}
+                        <div className="mb-3 flex flex-wrap items-center gap-1">
+                          {course.difficulty && course.difficulty !== "Unknown" && (
+                            <Badge className={getDifficultyBadgeColor(course.difficulty)}>
+                              {course.difficulty}
+                            </Badge>
+                          )}
                           {course.tags.slice(0, 3).map((tag, index) => (
                             <Badge
                               key={`tag-${index}`}
@@ -1509,45 +1486,16 @@ function CoursesPageContent() {
                           })}
                         </div>
 
-                        <div className="space-y-2">
-                          <div className="flex gap-2">
+                        <div>
                             <Link
                               href={`/course/${course.code.replace(/\s+/g, "")}`}
-                              className="flex-1"
+                              className="block"
                             >
-                              <Button className="w-full bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966] rounded-full">
+                              <Button className="h-10 w-full rounded-full bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966]">
                                 View Details
                                 <ChevronRight className="w-4 h-4 ml-2" />
                               </Button>
                             </Link>
-                            <Button
-                              variant={
-                                isSelected(course.code) ? "default" : "outline"
-                              }
-                              size="sm"
-                              onClick={() => {
-                                if (isSelected(course.code)) {
-                                  removeCourse(course.code);
-                                } else {
-                                  addCourse(course.code);
-                                }
-                              }}
-                              disabled={
-                                !isSelected(course.code) && !canAddMore()
-                              }
-                              className={`${
-                                isSelected(course.code)
-                                  ? "bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966]"
-                                  : "border-border bg-canvas text-text-body hover:bg-button-hover dark:border-white/15 dark:bg-black/30 dark:text-white/80 dark:hover:bg-black/45"
-                              } pt-4.25 pb-4.25 transition-all duration-200 rounded-full`}
-                            >
-                              {isSelected(course.code) ? (
-                                <Check className="w-4 h-4" />
-                              ) : (
-                                <BarChart className="w-4 h-4" />
-                              )}
-                            </Button>
-                          </div>
                         </div>
                       </CardContent>
                     </Card>
@@ -1699,7 +1647,6 @@ function CoursesPageContent() {
         </main>
 
         <Footer />
-        <ComparisonWidget />
       </div>
     </MotionConfig>
   );

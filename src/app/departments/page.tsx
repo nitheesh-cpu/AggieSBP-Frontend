@@ -877,7 +877,8 @@ export default function DepartmentsPage() {
     return (
       <Badge
         variant="outline"
-        className={`text-xs ${badgeColor} border-transparent px-3 py-1 rounded-full`}
+        title={name}
+        className={`max-w-full truncate border-transparent px-2 py-0.5 text-[11px] ${badgeColor}`}
       >
         {name}
       </Badge>
@@ -959,7 +960,7 @@ export default function DepartmentsPage() {
                   placeholder="Search departments..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-12 pr-10 h-12 sm:h-14 text-[14px] sm:text-[15px] bg-canvas border border-border rounded-full text-text-body placeholder:text-text-body/60 dark:bg-black/45 dark:border-white/15 dark:text-white dark:placeholder:text-white/40 dark:backdrop-blur-sm"
+                  className="h-12 rounded-full border-2 border-[#500000]/25 bg-canvas pl-12 pr-10 text-[14px] text-text-body shadow-sm transition-colors placeholder:text-text-body/60 hover:border-[#500000]/40 focus-visible:border-[#500000]/60 focus-visible:ring-2 focus-visible:ring-[#500000]/15 focus-visible:ring-offset-0 dark:border-white/25 dark:bg-black/45 dark:text-white dark:placeholder:text-white/40 dark:backdrop-blur-sm dark:hover:border-[#FFCF3F]/40 dark:focus-visible:border-[#FFCF3F]/60 dark:focus-visible:ring-[#FFCF3F]/20 sm:h-14 sm:text-[15px]"
                 />
               </div>
             </motion.div>
@@ -1240,7 +1241,7 @@ export default function DepartmentsPage() {
           <div className="max-w-7xl mx-auto px-6">
             {!loading && !error && (
               <motion.div
-                className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6"
+                className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:gap-4 xl:grid-cols-3"
                 initial={
                   shouldReduceMotion ? false : hasMounted ? false : "hidden"
                 }
@@ -1276,7 +1277,7 @@ export default function DepartmentsPage() {
                     }
                     whileTap={shouldReduceMotion ? undefined : { scale: 0.99 }}
                   >
-                    <Card className="p-6 gap-3 bg-card border-border hover:border-border transition-all duration-normal cursor-pointer group relative overflow-hidden dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm dark:hover:border-white/20">
+                    <Card className="group relative gap-0 overflow-hidden border-border bg-card p-4 transition-all duration-normal hover:border-[#500000]/25 hover:shadow-md dark:border-white/10 dark:bg-black/45 dark:backdrop-blur-sm dark:hover:border-[#FFCF3F]/25">
                       {/* subtle corner highlight */}
                       <motion.div
                         aria-hidden
@@ -1294,23 +1295,25 @@ export default function DepartmentsPage() {
                         }}
                       />
 
-                      <div className="flex items-start gap-4 mb-2 relative">
-                        <div className="p-3 my-4 rounded-xl bg-canvas border border-border text-accent dark:bg-white/10 dark:border-white/10">
+                      <div className="relative mb-3 flex items-start gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-canvas text-accent dark:border-white/10 dark:bg-white/10 [&_svg]:h-5 [&_svg]:w-5">
                           <IconComponent code={department.code} />
                         </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="text-lg font-semibold text-text-heading dark:text-white">
+                        <div className="min-w-0 flex-1">
+                          <div className="mb-1 flex items-center justify-between gap-2">
+                            <h3 className="text-xl font-semibold tracking-tight text-text-heading dark:text-white">
                               {department.code}
                             </h3>
-                            <div className="flex items-center gap-1">
-                              <Star className="w-4 h-4 text-accent fill-current" />
-                              <span className="text-sm text-text-body dark:text-white/70">
+                            {department.rating > 0 && (
+                            <div className="flex shrink-0 items-center gap-1 rounded-full border border-border/70 bg-canvas/60 px-2 py-0.5 dark:border-white/10 dark:bg-white/5">
+                              <Star className="h-3.5 w-3.5 fill-current text-accent" />
+                              <span className="text-xs font-semibold text-text-heading dark:text-white">
                                 {department.rating}
                               </span>
                             </div>
+                            )}
                           </div>
-                          <div className="mb-2">
+                          <div className="min-w-0">
                             <DepartmentBadge
                               code={department.code}
                               name={department.name}
@@ -1330,7 +1333,7 @@ export default function DepartmentsPage() {
                             if (isRedundant) return null;
 
                             return (
-                              <p className="text-sm text-text-body line-clamp-2 dark:text-white/60">
+                              <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-text-body dark:text-white/60">
                                 {desc}
                               </p>
                             );
@@ -1338,84 +1341,48 @@ export default function DepartmentsPage() {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-3 gap-4 gap-y-4 mb-2">
-                        <div className="text-center">
-                          <div className="flex items-center justify-center gap-1 mb-1 text-text-body dark:text-white/80">
-                            <BookOpen className="w-4 h-4 text-accent" />
-                            <span className="text-lg font-semibold text-text-heading dark:text-white">
+                      <div className="mb-3 grid grid-cols-3 divide-x divide-border/70 rounded-xl border border-border/70 bg-canvas/60 py-2.5 dark:divide-white/10 dark:border-white/10 dark:bg-white/5">
+                        <div className="flex items-center justify-center gap-1.5 px-2">
+                            <BookOpen className="h-3.5 w-3.5 text-accent" />
+                            <span className="text-sm font-semibold text-text-heading dark:text-white">
                               {department.courses}
                             </span>
-                          </div>
-                          <div className="text-xs text-text-body dark:text-white/60">
-                            Courses
-                          </div>
+                            <span className="hidden text-[11px] text-text-body/65 dark:text-white/45 lg:inline">courses</span>
                         </div>
-                        <div className="text-center">
-                          <div className="flex items-center justify-center gap-1 mb-1 text-text-body dark:text-white/80">
-                            <Users className="w-4 h-4 text-accent" />
-                            <span className="text-lg font-semibold text-text-heading dark:text-white">
+                        <div className="flex items-center justify-center gap-1.5 px-2">
+                            <Users className="h-3.5 w-3.5 text-accent" />
+                            <span className="text-sm font-semibold text-text-heading dark:text-white">
                               {department.professors}
                             </span>
-                          </div>
-                          <div className="text-xs text-text-body dark:text-white/60">
-                            Professors
-                          </div>
+                            <span className="hidden text-[11px] text-text-body/65 dark:text-white/45 lg:inline">faculty</span>
                         </div>
-                        <div className="text-center">
-                          <div className="flex items-center justify-center gap-1 mb-1 text-text-body dark:text-white/80">
-                            <TrendingUp className="w-4 h-4 text-accent" />
-                            <span className="text-lg font-semibold text-text-heading dark:text-white">
-                              {department.avgGpa}
+                        <div className="flex items-center justify-center gap-1.5 px-2">
+                            <TrendingUp className="h-3.5 w-3.5 text-accent" />
+                            <span className="text-sm font-semibold text-text-heading dark:text-white">
+                              {department.avgGpa > 0 ? department.avgGpa : "—"}
                             </span>
-                          </div>
-                          <div className="text-xs text-text-body dark:text-white/60">
-                            Avg GPA
-                          </div>
+                            <span className="text-[11px] text-text-body/65 dark:text-white/45">GPA</span>
                         </div>
                       </div>
 
-                      <div className="mb-2">
-                        <div className="text-sm text-text-body mb-2 dark:text-white/70">
-                          Top Courses:
-                        </div>
-                        <div className="flex flex-wrap gap-1">
-                          {(() => {
-                            const courses = department.topCourses.slice(0, 3);
-                            const badges = [];
-
-                            courses.forEach((course, index) => {
-                              badges.push(
+                      {department.topCourses.length > 0 && (
+                      <div className="mb-3 flex flex-wrap gap-1">
+                          {department.topCourses.slice(0, 3).map((course, index) => (
                                 <Badge
                                   key={`course-${index}`}
                                   variant="outline"
-                                  className="text-xs border-border text-text-body bg-canvas dark:border-white/15 dark:text-white/70 dark:bg-black/20"
+                                  className="border-border bg-canvas font-mono text-[11px] text-text-body dark:border-white/15 dark:bg-black/20 dark:text-white/70"
                                 >
                                   {course}
                                 </Badge>
-                              );
-                            });
-
-                            for (let i = courses.length; i < 3; i++) {
-                              badges.push(
-                                <Badge
-                                  key={`empty-${i}`}
-                                  variant="outline"
-                                  className="text-xs border-transparent text-transparent"
-                                >
-                                  &nbsp;&nbsp;&nbsp;
-                                </Badge>
-                              );
-                            }
-
-                            return badges;
-                          })()}
-                        </div>
+                          ))}
                       </div>
+                      )}
 
                       <Link
                         href={`/courses?department=${encodeURIComponent(department.name)}`}
                       >
-                        <Button className="w-full bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966] rounded-full">
+                        <Button className="h-10 w-full rounded-full bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966]">
                           View Department
                           <ChevronRight className="w-4 h-4 ml-2" />
                         </Button>

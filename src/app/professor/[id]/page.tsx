@@ -36,6 +36,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import Link from "next/link";
+import { professorNamesMatch } from "@/lib/name-matching";
 
 interface ProfessorPageProps {
   params: Promise<{
@@ -430,8 +431,7 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                 const hasProfessor = sections.some((section) =>
                   section.instructors?.some(
                     (instructor) =>
-                      instructor.name.toLowerCase().trim() ===
-                      professor.name.toLowerCase().trim()
+                      professorNamesMatch(instructor.name, professor.name)
                   )
                 );
 

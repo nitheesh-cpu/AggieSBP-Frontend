@@ -44,7 +44,9 @@ export function usePushNotifications() {
     }, []);
 
     const subscribe = useCallback(async () => {
-        if (permission !== "granted") {
+        // Read the browser's live value. React state may still contain the value
+        // from before requestPermission() resolved on the first button press.
+        if (!("Notification" in window) || Notification.permission !== "granted") {
             throw new Error("Notification permission not granted");
         }
 
@@ -59,14 +61,15 @@ export function usePushNotifications() {
             throw new Error("VAPID public key not found");
         }
 
-        // Attempt to subscribe
-        const subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: base64ToUint8Array(vapidKey),
-        });
+        const subscription =
+            (await registration.pushManager.getSubscription()) ??
+            (await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: base64ToUint8Array(vapidKey),
+            }));
 
         return subscription.toJSON();
-    }, [permission]);
+    }, []);
 
     // A helper that combines request and subscribe
     const requestAndSubscribe = useCallback(async () => {

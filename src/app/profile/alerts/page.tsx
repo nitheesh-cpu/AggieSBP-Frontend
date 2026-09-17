@@ -5,7 +5,15 @@ import { SessionAuth } from "supertokens-auth-react/recipe/session";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
 import { motion } from "motion/react";
-import { Bell, Smartphone, Share2, CheckCircle2, ChevronDown } from "lucide-react";
+import {
+  Bell,
+  BellRing,
+  CheckCircle2,
+  ChevronDown,
+  MonitorSmartphone,
+  Smartphone,
+  Share2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import {
@@ -44,20 +52,25 @@ function MyAlertsContent() {
   const [tracked, setTracked] = useState<TrackedSection[]>([]);
   const [trackedLoading, setTrackedLoading] = useState(true);
   const [trackedError, setTrackedError] = useState<string | null>(null);
-  const [devicesOpen, setDevicesOpen] = useState(false);
+  const [devicesOpen, setDevicesOpen] = useState(true);
   const [devices, setDevices] = useState<PushSubscriptionDevice[]>([]);
   const [devicesLoading, setDevicesLoading] = useState(true);
   const [devicesError, setDevicesError] = useState<string | null>(null);
+  const [currentEndpoint, setCurrentEndpoint] = useState<string | null>(null);
 
   const saveSubscriptionToBackend = async (
     subscription: { endpoint: string; keys?: { p256dh?: string; auth?: string } },
   ) => {
     const userAgent = typeof navigator !== "undefined" ? navigator.userAgent : "";
-    const platform =
+    const reportedPlatform =
       typeof navigator !== "undefined"
         ? (navigator as Navigator & { userAgentData?: { platform?: string } })
             .userAgentData?.platform || navigator.platform || "Unknown"
         : "Unknown";
+    const platform =
+      reportedPlatform === "MacIntel" && navigator.maxTouchPoints > 1
+        ? "iPad"
+        : reportedPlatform;
     const browser = /Edg\//.test(userAgent)
       ? "Edge"
       : /Chrome\//.test(userAgent)
@@ -67,14 +80,46 @@ function MyAlertsContent() {
           : /Safari\//.test(userAgent) && !/Chrome\//.test(userAgent)
             ? "Safari"
             : "Browser";
-    const mobile = /Mobi|Android|iPhone|iPad/i.test(userAgent) ? "Mobile" : "Desktop";
-    const deviceName = `${platform} (${browser}, ${mobile})`;
+    const standalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (navigator as Navigator & { standalone?: boolean }).standalone === true;
+    const context = standalone ? "Home Screen app" : browser;
+    const deviceName = `${platform} · ${context}`;
 
     await savePushSubscription({
       ...subscription,
       device_name: deviceName,
       user_agent: userAgent,
     });
+  };
+
+  const saveAndVerifySubscription = async (
+    subscription: { endpoint: string; keys?: { p256dh?: string; auth?: string } },
+  ) => {
+    let lastError: unknown;
+
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      try {
+        await saveSubscriptionToBackend(subscription);
+        const refreshedDevices = await getPushSubscriptions();
+        if (refreshedDevices.some((device) => device.endpoint === subscription.endpoint)) {
+          setCurrentEndpoint(subscription.endpoint);
+          setDevices(refreshedDevices);
+          return;
+        }
+        lastError = new Error("This device was not found after saving its subscription");
+      } catch (error) {
+        lastError = error;
+      }
+
+      if (attempt === 0) {
+        await new Promise((resolve) => window.setTimeout(resolve, 300));
+      }
+    }
+
+    throw lastError instanceof Error
+      ? lastError
+      : new Error("We could not verify this device for notifications");
   };
 
   useEffect(() => {
@@ -110,8 +155,19 @@ function MyAlertsContent() {
       setDevicesLoading(true);
       setDevicesError(null);
       try {
-        const data = await getPushSubscriptions();
-        if (!cancelled) setDevices(data);
+        const [data, registration] = await Promise.all([
+          getPushSubscriptions(),
+          "serviceWorker" in navigator
+            ? navigator.serviceWorker.ready
+            : Promise.resolve(null),
+        ]);
+        const browserSubscription = registration
+          ? await registration.pushManager.getSubscription()
+          : null;
+        if (!cancelled) {
+          setDevices(data);
+          setCurrentEndpoint(browserSubscription?.endpoint ?? null);
+        }
       } catch (e) {
         if (!cancelled) {
           setDevicesError(
@@ -134,39 +190,18 @@ function MyAlertsContent() {
     setSuccess(false);
     setLoading(true);
     try {
-      const subscription = await requestAndSubscribe();
+      const subscription =
+        permission === "granted" ? await subscribe() : await requestAndSubscribe();
       if (subscription && typeof subscription === "object") {
-        await saveSubscriptionToBackend(subscription as { endpoint: string; keys?: { p256dh?: string; auth?: string } });
+        await saveAndVerifySubscription(subscription as { endpoint: string; keys?: { p256dh?: string; auth?: string } });
+      } else {
+        throw new Error("The browser did not create a push subscription");
       }
       setSuccess(true);
-      const refreshedDevices = await getPushSubscriptions();
-      setDevices(refreshedDevices);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Failed to enable notifications";
       console.error("Push subscription error:", err);
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleResave = async () => {
-    setError(null);
-    setSuccess(false);
-    setLoading(true);
-    try {
-      const subscription = await subscribe();
-      if (subscription && typeof subscription === "object") {
-        await saveSubscriptionToBackend(subscription as { endpoint: string; keys?: { p256dh?: string; auth?: string } });
-      }
-      setSuccess(true);
-      const refreshedDevices = await getPushSubscriptions();
-      setDevices(refreshedDevices);
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to re-save subscription";
-      console.error("Re-save subscription error:", err);
       setError(message);
     } finally {
       setLoading(false);
@@ -189,11 +224,20 @@ function MyAlertsContent() {
   };
 
   const granted = permission === "granted";
-  const hasDeviceSetup = granted;
+  const hasDeviceSetup =
+    granted &&
+    currentEndpoint !== null &&
+    devices.some((device) => device.endpoint === currentEndpoint);
 
   useEffect(() => {
     setSetupOpen(!hasDeviceSetup);
   }, [hasDeviceSetup]);
+
+  useEffect(() => {
+    if (isStandalone && hasDeviceSetup) {
+      window.localStorage.setItem("aggiesbp:alerts-pwa-configured", "1");
+    }
+  }, [hasDeviceSetup, isStandalone]);
 
   const groupedTracked = tracked.reduce<Record<string, TrackedSection[]>>((acc, item) => {
     const parts = item.section_id.split("-");
@@ -205,15 +249,75 @@ function MyAlertsContent() {
   }, {});
 
   const getDeviceDisplayName = (device: PushSubscriptionDevice) => {
-    if (device.device_name && device.device_name.trim().length > 0) {
-      return device.device_name;
+    const userAgent = device.user_agent ?? "";
+    const androidModel = userAgent.match(
+      /Android[^;]*;\s*([^;)]+?)(?:\s+Build\/[^;)]+)?[;)]/i,
+    )?.[1];
+
+    if (/iPhone/i.test(userAgent)) return "iPhone";
+    if (/iPad/i.test(userAgent)) return "iPad";
+    if (androidModel) {
+      const model = androidModel.replace(/^[a-z]{2}-[A-Z]{2};\s*/i, "").trim();
+      if (/^SM-/i.test(model)) return `Samsung phone (${model})`;
+      return model;
     }
-    try {
-      const url = new URL(device.endpoint);
-      return url.hostname;
-    } catch {
-      return "Unknown device";
-    }
+    if (/Android/i.test(userAgent)) return "Android device";
+    if (/CrOS/i.test(userAgent)) return "Chromebook";
+    if (/Windows/i.test(userAgent)) return "Windows PC";
+    if (/Macintosh|Mac OS X/i.test(userAgent)) return "Mac";
+    if (/Linux/i.test(userAgent)) return "Linux computer";
+    if (device.device_name?.trim()) return device.device_name.split(" · ")[0];
+    return "Unknown device";
+  };
+
+  const getDeviceBrowser = (device: PushSubscriptionDevice) => {
+    const userAgent = device.user_agent ?? "";
+    const browser = /EdgA?\//i.test(userAgent)
+      ? "Microsoft Edge"
+      : /CriOS|Chrome\//i.test(userAgent)
+        ? "Google Chrome"
+        : /FxiOS|Firefox\//i.test(userAgent)
+          ? "Firefox"
+          : /OPR\/|Opera/i.test(userAgent)
+            ? "Opera"
+            : /Safari\//i.test(userAgent)
+              ? "Safari"
+              : "Web browser";
+    return device.device_name?.includes("Home Screen app")
+      ? `${browser} Home Screen app`
+      : browser;
+  };
+
+  const getDeviceSystem = (device: PushSubscriptionDevice) => {
+    const userAgent = device.user_agent ?? "";
+    if (/iPhone|iPad|iPod/i.test(userAgent)) return "iOS/iPadOS";
+    if (/Android/i.test(userAgent)) return "Android";
+    if (/CrOS/i.test(userAgent)) return "ChromeOS";
+    if (/Windows/i.test(userAgent)) return "Windows";
+    if (/Macintosh|Mac OS X/i.test(userAgent)) return "macOS";
+    if (/Linux/i.test(userAgent)) return "Linux";
+    return null;
+  };
+
+  const formatDeviceTime = (value?: string | null) => {
+    if (!value) return null;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return null;
+
+    const elapsedSeconds = Math.round((date.getTime() - Date.now()) / 1000);
+    const relative = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+    if (Math.abs(elapsedSeconds) < 60) return relative.format(elapsedSeconds, "second");
+    const elapsedMinutes = Math.round(elapsedSeconds / 60);
+    if (Math.abs(elapsedMinutes) < 60) return relative.format(elapsedMinutes, "minute");
+    const elapsedHours = Math.round(elapsedMinutes / 60);
+    if (Math.abs(elapsedHours) < 24) return relative.format(elapsedHours, "hour");
+    const elapsedDays = Math.round(elapsedHours / 24);
+    if (Math.abs(elapsedDays) < 30) return relative.format(elapsedDays, "day");
+    return date.toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+      year: date.getFullYear() === new Date().getFullYear() ? undefined : "numeric",
+    });
   };
 
   return (
@@ -233,7 +337,7 @@ function MyAlertsContent() {
       <Navigation variant="glass" />
 
       <main className="flex-grow pt-24 px-6 relative z-10">
-        <div className="max-w-2xl mx-auto space-y-8 pb-20">
+        <div className="max-w-3xl mx-auto space-y-6 pb-20">
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -246,12 +350,72 @@ function MyAlertsContent() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-heading dark:text-white mb-1">
-                My Alerts
+                Seat Alerts
               </h1>
               <p className="text-body dark:text-gray-400 text-sm">
                 Get notified when a watched section opens up
               </p>
             </div>
+          </motion.div>
+
+          {/* At-a-glance alert dashboard */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.06 }}
+            className="grid grid-cols-1 gap-3 sm:grid-cols-3"
+          >
+            <button
+              type="button"
+              onClick={() =>
+                document
+                  .getElementById("watched-sections")
+                  ?.scrollIntoView({ behavior: "smooth", block: "start" })
+              }
+              className="rounded-2xl border border-[#500000]/10 bg-white/55 p-4 text-left shadow-sm backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white/75 dark:border-white/10 dark:bg-black/45 dark:hover:bg-black/65"
+            >
+              <BellRing className="h-5 w-5 text-[#500000] dark:text-[#FFCF3F]" />
+              <p className="mt-3 text-2xl font-semibold text-heading dark:text-white">
+                {trackedLoading ? "—" : tracked.length}
+              </p>
+              <p className="text-xs text-body dark:text-white/55">
+                watched section{tracked.length === 1 ? "" : "s"}
+              </p>
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                document
+                  .getElementById("notification-devices")
+                  ?.scrollIntoView({ behavior: "smooth", block: "start" })
+              }
+              className="rounded-2xl border border-[#500000]/10 bg-white/55 p-4 text-left shadow-sm backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white/75 dark:border-white/10 dark:bg-black/45 dark:hover:bg-black/65"
+            >
+              <MonitorSmartphone className="h-5 w-5 text-[#500000] dark:text-[#FFCF3F]" />
+              <p className="mt-3 text-2xl font-semibold text-heading dark:text-white">
+                {devicesLoading ? "—" : devices.length}
+              </p>
+              <p className="text-xs text-body dark:text-white/55">
+                notification device{devices.length === 1 ? "" : "s"}
+              </p>
+            </button>
+            <button
+              type="button"
+              onClick={() => setSetupOpen(true)}
+              className="rounded-2xl border border-[#500000]/10 bg-white/55 p-4 text-left shadow-sm backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white/75 dark:border-white/10 dark:bg-black/45 dark:hover:bg-black/65"
+            >
+              <CheckCircle2
+                className={`h-5 w-5 ${
+                  hasDeviceSetup ? "text-emerald-500" : "text-amber-500"
+                }`}
+              />
+              <p className="mt-3 text-sm font-semibold text-heading dark:text-white">
+                {hasDeviceSetup ? "Notifications ready" : "Finish notification setup"}
+              </p>
+              <p className="mt-1 text-xs text-body dark:text-white/55">
+                {hasDeviceSetup ? "This device can receive alerts" : "Required to receive seat alerts"}
+              </p>
+            </button>
           </motion.div>
 
           {/* Setup */}
@@ -333,31 +497,23 @@ function MyAlertsContent() {
                       </h3>
                       <p className="text-sm text-body dark:text-gray-400 mb-4">
                         Allow AggieSB+ to send you alerts when a section you&apos;re
-                        watching opens up. If test notifications fail with &quot;no active
-                        subscription&quot;, tap &quot;Re-save subscription&quot; to sync this device.
+                        watching opens up. We&apos;ll verify this device with the server
+                        and retry automatically if the first save does not stick.
                       </p>
                       <div className="flex flex-col sm:flex-row gap-3">
                         <Button
                           onClick={handleEnable}
-                          disabled={loading || granted}
+                          disabled={loading || hasDeviceSetup}
                           className="bg-[#500000] text-white hover:bg-[#330000] dark:bg-[#FFCF3F] dark:text-black dark:hover:bg-[#FFD966]"
                         >
-                          {granted
-                            ? "Alerts enabled"
-                            : loading
-                              ? "Enabling..."
-                              : "Enable alerts"}
+                          {loading
+                            ? "Checking connection..."
+                            : hasDeviceSetup
+                              ? "Alerts enabled"
+                              : granted
+                                ? "Connect this device"
+                                : "Enable alerts"}
                         </Button>
-                        {granted && (
-                          <Button
-                            onClick={handleResave}
-                            disabled={loading}
-                            variant="outline"
-                            className="border-[#500000] dark:border-[#FFCF3F] text-[#500000] dark:text-[#FFCF3F] hover:bg-[#500000]/10 dark:hover:bg-[#FFCF3F]/10"
-                          >
-                            {loading ? "Saving..." : "Re-save subscription"}
-                          </Button>
-                        )}
                       </div>
                       {success && (
                         <p className="mt-3 text-green-600 dark:text-green-400 text-sm flex items-center gap-1">
@@ -411,7 +567,7 @@ function MyAlertsContent() {
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button
                   onClick={sendTestNow}
-                  disabled={testLoading || !granted}
+                  disabled={testLoading || !hasDeviceSetup}
                   variant="outline"
                   className="border-[#500000] dark:border-[#FFCF3F] text-[#500000] dark:text-[#FFCF3F] hover:bg-[#500000]/10 dark:hover:bg-[#FFCF3F]/10"
                 >
@@ -430,8 +586,8 @@ function MyAlertsContent() {
               )}
             </div>
 
-            {/* Watched classes */}
-            <div className="pt-6 border-t border-[#500000]/10 dark:border-[#FFCF3F]/10 mt-6">
+            {/* Notification devices */}
+            <div id="notification-devices" className="scroll-mt-24 pt-6 border-t border-[#500000]/10 dark:border-[#FFCF3F]/10 mt-6">
               <Collapsible open={devicesOpen} onOpenChange={setDevicesOpen}>
                 <div className="flex items-center justify-between gap-4 mb-2">
                   <h3 className="text-lg font-semibold text-heading dark:text-white">
@@ -471,26 +627,56 @@ function MyAlertsContent() {
                   )}
                   {!devicesLoading && devices.length > 0 && (
                     <>
-                      {devices.map((device) => (
+                      {devices.map((device) => {
+                        const isCurrentDevice = device.endpoint === currentEndpoint;
+                        const system = getDeviceSystem(device);
+                        const lastActive = formatDeviceTime(
+                          device.last_seen_at ?? device.created_at,
+                        );
+                        const connectedAt = device.created_at
+                          ? new Date(device.created_at).toLocaleDateString(undefined, {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })
+                          : null;
+
+                        return (
                         <div
                           key={device.id}
-                          className="rounded-md border border-border/60 dark:border-white/10 bg-white/60 dark:bg-black/40 px-3 py-2"
+                          className="rounded-xl border border-border/60 bg-white/60 p-4 dark:border-white/10 dark:bg-black/40"
                         >
-                          <p className="font-medium text-heading dark:text-white">
-                            {getDeviceDisplayName(device)}
-                          </p>
-                          <p className="text-xs text-body dark:text-gray-400 break-all">
-                            {device.endpoint}
-                          </p>
-                          {(device.last_seen_at || device.created_at) && (
-                            <p className="text-xs text-body dark:text-gray-400 mt-1">
-                              Last active{" "}
-                              {new Date(
-                                device.last_seen_at ?? device.created_at ?? "",
-                              ).toLocaleString()}
-                            </p>
-                          )}
-                          <div className="mt-2">
+                          <div className="flex items-start gap-3">
+                            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#500000]/10 text-[#500000] dark:bg-[#FFCF3F]/10 dark:text-[#FFCF3F]">
+                              {/iPhone|iPad|Android|Mobile/i.test(device.user_agent ?? "") ? (
+                                <Smartphone className="h-5 w-5" />
+                              ) : (
+                                <MonitorSmartphone className="h-5 w-5" />
+                              )}
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <p className="font-medium text-heading dark:text-white">
+                                  {getDeviceDisplayName(device)}
+                                </p>
+                                {isCurrentDevice && (
+                                  <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
+                                    This device
+                                  </span>
+                                )}
+                              </div>
+                              <p className="mt-0.5 text-xs text-body dark:text-gray-400">
+                                {[getDeviceBrowser(device), system]
+                                  .filter(Boolean)
+                                  .join(" · ")}
+                              </p>
+                              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-body dark:text-gray-400">
+                                {lastActive && <span>Active {lastActive}</span>}
+                                {connectedAt && <span>Connected {connectedAt}</span>}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="mt-3 sm:pl-[3.25rem]">
                             <Button
                               size="sm"
                               variant="outline"
@@ -514,14 +700,15 @@ function MyAlertsContent() {
                             </Button>
                           </div>
                         </div>
-                      ))}
+                        );
+                      })}
                     </>
                   )}
                 </CollapsibleContent>
               </Collapsible>
             </div>
 
-            <div className="pt-6 border-t border-[#500000]/10 dark:border-[#FFCF3F]/10 mt-6">
+            <div id="watched-sections" className="scroll-mt-24 pt-6 border-t border-[#500000]/10 dark:border-[#FFCF3F]/10 mt-6">
               <h3 className="text-lg font-semibold text-heading dark:text-white mb-2">
                 Watched classes
               </h3>

@@ -6,7 +6,13 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Bell, ChevronDown } from "lucide-react";
+import {
+  Bell,
+  BookOpenCheck,
+  Building2,
+  ChevronDown,
+  Sparkles,
+} from "lucide-react";
 import { UserMenu } from "@/components/user-menu";
 import { MOBILE_APP_QUICK_LINKS } from "@/lib/nav-quick-links";
 
@@ -22,7 +28,6 @@ export const Navigation = ({
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [isDiscoverOpen, setIsDiscoverOpen] = React.useState(false);
-  const [isSearchOpen, setIsSearchOpen] = React.useState(false);
   const isOverlay = variant === "transparent" || variant === "glass";
 
   // IMPORTANT: Don't compute theme-dependent inline styles here.
@@ -61,18 +66,30 @@ export const Navigation = ({
 
   const navItems = [
     { name: "Dashboard", href: "/dashboard" },
-  ] as const;
-
-  const searchItems = [
-    { name: "Departments", href: "/departments" },
     { name: "Courses", href: "/courses" },
     { name: "Professors", href: "/professors" },
   ] as const;
 
   const discoverItems = [
-    { name: "Fit My Schedule", href: "/discover/fit" },
-    { name: "Core Curriculum", href: "/discover/ucc" },
-    { name: "By Department", href: "/discover/dept" },
+    {
+      name: "Fit My Schedule",
+      description: "Find sections that work with your availability",
+      href: "/discover/fit",
+      icon: Sparkles,
+    },
+    {
+      name: "Core Curriculum",
+      description: "Compare options for every UCC requirement",
+      href: "/discover/ucc",
+      icon: BookOpenCheck,
+    },
+    {
+      name: "Explore Easy Courses",
+      description:
+        "Find the highest-GPA, lowest-difficulty courses in each department",
+      href: "/discover/dept",
+      icon: Building2,
+    },
   ] as const;
 
   return (
@@ -110,57 +127,30 @@ export const Navigation = ({
 
             {/* Desktop Navigation Items */}
             <nav
-              className="hidden md:flex items-center space-x-8 ml-16"
+              aria-label="Primary navigation"
+              className="hidden lg:flex items-center gap-7 ml-10"
               data-oid="sjsqv.s"
             >
-              {navItems.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={linkClassName}
-                  data-oid="hxkolsn"
-                >
-                  {item.name}
-                  <span className={underlineClassName} data-oid="m-f3_qo" />
-                </Link>
-              ))}
-
-              {/* Discover Dropdown */}
-              <div
-                className="relative"
-                onMouseEnter={() => setIsSearchOpen(true)}
-                onMouseLeave={() => setIsSearchOpen(false)}
-              >
-                <button
-                  className={`${linkClassName} flex items-center gap-1`}
-                  onClick={() => setIsSearchOpen(!isSearchOpen)}
-                >
-                  Search
-                  <ChevronDown className={`w-4 h-4 transition-transform ${isSearchOpen ? "rotate-180" : ""}`} />
-                </button>
-
-                <AnimatePresence>
-                  {isSearchOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -5 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-black/95 border-2 border-[#500000] dark:border-[#FFCF3F] rounded-lg shadow-lg overflow-hidden"
-                    >
-                      {searchItems.map((item) => (
-                        <Link
-                          key={item.name}
-                          href={item.href}
-                          className="block px-4 py-3 text-sm text-body hover:text-heading hover:bg-gray-100 dark:text-white/80 dark:hover:text-white dark:hover:bg-white/10 transition-colors"
-                        >
-                          {item.name}
-                        </Link>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+              {navItems.map((item) => {
+                const isActive =
+                  pathname === item.href || pathname.startsWith(`${item.href}/`);
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={`${linkClassName} ${
+                      isActive ? "text-heading dark:text-white" : ""
+                    }`}
+                    data-oid="hxkolsn"
+                  >
+                    {item.name}
+                    <span className={underlineClassName} data-oid="m-f3_qo" />
+                    {isActive && (
+                      <span className="absolute -bottom-2 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-[#500000] dark:bg-[#FFCF3F]" />
+                    )}
+                  </Link>
+                );
+              })}
 
               {/* Discover Dropdown */}
               <div
@@ -169,7 +159,14 @@ export const Navigation = ({
                 onMouseLeave={() => setIsDiscoverOpen(false)}
               >
                 <button
-                  className={`${linkClassName} flex items-center gap-1`}
+                  type="button"
+                  aria-expanded={isDiscoverOpen}
+                  aria-haspopup="menu"
+                  className={`${linkClassName} flex items-center gap-1.5 ${
+                    pathname.startsWith("/discover")
+                      ? "text-heading dark:text-white"
+                      : ""
+                  }`}
                   onClick={() => setIsDiscoverOpen(!isDiscoverOpen)}
                 >
                   Discover
@@ -179,48 +176,64 @@ export const Navigation = ({
                 <AnimatePresence>
                   {isDiscoverOpen && (
                     <motion.div
+                      role="menu"
                       initial={{ opacity: 0, y: -5 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -5 }}
                       transition={{ duration: 0.15 }}
-                      className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-black/95 border-2 border-[#500000] dark:border-[#FFCF3F] rounded-lg shadow-lg overflow-hidden"
+                      className="absolute left-1/2 top-full w-80 -translate-x-1/2 pt-3"
                     >
-                      {discoverItems.map((item) => (
-                        <Link
-                          key={item.name}
-                          href={item.href}
-                          className="block px-4 py-3 text-sm text-body hover:text-heading hover:bg-gray-100 dark:text-white/80 dark:hover:text-white dark:hover:bg-white/10 transition-colors"
-                        >
-                          {item.name}
-                        </Link>
-                      ))}
+                      <div className="rounded-2xl border border-[#500000]/25 bg-white/95 p-2 shadow-xl backdrop-blur-xl dark:border-[#FFCF3F]/35 dark:bg-black/95">
+                        <p className="px-3 pb-2 pt-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-text-body dark:text-white/50">
+                          Discover
+                        </p>
+                        {discoverItems.map((item) => {
+                          const Icon = item.icon;
+                          return (
+                            <Link
+                              role="menuitem"
+                              key={item.name}
+                              href={item.href}
+                              onClick={() => setIsDiscoverOpen(false)}
+                              className="flex items-start gap-3 rounded-xl px-3 py-3 transition-colors hover:bg-[#500000]/5 dark:hover:bg-white/10"
+                            >
+                              <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#500000]/10 text-[#500000] dark:bg-[#FFCF3F]/15 dark:text-[#FFCF3F]">
+                                <Icon className="h-4 w-4" aria-hidden />
+                              </span>
+                              <span>
+                                <span className="block text-sm font-semibold text-heading dark:text-white">
+                                  {item.name}
+                                </span>
+                                <span className="mt-0.5 block text-xs leading-relaxed text-body dark:text-white/55">
+                                  {item.description}
+                                </span>
+                              </span>
+                            </Link>
+                          );
+                        })}
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
-
-              <Link href="/compare" className={linkClassName} data-oid="hxkolsn">
-                Compare
-                <span className={underlineClassName} data-oid="m-f3_qo" />
-              </Link>
             </nav>
 
             {/* Desktop CTA */}
             <div
-              className="hidden md:flex items-center gap-4"
+              className="hidden lg:flex items-center gap-3"
               data-oid="llrkwuz"
             >
               <ThemeToggle />
               <UserMenu />
-              <Link href="/compare">
-                <Button className="bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966] rounded-full px-6">
-                  Start comparing
+              <Link href="/alerts">
+                <Button className="bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966] rounded-full px-5 font-semibold">
+                  Seat Alerts
                 </Button>
               </Link>
             </div>
 
             {/* Mobile Menu Button */}
-            <div className="md:hidden" data-oid="xc2k1nn">
+            <div className="lg:hidden" data-oid="xc2k1nn">
               <button
                 type="button"
                 aria-label="Toggle menu"
@@ -269,7 +282,7 @@ export const Navigation = ({
       <AnimatePresence>
         {isMobileMenuOpen ? (
           <motion.div
-            className="fixed inset-0 z-40 md:hidden"
+            className="fixed inset-0 z-40 lg:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -293,7 +306,7 @@ export const Navigation = ({
             >
               <div className="px-4 py-4 max-h-[min(70vh,calc(100dvh-5.5rem))] overflow-y-auto">
                 <p className="text-xs font-medium text-text-body dark:text-white/60 mb-3 px-1">
-                  Quick links
+                  Navigation
                 </p>
                 <div className="grid grid-cols-2 gap-2">
                   {MOBILE_APP_QUICK_LINKS.map((item) => (
@@ -328,11 +341,6 @@ export const Navigation = ({
                     <span className="text-sm text-body dark:text-white/70">Theme</span>
                     <ThemeToggle />
                   </div>
-                  <Link href="/compare" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button className="w-full bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966] rounded-full">
-                      Start comparing
-                    </Button>
-                  </Link>
                 </div>
               </div>
             </motion.div>

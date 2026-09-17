@@ -6,24 +6,12 @@ import { useSessionContext } from "supertokens-auth-react/recipe/session";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
 import { motion } from "motion/react";
-import {
-  getAccountSummary,
-  getSchedules,
-  type AccountSummary,
-  type Schedule,
-} from "@/lib/api";
-import {
-  User,
-  Calendar,
-  Plus,
-  Bell,
-  Sparkles,
-  Mail,
-} from "lucide-react";
+import { getAccountSummary, type AccountSummary } from "@/lib/api";
+import { User, Bell, Mail } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function ProfilePage() {
   return (
@@ -31,19 +19,6 @@ export default function ProfilePage() {
       <ProfileContent />
     </SessionAuth>
   );
-}
-
-function formatScheduleDate(iso?: string): string | null {
-  if (!iso) return null;
-  try {
-    return new Date(iso).toLocaleDateString(undefined, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  } catch {
-    return null;
-  }
 }
 
 function displayUserId(userId: string): { short: string; full: string } {
@@ -54,25 +29,8 @@ function displayUserId(userId: string): { short: string; full: string } {
 
 function ProfileContent() {
   const session = useSessionContext();
-  const [schedules, setSchedules] = useState<Schedule[]>([]);
-  const [loading, setLoading] = useState(true);
   const [account, setAccount] = useState<AccountSummary | null>(null);
   const [accountPending, setAccountPending] = useState(true);
-
-  useEffect(() => {
-    async function loadData() {
-      if (session.loading || !session.doesSessionExist) return;
-      try {
-        const data = await getSchedules();
-        setSchedules(data);
-      } catch (error) {
-        console.error("Failed to load schedules:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    void loadData();
-  }, [session]);
 
   useEffect(() => {
     async function loadAccount() {
@@ -99,12 +57,6 @@ function ProfileContent() {
     !session.loading && session.doesSessionExist ? session.userId : "";
 
   const idDisplay = useMemo(() => displayUserId(userId), [userId]);
-
-  const totalCourses = useMemo(
-    () =>
-      schedules.reduce((n, s) => n + (s.selected_courses?.length ?? 0), 0),
-    [schedules],
-  );
 
   return (
     <div
@@ -137,7 +89,7 @@ function ProfileContent() {
               Profile
             </h1>
             <p className="max-w-2xl text-sm text-text-body dark:text-white/70">
-              Manage your account and saved schedules.
+              Manage your account and notification preferences.
             </p>
           </motion.div>
 
@@ -227,130 +179,6 @@ function ProfileContent() {
             </Card>
           </motion.div>
 
-          {/* Schedules */}
-          <motion.section
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.1 }}
-            aria-labelledby="profile-schedules-heading"
-          >
-            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#500000]/10 dark:bg-[#FFCF3F]/15">
-                  <Calendar className="h-4 w-4 text-[#500000] dark:text-[#FFCF3F]" />
-                </div>
-                <div>
-                  <h2
-                    id="profile-schedules-heading"
-                    className="text-lg font-semibold text-text-heading dark:text-white"
-                  >
-                    Saved schedules
-                  </h2>
-                  <p className="text-sm text-text-body dark:text-white/65">
-                    {loading
-                      ? "Loading…"
-                      : `${schedules.length} plan${schedules.length === 1 ? "" : "s"} · ${totalCourses} course${totalCourses === 1 ? "" : "s"}`}
-                  </p>
-                </div>
-              </div>
-              <Button
-                asChild
-                className="w-full shrink-0 rounded-full bg-[#500000] text-white hover:bg-[#3d0000] sm:w-auto dark:bg-[#FFCF3F] dark:text-black dark:hover:bg-[#FFD966]"
-              >
-                <Link href="/courses" className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  New schedule
-                </Link>
-              </Button>
-            </div>
-
-            {loading ? (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {[0, 1].map((i) => (
-                  <div
-                    key={i}
-                    className="h-44 animate-pulse rounded-xl border border-border/40 bg-white/40 dark:border-white/10 dark:bg-white/5"
-                  />
-                ))}
-              </div>
-            ) : schedules.length === 0 ? (
-              <Card className="border-dashed border-border/80 bg-white/40 dark:border-white/20 dark:bg-black/35">
-                <CardContent className="flex flex-col items-center gap-4 px-6 py-12 text-center sm:py-14">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#500000]/8 dark:bg-[#FFCF3F]/12">
-                    <Sparkles className="h-7 w-7 text-[#500000] dark:text-[#FFCF3F]" />
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-base font-semibold text-text-heading dark:text-white">
-                      No saved schedules yet
-                    </p>
-                    <p className="max-w-md text-sm text-text-body dark:text-white/65">
-                      Browse courses, add sections to a plan, and save it here when you are
-                      ready.
-                    </p>
-                  </div>
-                  <Button asChild variant="outline" className="rounded-full">
-                    <Link href="/courses">Browse courses</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {schedules.map((schedule) => {
-                  const courses = schedule.selected_courses ?? [];
-                  const created = formatScheduleDate(schedule.created_at);
-                  return (
-                    <Card
-                      key={schedule.id}
-                      className="border-border/60 bg-white/65 shadow-sm backdrop-blur-sm transition-shadow hover:shadow-md dark:border-white/10 dark:bg-black/50"
-                    >
-                      <CardHeader className="pb-3">
-                        <div className="flex flex-wrap items-start justify-between gap-2">
-                          <CardTitle className="text-lg leading-snug text-text-heading dark:text-white">
-                            {schedule.name}
-                          </CardTitle>
-                          {schedule.term_code ? (
-                            <Badge
-                              variant="outline"
-                              className="shrink-0 border-[#500000]/25 bg-[#500000]/5 text-xs text-[#500000] dark:border-[#FFCF3F]/40 dark:bg-[#FFCF3F]/10 dark:text-[#FFCF3F]"
-                            >
-                              Term {schedule.term_code}
-                            </Badge>
-                          ) : null}
-                        </div>
-                        <CardDescription className="text-xs dark:text-white/55">
-                          {courses.length} course{courses.length === 1 ? "" : "s"}
-                          {created ? ` · Saved ${created}` : ""}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        {courses.length > 0 ? (
-                          <div className="flex flex-wrap gap-2">
-                            {courses.slice(0, 6).map((course: { subject?: string; course_number?: string }, cIdx: number) => (
-                              <span
-                                key={cIdx}
-                                className="rounded-lg border border-border/60 bg-canvas/80 px-2.5 py-1 font-mono text-xs text-text-heading dark:border-white/15 dark:bg-black/40 dark:text-white/85"
-                              >
-                                {course.subject} {course.course_number}
-                              </span>
-                            ))}
-                            {courses.length > 6 ? (
-                              <span className="self-center text-xs text-text-body dark:text-white/50">
-                                +{courses.length - 6} more
-                              </span>
-                            ) : null}
-                          </div>
-                        ) : (
-                          <p className="text-xs text-text-body dark:text-white/50">
-                            No course list stored for this plan.
-                          </p>
-                        )}
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            )}
-          </motion.section>
         </div>
       </main>
 

@@ -203,6 +203,13 @@ export default function DiscoverFitPage() {
       try {
         const t = await getTerms();
         setTerms(t);
+        setTermCode((current) =>
+          current ||
+          t.find((term) =>
+            term.termDesc.toLowerCase().includes("college station"),
+          )?.termCode ||
+          "",
+        );
       } catch {
         setError("Failed to load terms.");
       }

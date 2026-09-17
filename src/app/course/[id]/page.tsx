@@ -53,6 +53,7 @@ import { useComparison } from "@/contexts/ComparisonContext";
 import { useProfessorComparison } from "@/contexts/ProfessorComparisonContext";
 import { ComparisonWidget } from "@/components/comparison-widget";
 import { ProfessorComparisonWidget } from "@/components/professor-comparison-widget";
+import { professorNamesMatch } from "@/lib/name-matching";
 
 interface CoursePageProps {
   params: Promise<{
@@ -526,6 +527,14 @@ export default function CoursePage({ params }: CoursePageProps) {
       }
       // Match by name (normalized)
       if (prof.name && termProfessorIds.has(prof.name.toLowerCase().trim())) {
+        return true;
+      }
+      if (
+        prof.name &&
+        Array.from(termProfessorIds).some((termIdentity) =>
+          professorNamesMatch(prof.name, termIdentity),
+        )
+      ) {
         return true;
       }
       return false;

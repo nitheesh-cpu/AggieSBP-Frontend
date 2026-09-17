@@ -14,11 +14,9 @@ import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { getProfessors, type Professor } from "@/lib/api";
 import {
   Search,
-  Plus,
   Star,
   User,
   GraduationCap,
@@ -30,14 +28,19 @@ import {
   ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
-import { useProfessorComparison } from "@/contexts/ProfessorComparisonContext";
-import { ProfessorComparisonWidget } from "@/components/professor-comparison-widget";
 
 function formatAnimatedNumber(n: number, decimals: number) {
   const fixed = n.toFixed(decimals);
   const [intPart, decPart] = fixed.split(".");
   const withCommas = Number(intPart).toLocaleString("en-US");
   return decimals > 0 ? `${withCommas}.${decPart}` : withCommas;
+}
+
+function formatCompactCount(value: number) {
+  return new Intl.NumberFormat("en-US", {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value);
 }
 
 function CountUpNumber({
@@ -92,8 +95,6 @@ export default function ProfessorsPage() {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 3 * 8; // 3 columns × 4 rows
-
-  const { addProfessor, isSelected, canAddMore } = useProfessorComparison();
 
   // Get unique departments for filter dropdown
   const uniqueDepartments = Array.from(
@@ -152,12 +153,6 @@ export default function ProfessorsPage() {
     // Reset to first page when filters change
     setCurrentPage(1);
   }, [searchTerm, departmentFilter, minRating, professors]);
-
-  const handleAddProfessor = (professor: Professor) => {
-    if (canAddMore() && !isSelected(professor.id)) {
-      addProfessor(professor.id);
-    }
-  };
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredProfessors.length / itemsPerPage);
@@ -253,7 +248,7 @@ export default function ProfessorsPage() {
                   placeholder="Search professors by name..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-12 h-12 sm:h-14 text-[14px] sm:text-[15px] bg-canvas border border-border rounded-full text-text-body placeholder:text-text-body/60 dark:bg-black/45 dark:border-white/15 dark:text-white dark:placeholder:text-white/40 dark:backdrop-blur-sm"
+                  className="h-12 rounded-full border-2 border-[#500000]/25 bg-canvas pl-12 text-[14px] text-text-body shadow-sm transition-colors placeholder:text-text-body/60 hover:border-[#500000]/40 focus-visible:border-[#500000]/60 focus-visible:ring-2 focus-visible:ring-[#500000]/15 focus-visible:ring-offset-0 dark:border-white/25 dark:bg-black/45 dark:text-white dark:placeholder:text-white/40 dark:backdrop-blur-sm dark:hover:border-[#FFCF3F]/40 dark:focus-visible:border-[#FFCF3F]/60 dark:focus-visible:ring-[#FFCF3F]/20 sm:h-14 sm:text-[15px]"
                 />
               </div>
             </motion.div>
@@ -419,7 +414,7 @@ export default function ProfessorsPage() {
             {!loading && !error && (
               <motion.div
                 key={`${currentPage}-${searchTerm}-${departmentFilter}-${minRating ?? ""}`}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8"
+                className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:gap-4 xl:grid-cols-3"
                 initial={
                   shouldReduceMotion ? false : hasMounted ? false : "hidden"
                 }
@@ -457,7 +452,7 @@ export default function ProfessorsPage() {
                     }
                     whileTap={shouldReduceMotion ? undefined : { scale: 0.99 }}
                   >
-                    <Card className="p-6 bg-card border-border hover:border-border transition-all duration-normal group relative overflow-hidden dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm dark:hover:border-white/20">
+                    <Card className="group relative gap-0 overflow-hidden border-border bg-card p-4 transition-all duration-normal hover:border-[#500000]/25 hover:shadow-md dark:border-white/10 dark:bg-black/45 dark:backdrop-blur-sm dark:hover:border-[#FFCF3F]/25">
                       {/* subtle corner highlight */}
                       <motion.div
                         aria-hidden
@@ -475,95 +470,96 @@ export default function ProfessorsPage() {
                         }}
                       />
 
-                      <div className="flex items-start justify-between mb-4 relative">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-12 h-12 rounded-xl bg-canvas border border-border flex items-center justify-center text-accent dark:bg-white/10 dark:border-white/10">
-                            <User className="w-6 h-6" />
+                      <div className="relative mb-3 flex items-start gap-3">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-canvas text-accent dark:border-white/10 dark:bg-white/10">
+                            <User className="h-4 w-4" />
                           </div>
-                          <div className="min-w-0">
-                            <Link href={`/professor/${professor.id}`}>
-                              <h3 className="font-semibold text-text-heading hover:text-accent transition-colors truncate dark:text-white">
+                          <div className="min-w-0 flex-1">
+                            <Link href={`/professor/${professor.id}`} className="group/name">
+                              <h3 className="line-clamp-2 text-lg font-semibold leading-tight tracking-tight text-text-heading transition-colors group-hover/name:text-accent dark:text-white sm:text-xl">
                                 {professor.name}
                               </h3>
                             </Link>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-3 relative">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-text-body dark:text-white/70">
-                            Overall Rating
-                          </span>
-                          <div className="flex items-center gap-1">
-                            <Star className="w-4 h-4 text-accent fill-current" />
-                            <span className="font-medium text-text-heading dark:text-white">
-                              {professor.overall_rating
-                                ? professor.overall_rating.toFixed(1)
-                                : "N/A"}
-                            </span>
-                            <span className="text-xs text-text-body/70 dark:text-white/50">
-                              ({professor.total_reviews} reviews)
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-text-body dark:text-white/70">
-                            Courses Taught
-                          </span>
-                          <div className="flex items-center gap-1 text-text-body dark:text-white/80">
-                            <BookOpen className="w-4 h-4 text-accent" />
-                            <span className="font-medium text-text-heading dark:text-white">
-                              {professor.courses_taught.length}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="pt-2">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex flex-wrap gap-1 min-w-0">
-                              {professor.departments.slice(0, 4).map((dept) =>
-                                dept && dept.length === 4 ? (
-                                  <Link
-                                    href={`/professors?department=${dept}`}
+                            <div className="mt-1.5 flex flex-wrap gap-1">
+                              {professor.departments
+                                .filter(Boolean)
+                                .slice(0, 3)
+                                .map((dept) => (
+                                  <button
+                                    type="button"
                                     key={dept}
+                                    onClick={() => setDepartmentFilter(dept)}
+                                    className="rounded-full border border-border bg-canvas px-2 py-0.5 text-[10px] font-medium text-text-body transition-colors hover:border-[#500000]/30 hover:text-[#500000] dark:border-white/15 dark:bg-black/20 dark:text-white/70 dark:hover:border-[#FFCF3F]/35 dark:hover:text-[#FFCF3F]"
                                   >
-                                    <Badge
-                                      variant="outline"
-                                      className="text-xs border-border text-text-body bg-canvas dark:border-white/15 dark:text-white/70 dark:bg-black/20"
-                                    >
-                                      {dept}
-                                    </Badge>
-                                  </Link>
-                                ) : null
-                              )}
-                              {professor.departments.length > 4 && (
-                                <Badge
-                                  variant="outline"
-                                  className="text-xs border-border text-text-body bg-canvas dark:border-white/15 dark:text-white/70 dark:bg-black/20"
-                                >
-                                  +{professor.departments.length - 4} more
-                                </Badge>
-                              )}
+                                    {dept}
+                                  </button>
+                                ))}
                             </div>
-
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleAddProfessor(professor)}
-                              disabled={
-                                !canAddMore() || isSelected(professor.id)
-                              }
-                              className="flex items-center gap-1 border-border bg-canvas text-text-body hover:bg-button-hover shrink-0 dark:border-white/15 dark:bg-black/30 dark:text-white/80 dark:hover:bg-black/45"
-                            >
-                              <Plus className="w-4 h-4" />
-                              Compare
-                            </Button>
                           </div>
+                      </div>
+
+                      <div className="relative grid grid-cols-3 divide-x divide-border/70 rounded-xl border border-border/70 bg-canvas/60 px-1 py-2.5 dark:divide-white/10 dark:border-white/10 dark:bg-white/5">
+                        <div className="flex items-center justify-center gap-1 px-2">
+                            <Star className="h-3.5 w-3.5 fill-current text-accent" />
+                            <span className="text-base font-semibold tracking-tight text-text-heading dark:text-white">
+                              {professor.overall_rating > 0
+                                ? professor.overall_rating.toFixed(1)
+                                : "—"}
+                            </span>
+                        </div>
+                        <div className="flex items-center justify-center gap-1.5 px-2 text-xs text-text-body dark:text-white/60">
+                          <MessageSquare className="h-3.5 w-3.5 text-accent" />
+                          <span className="font-medium text-text-heading dark:text-white">
+                            {formatCompactCount(professor.total_reviews)}
+                          </span>
+                          <span className="hidden xl:inline">reviews</span>
+                        </div>
+                        <div className="flex items-center justify-center gap-1.5 px-2 text-xs text-text-body dark:text-white/60">
+                          <BookOpen className="h-3.5 w-3.5 text-accent" />
+                          <span className="font-medium text-text-heading dark:text-white">
+                            {professor.courses_taught.length}
+                          </span>
+                          <span className="hidden xl:inline">courses</span>
                         </div>
                       </div>
-                    </Card>
+
+                      <div className="relative mt-3 min-h-6">
+                        <div className="flex flex-wrap gap-1">
+                          {professor.courses_taught.slice(0, 3).map((course) => (
+                            <span
+                              key={course}
+                              className="rounded-md bg-[#500000]/6 px-2 py-0.5 font-mono text-[11px] text-text-heading dark:bg-[#FFCF3F]/10 dark:text-white/75"
+                            >
+                              {course}
+                            </span>
+                          ))}
+                          {professor.courses_taught.length > 3 && (
+                            <span className="py-0.5 text-[11px] text-text-body/70 dark:text-white/45">
+                              +{professor.courses_taught.length - 3} more
+                            </span>
+                          )}
+                          {professor.courses_taught.length === 0 && (
+                            <span className="text-xs text-text-body/65 dark:text-white/45">
+                              No course history available
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="relative mt-3 border-t border-border/60 pt-3 dark:border-white/10">
+                            <Button
+                              asChild
+                              size="sm"
+                              variant="ghost"
+                              className="-ml-3 text-[#500000] hover:bg-[#500000]/7 hover:text-[#500000] dark:text-[#FFCF3F] dark:hover:bg-[#FFCF3F]/10 dark:hover:text-[#FFCF3F]"
+                            >
+                              <Link href={`/professor/${professor.id}`}>
+                                View profile
+                                <ChevronRight className="h-4 w-4" />
+                              </Link>
+                            </Button>
+                      </div>
+                      </Card>
                   </motion.div>
                 ))}
               </motion.div>
@@ -701,9 +697,6 @@ export default function ProfessorsPage() {
             )}
           </div>
         </main>
-
-        {/* Comparison Widget */}
-        <ProfessorComparisonWidget />
 
         <Footer />
       </div>

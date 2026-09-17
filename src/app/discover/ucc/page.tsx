@@ -15,7 +15,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, BookOpen, GraduationCap, Star, ChevronDown } from "lucide-react";
+import {
+  Loader2,
+  BookOpen,
+  GraduationCap,
+  Star,
+  ChevronDown,
+  ArrowUpDown,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface Term {
@@ -60,6 +67,15 @@ type ExpandedState = Record<string, number>;
 const INITIAL_COURSES_SHOWN = 6;
 const COURSES_INCREMENT = 6;
 
+type SortKey = "easiness" | "gpa" | "ab" | "rating";
+
+const SORT_OPTIONS: { value: SortKey; label: string }[] = [
+  { value: "easiness", label: "Easiness Score" },
+  { value: "gpa", label: "Avg GPA" },
+  { value: "ab", label: "A/B Rate" },
+  { value: "rating", label: "Prof Rating" },
+];
+
 export default function UCCDiscoveryPage() {
   const shouldReduceMotion = useReducedMotion();
   const [hasMounted, setHasMounted] = useState(false);
@@ -69,6 +85,7 @@ export default function UCCDiscoveryPage() {
   const [loading, setLoading] = useState<boolean>(false);
   const [fetchingTerms, setFetchingTerms] = useState<boolean>(true);
   const [expandedState, setExpandedState] = useState<ExpandedState>({});
+  const [sortKey, setSortKey] = useState<SortKey>("easiness");
 
   useEffect(() => {
     setHasMounted(true);
@@ -123,6 +140,20 @@ export default function UCCDiscoveryPage() {
     }));
   };
 
+  const sortCourses = (courses: Course[]) =>
+    [...courses].sort((a, b) => {
+      switch (sortKey) {
+        case "gpa":
+          return (b.professor?.avgGpa ?? -1) - (a.professor?.avgGpa ?? -1);
+        case "ab":
+          return (b.professor?.percentAB ?? -1) - (a.professor?.percentAB ?? -1);
+        case "rating":
+          return (b.professor?.avgRating ?? -1) - (a.professor?.avgRating ?? -1);
+        default:
+          return b.easinessScore - a.easinessScore;
+      }
+    });
+
   return (
     <MotionConfig reducedMotion={shouldReduceMotion ? "always" : "never"}>
       <div
@@ -151,9 +182,9 @@ export default function UCCDiscoveryPage() {
                 </p>
               </div>
 
-              <div className="w-full md:w-80">
+              <div className="flex w-full flex-col gap-3 sm:flex-row md:w-auto">
                 <Select onValueChange={handleTermChange} value={selectedTerm}>
-                  <SelectTrigger className="w-full h-12 bg-card/80 backdrop-blur-md border-border dark:border-white/15 dark:bg-black/50 dark:text-white rounded-full px-5 shadow-sm transition-all">
+                  <SelectTrigger className="h-12 w-full bg-card/80 backdrop-blur-md border-border dark:border-white/15 dark:bg-black/50 dark:text-white rounded-full px-5 shadow-sm transition-all sm:w-72">
                     <SelectValue placeholder={fetchingTerms ? "Loading terms..." : "Select a Term"} />
                   </SelectTrigger>
                   <SelectContent className="bg-card/80 backdrop-blur-md border-border dark:border-white/15 dark:bg-black/50 dark:text-white rounded-full px-5 shadow-sm transition-all">
@@ -163,6 +194,26 @@ export default function UCCDiscoveryPage() {
                         <SelectItem key={term.termCode} value={term.termCode} className="hover:bg-card hover:dark:bg-black/70">
 
                           {term.termDesc}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  onValueChange={(value) => setSortKey(value as SortKey)}
+                  value={sortKey}
+                >
+                  <SelectTrigger className="h-12 w-full bg-card/80 backdrop-blur-md border-border dark:border-white/15 dark:bg-black/50 dark:text-white rounded-full px-5 shadow-sm transition-all sm:w-48">
+                    <ArrowUpDown className="mr-1 h-4 w-4 shrink-0 text-text-body/50 dark:text-white/40" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="dark:bg-black/90 dark:border-white/15 dark:text-white">
+                    <SelectGroup>
+                      <SelectLabel>Sort by</SelectLabel>
+                      {SORT_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
                         </SelectItem>
                       ))}
                     </SelectGroup>
@@ -274,7 +325,8 @@ export default function UCCDiscoveryPage() {
                 {uccData.map((category) => {
                   if (category.courses.length === 0) return null;
                   const shownCount = expandedState[category.category] || INITIAL_COURSES_SHOWN;
-                  const visibleCourses = category.courses.slice(0, shownCount);
+                  const sortedCourses = sortCourses(category.courses);
+                  const visibleCourses = sortedCourses.slice(0, shownCount);
                   const hasMore = shownCount < category.courses.length;
 
                   return (

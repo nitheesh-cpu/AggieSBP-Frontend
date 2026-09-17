@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, MotionConfig, useReducedMotion } from "motion/react";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
@@ -16,7 +16,20 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, GraduationCap, Star, ChevronDown, Building2, MapPin, ArrowUpDown } from "lucide-react";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Loader2, GraduationCap, Star, ChevronDown, Building2, MapPin, ArrowUpDown, Check, ChevronsUpDown } from "lucide-react";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL?.trim() || "http://localhost:8000";
@@ -82,6 +95,9 @@ export default function DiscoverDeptPage() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [selectedTerm, setSelectedTerm] = useState("");
   const [selectedDept, setSelectedDept] = useState("");
+  const [departmentOpen, setDepartmentOpen] = useState(false);
+  const [departmentSearch, setDepartmentSearch] = useState("");
+  const departmentListRef = useRef<HTMLDivElement>(null);
   const [selectedCampus, setSelectedCampus] = useState("all");
   const [includeGraduate, setIncludeGraduate] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("easiness");
@@ -94,11 +110,29 @@ export default function DiscoverDeptPage() {
 
   useEffect(() => { setHasMounted(true); }, []);
 
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      departmentListRef.current?.scrollTo({ top: 0 });
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [departmentSearch]);
+
   // Fetch terms on mount
   useEffect(() => {
     fetch(`${API_BASE_URL}/terms`)
       .then((r) => r.json())
-      .then((data: Term[]) => setTerms(data))
+      .then((data: Term[]) => {
+        setTerms(data);
+        const defaultTerm = data.find((term) =>
+          term.termDesc.toLowerCase().includes("college station"),
+        );
+        if (defaultTerm) {
+          setSelectedTerm(defaultTerm.termCode);
+          setCourses([]);
+          void fetchDepartments(defaultTerm.termCode);
+        }
+      })
       .catch(console.error)
       .finally(() => setFetchingTerms(false));
   }, []);
@@ -230,26 +264,70 @@ export default function DiscoverDeptPage() {
                 </Select>
 
                 {/* Department */}
-                <Select onValueChange={handleDeptChange} value={selectedDept} disabled={!selectedTerm || fetchingDepts}>
-                  <SelectTrigger className="w-60 h-10 bg-card/80 backdrop-blur-md border-border dark:border-white/15 dark:bg-black/50 dark:text-white rounded-full px-5 shadow-sm transition-all disabled:opacity-50">
-                    <SelectValue placeholder={
-                      !selectedTerm ? "Select a term first"
-                        : fetchingDepts ? "Loading departments..."
-                        : "Select Department"
-                    } />
-                  </SelectTrigger>
-                  <SelectContent className="dark:bg-black/90 dark:border-white/15 dark:text-white max-h-72">
-                    <SelectGroup>
-                      <SelectLabel>Departments</SelectLabel>
-                      {(Array.isArray(departments) ? departments : []).map((dept) => (
-                        <SelectItem key={dept.code} value={dept.code}>
-                          <span className="font-mono text-xs mr-2 text-text-body/60 dark:text-white/40">{dept.code}</span>
-                          {dept.name}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
+                <Popover
+                  open={departmentOpen}
+                  onOpenChange={(open) => {
+                    setDepartmentOpen(open);
+                    if (!open) setDepartmentSearch("");
+                  }}
+                >
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={departmentOpen}
+                      disabled={!selectedTerm || fetchingDepts}
+                      className="h-10 w-64 justify-between rounded-full border-border bg-card/80 px-5 font-normal text-text-body shadow-sm backdrop-blur-md transition-all dark:border-white/15 dark:bg-black/50 dark:text-white disabled:opacity-50"
+                    >
+                      <span className="truncate text-left">
+                        {!selectedTerm
+                          ? "Select a term first"
+                          : fetchingDepts
+                            ? "Loading departments..."
+                            : selectedDept
+                              ? `${selectedDept} — ${departments.find((dept) => dept.code === selectedDept)?.name ?? "Department"}`
+                              : "Search departments..."}
+                      </span>
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    align="start"
+                    className="w-[min(90vw,360px)] p-0 dark:border-white/15 dark:bg-black/95"
+                  >
+                    <Command>
+                      <CommandInput
+                        placeholder="Search by code or name..."
+                        value={departmentSearch}
+                        onValueChange={setDepartmentSearch}
+                      />
+                      <CommandList ref={departmentListRef}>
+                        <CommandEmpty>No department found.</CommandEmpty>
+                        <CommandGroup heading="Departments">
+                          {(Array.isArray(departments) ? departments : []).map((dept) => (
+                            <CommandItem
+                              key={dept.code}
+                              value={`${dept.code} ${dept.name}`}
+                              onSelect={() => {
+                                handleDeptChange(dept.code);
+                                setDepartmentOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={`h-4 w-4 ${selectedDept === dept.code ? "opacity-100" : "opacity-0"}`}
+                              />
+                              <span className="w-12 shrink-0 font-mono text-xs text-text-body/60 dark:text-white/45">
+                                {dept.code}
+                              </span>
+                              <span className="truncate">{dept.name}</span>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
 
                 {/* Campus */}
                 <Select onValueChange={handleCampusChange} value={selectedCampus}>

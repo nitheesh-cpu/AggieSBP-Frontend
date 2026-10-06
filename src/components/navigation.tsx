@@ -104,7 +104,7 @@ export const Navigation = ({
             data-oid="l4-iau1"
           >
             {/* Logo */}
-            <Link href="/" className="flex items-center" data-oid="h31:j-4">
+            <Link href="/" prefetch={false} className="flex items-center" data-oid="h31:j-4">
               <div className="flex items-center space-x-2 sm:space-x-3" data-oid="p5rzkzk">
                 <img
                   src="/favicon.ico"
@@ -138,6 +138,7 @@ export const Navigation = ({
                   <Link
                     key={item.name}
                     href={item.href}
+                    prefetch={false}
                     className={`${linkClassName} ${
                       isActive ? "text-heading dark:text-white" : ""
                     }`}
@@ -194,6 +195,7 @@ export const Navigation = ({
                               role="menuitem"
                               key={item.name}
                               href={item.href}
+                              prefetch={false}
                               onClick={() => setIsDiscoverOpen(false)}
                               className="flex items-start gap-3 rounded-xl px-3 py-3 transition-colors hover:bg-[#500000]/5 dark:hover:bg-white/10"
                             >
@@ -225,7 +227,7 @@ export const Navigation = ({
             >
               <ThemeToggle />
               <UserMenu />
-              <Link href="/alerts">
+              <Link href="/alerts" prefetch={false}>
                 <Button className="bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966] rounded-full px-5 font-semibold">
                   Seat Alerts
                 </Button>
@@ -313,6 +315,7 @@ export const Navigation = ({
                     <Link
                       key={`${item.href}-${item.name}`}
                       href={item.href}
+                      prefetch={false}
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={
                         item.emphasis

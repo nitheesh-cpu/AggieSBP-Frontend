@@ -124,6 +124,7 @@ export const Footer = () => {
               <Link
                 key={"About"}
                 href="/about"
+                prefetch={false}
                 className="block text-text-body hover:text-text-heading transition-colors duration-[220ms]"
               >
                 About

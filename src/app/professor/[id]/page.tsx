@@ -44,6 +44,128 @@ interface ProfessorPageProps {
   }>;
 }
 
+const SUMMARY_TOPICS = new Set([
+  "teaching",
+  "exams",
+  "grading",
+  "workload",
+  "personality",
+  "policies",
+  "other",
+]);
+
+function parseSummaryTheme(value: string) {
+  const match = value.match(/^([^:]{2,24}):\s*(.+)$/);
+  if (!match || !SUMMARY_TOPICS.has(match[1].trim().toLowerCase())) {
+    return { topic: null, text: value.trim() };
+  }
+
+  return {
+    topic: match[1].trim(),
+    text: match[2].trim(),
+  };
+}
+
+function SummaryThemeColumn({
+  items,
+  tone,
+}: {
+  items: string[];
+  tone: "positive" | "negative";
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const listId = React.useId();
+  if (items.length === 0) return null;
+
+  const isPositive = tone === "positive";
+  const title = isPositive ? "Strengths" : "Common concerns";
+  const visibleItems = expanded ? items : items.slice(0, 3);
+
+  return (
+    <section
+      className={`self-start overflow-hidden rounded-xl border ${
+        isPositive
+          ? "border-emerald-200/70 bg-emerald-50/40 dark:border-emerald-500/15 dark:bg-emerald-500/[0.04]"
+          : "border-red-200/70 bg-red-50/40 dark:border-red-500/15 dark:bg-red-500/[0.04]"
+      }`}
+    >
+      <div
+        className={`flex items-center gap-2 border-b px-3 py-2.5 ${
+          isPositive
+            ? "border-emerald-200/70 dark:border-emerald-500/15"
+            : "border-red-200/70 dark:border-red-500/15"
+        }`}
+      >
+        <div
+          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
+            isPositive
+              ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400"
+              : "bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400"
+          }`}
+        >
+          {isPositive ? (
+            <ThumbsUp className="h-4 w-4" />
+          ) : (
+            <ThumbsDown className="h-4 w-4" />
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <h3 className="text-sm font-semibold text-text-heading dark:text-white">
+            {title}
+          </h3>
+        </div>
+        <span className="rounded-full border border-border/70 bg-card/70 px-2 py-0.5 text-xs tabular-nums text-text-body/70 dark:border-white/10 dark:bg-black/20 dark:text-white/50">
+          {items.length}
+        </span>
+      </div>
+
+      <ul
+        id={listId}
+        className="divide-y divide-border/60 dark:divide-white/[0.07]"
+      >
+        {visibleItems.map((item, index) => {
+          const { topic, text } = parseSummaryTheme(item);
+          return (
+            <li key={`${item}-${index}`} className="px-3 py-2.5">
+              <p className="break-words text-sm leading-[1.55] text-text-body dark:text-white/80">
+                {topic && (
+                  <span
+                    className={`mr-2 inline-block rounded px-1.5 py-0.5 align-baseline text-[10px] font-semibold uppercase tracking-wide ${
+                      isPositive
+                        ? "bg-emerald-100/80 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"
+                        : "bg-red-100/80 text-red-700 dark:bg-red-500/15 dark:text-red-300"
+                    }`}
+                  >
+                    {topic}
+                  </span>
+                )}
+                {text}
+              </p>
+            </li>
+          );
+        })}
+      </ul>
+      {items.length > 3 && (
+        <button
+          type="button"
+          aria-expanded={expanded}
+          aria-controls={listId}
+          aria-label={`${expanded ? "Show fewer" : "Show all"} ${title.toLowerCase()}`}
+          onClick={() => setExpanded((value) => !value)}
+          className="flex min-h-10 w-full items-center justify-center gap-1.5 border-t border-border/60 px-3 py-2 text-xs font-medium text-text-body hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-current dark:border-white/[0.07] dark:text-white/70 dark:hover:bg-white/5"
+        >
+          {expanded ? "Show less" : `Show ${items.length - 3} more`}
+          {expanded ? (
+            <ChevronUp className="h-3.5 w-3.5" />
+          ) : (
+            <ChevronDown className="h-3.5 w-3.5" />
+          )}
+        </button>
+      )}
+    </section>
+  );
+}
+
 function CountUpNumber({
   value,
   shouldReduceMotion,
@@ -371,7 +493,7 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
         setError(null);
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Failed to load professor data"
+          err instanceof Error ? err.message : "Failed to load professor data",
         );
       } finally {
         setLoading(false);
@@ -424,15 +546,14 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                 const courseId = course.course_id.replace(/\s+/g, "");
                 const sections = await getCourseSectionsForTerm(
                   selectedTerm,
-                  courseId
+                  courseId,
                 );
 
                 // Check if any section has this professor as an instructor
                 const hasProfessor = sections.some((section) =>
-                  section.instructors?.some(
-                    (instructor) =>
-                      professorNamesMatch(instructor.name, professor.name)
-                  )
+                  section.instructors?.some((instructor) =>
+                    professorNamesMatch(instructor.name, professor.name),
+                  ),
                 );
 
                 if (hasProfessor) {
@@ -442,7 +563,7 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
               } catch (err) {
                 console.error(
                   `Failed to load sections for ${course.course_id}:`,
-                  err
+                  err,
                 );
                 return null;
               }
@@ -748,7 +869,7 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                               >
                                 {dept}
                               </Badge>
-                            ) : null
+                            ) : null,
                           )}
                         </div>
                       </div>
@@ -868,7 +989,7 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                           </div>
                           <div className="font-semibold text-text-heading dark:text-white">
                             {Math.round(
-                              (professor.overallSummary.confidence || 0) * 100
+                              (professor.overallSummary.confidence || 0) * 100,
                             )}
                             %
                           </div>
@@ -888,75 +1009,16 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                       </div>
                     )}
 
-                    {/* Strengths & Complaints Grid */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      {/* Strengths */}
-                      {professor.overallSummary.strengths &&
-                        professor.overallSummary.strengths.length > 0 && (
-                          <div>
-                            <div className="flex items-center gap-2 mb-3">
-                              <div className="h-8 w-8 rounded-lg bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 flex items-center justify-center">
-                                <ThumbsUp className="w-4 h-4" />
-                              </div>
-                              <h3 className="font-semibold text-text-heading dark:text-white">
-                                Strengths
-                              </h3>
-                            </div>
-                            <ul className="space-y-2">
-                              {professor.overallSummary.strengths.map(
-                                (strength, index) => (
-                                  <li
-                                    key={index}
-                                    className="flex items-start gap-2 text-sm text-text-body dark:text-white/80"
-                                  >
-                                    <span className="text-emerald-500 mt-1.5 flex-shrink-0">
-                                      •
-                                    </span>
-                                    <span className="leading-relaxed">
-                                      {strength
-                                        .replace(/^Teaching:\s*/i, "")
-                                        .trim()}
-                                    </span>
-                                  </li>
-                                )
-                              )}
-                            </ul>
-                          </div>
-                        )}
-
-                      {/* Complaints */}
-                      {professor.overallSummary.complaints &&
-                        professor.overallSummary.complaints.length > 0 && (
-                          <div>
-                            <div className="flex items-center gap-2 mb-3">
-                              <div className="h-8 w-8 rounded-lg bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400 flex items-center justify-center">
-                                <ThumbsDown className="w-4 h-4" />
-                              </div>
-                              <h3 className="font-semibold text-text-heading dark:text-white">
-                                Complaints
-                              </h3>
-                            </div>
-                            <ul className="space-y-2">
-                              {professor.overallSummary.complaints.map(
-                                (complaint, index) => (
-                                  <li
-                                    key={index}
-                                    className="flex items-start gap-2 text-sm text-text-body dark:text-white/80"
-                                  >
-                                    <span className="text-red-500 mt-1.5 flex-shrink-0">
-                                      •
-                                    </span>
-                                    <span className="leading-relaxed">
-                                      {complaint
-                                        .replace(/^Teaching:\s*/i, "")
-                                        .trim()}
-                                    </span>
-                                  </li>
-                                )
-                              )}
-                            </ul>
-                          </div>
-                        )}
+                    {/* Strengths & Concerns Grid */}
+                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
+                      <SummaryThemeColumn
+                        items={professor.overallSummary.strengths || []}
+                        tone="positive"
+                      />
+                      <SummaryThemeColumn
+                        items={professor.overallSummary.complaints || []}
+                        tone="negative"
+                      />
                     </div>
                   </CardContent>
                 </Card>
@@ -1053,7 +1115,7 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                         </Link>
                       </CardContent>
                     </Card>
-                  ) : null
+                  ) : null,
                 )}
               </div>
             </div>

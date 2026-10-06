@@ -43,7 +43,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={pressStart2P.variable}>
       <head>
-        <Partytown debug={true} forward={["dataLayer.push"]} />
+        <Partytown debug={false} forward={["dataLayer.push"]} />
         <meta
           name="apple-mobile-web-app-title"
           content="AggieSB+"

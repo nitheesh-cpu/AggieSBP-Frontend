@@ -41,7 +41,7 @@ export const frontendConfig: () => SuperTokensConfig = () => {
           providers: [Google.init()],
         },
       }),
-      Session.init(),
+      Session.init({ tokenTransferMethod: "header" }),
     ],
   };
 };

@@ -56,6 +56,30 @@ export interface Course {
   sectionAttributes: string[];
 }
 
+// Python-computed statistics over a professor's (or one course's) reviews.
+// Each percentage comes with the number of reviews that reported it.
+export interface ReviewStats {
+  review_count?: number;
+  would_take_again_pct?: number | null;
+  would_take_again_n?: number;
+  grade_distribution?: Record<string, number>;
+  grades_reported_n?: number;
+  attendance_mandatory_pct?: number | null;
+  attendance_n?: number;
+  textbook_used_pct?: number | null;
+  textbook_n?: number;
+  recent_window_years?: number;
+  avg_rating_recent?: number | null;
+  recent_n?: number;
+  avg_rating_older?: number | null;
+  older_n?: number;
+  first_review_date?: string | null;
+  last_review_date?: string | null;
+}
+
+// Summary field name -> one list of cited RMP review IDs per claim.
+export type SummaryCitations = Record<string, string[][]>;
+
 export interface CourseSummary {
   courseCode?: string | null;
   teaching?: string | null;
@@ -65,6 +89,9 @@ export interface CourseSummary {
   personality?: string | null;
   policies?: string | null;
   other?: string | null;
+  tips?: string[] | null;
+  reviewStats?: ReviewStats | null;
+  citations?: SummaryCitations | null;
   reviewCount?: number | null;
   confidence?: number | null;
 }
@@ -227,6 +254,9 @@ export interface OverallSummary {
   complaints: string[];
   consistency: string;
   confidence: number;
+  tldr?: string | null;
+  reviewStats?: ReviewStats | null;
+  citations?: SummaryCitations | null;
 }
 
 export interface ProfessorDetail {
@@ -241,6 +271,7 @@ export interface ProfessorDetail {
     course_name: string;
     reviews_count: number;
     avg_rating: number;
+    tips?: string[];
   }>;
   recent_reviews?: Review[];
   tag_frequencies?: { [tag: string]: number }; // Dictionary of tags and their frequencies

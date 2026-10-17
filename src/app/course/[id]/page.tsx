@@ -23,6 +23,7 @@ import {
   type CourseDetail,
   type Term,
   type CourseSection,
+  type ReviewStats,
 } from "@/lib/api";
 import {
   Star,
@@ -54,6 +55,11 @@ import { useProfessorComparison } from "@/contexts/ProfessorComparisonContext";
 import { ComparisonWidget } from "@/components/comparison-widget";
 import { ProfessorComparisonWidget } from "@/components/professor-comparison-widget";
 import { professorNamesMatch } from "@/lib/name-matching";
+import {
+  ReviewStatsRow,
+  SummaryTips,
+  SummaryTldr,
+} from "@/components/summary-insights";
 
 interface CoursePageProps {
   params: Promise<{
@@ -1275,11 +1281,13 @@ export default function CoursePage({ params }: CoursePageProps) {
                                     courseSummary.workload ||
                                     courseSummary.personality ||
                                     courseSummary.policies ||
-                                    courseSummary.other);
+                                    courseSummary.other ||
+                                    (courseSummary.tips?.length || 0) > 0);
 
                                 const overall = (prof as any).overallSummary as
                                   | {
                                       sentiment?: string | null;
+                                      tldr?: string | null;
                                       strengths?: string[] | null;
                                       complaints?: string[] | null;
                                       consistency?: string | null;
@@ -1291,6 +1299,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                                 const hasOverall =
                                   !!overall &&
                                   (!!overall.sentiment ||
+                                    !!overall.tldr ||
                                     (overall.strengths?.length || 0) > 0 ||
                                     (overall.complaints?.length || 0) > 0 ||
                                     !!overall.consistency);
@@ -1424,20 +1433,24 @@ export default function CoursePage({ params }: CoursePageProps) {
                                 courseSummary.workload ||
                                 courseSummary.personality ||
                                 courseSummary.policies ||
-                                courseSummary.other);
+                                courseSummary.other ||
+                                (courseSummary.tips?.length || 0) > 0);
 
                             const overall = (prof as any).overallSummary as
                               | {
                                   sentiment?: string | null;
+                                  tldr?: string | null;
                                   strengths?: string[] | null;
                                   complaints?: string[] | null;
                                   consistency?: string | null;
+                                  reviewStats?: ReviewStats | null;
                                 }
                               | null
                               | undefined;
                             const hasOverall =
                               !!overall &&
                               (!!overall.sentiment ||
+                                !!overall.tldr ||
                                 (overall.strengths?.length || 0) > 0 ||
                                 (overall.complaints?.length || 0) > 0 ||
                                 !!overall.consistency);
@@ -1475,6 +1488,8 @@ export default function CoursePage({ params }: CoursePageProps) {
                                 <div className="bg-canvas/70 border border-border rounded-2xl p-3 dark:bg-black/30 dark:border-white/10 space-y-3">
                                   {selected === "overall" && hasOverall ? (
                                     <div className="space-y-2">
+                                      <SummaryTldr tldr={overall?.tldr} />
+                                      <ReviewStatsRow stats={overall?.reviewStats} />
                                       {overall?.sentiment && (
                                         <p className="text-text-body dark:text-white/80 leading-relaxed text-sm">
                                           <span className="font-semibold text-text-heading dark:text-white/90">
@@ -1510,6 +1525,9 @@ export default function CoursePage({ params }: CoursePageProps) {
                                     </div>
                                   ) : activeCourseSummary ? (
                                     <>
+                                      <ReviewStatsRow
+                                        stats={activeCourseSummary.reviewStats}
+                                      />
                                       {activeCourseSummary.teaching && (
                                         <div>
                                           <div className="flex items-center gap-1.5 mb-1">
@@ -1588,7 +1606,10 @@ export default function CoursePage({ params }: CoursePageProps) {
                                           </p>
                                         </div>
                                       )}
-                                      {activeCourseSummary.other && (
+                                      <SummaryTips tips={activeCourseSummary.tips} />
+                                      {/* `other` repeats the tips for older clients; show it only without them. */}
+                                      {activeCourseSummary.other &&
+                                        !(activeCourseSummary.tips?.length > 0) && (
                                         <div>
                                           <div className="flex items-center gap-1.5 mb-1">
                                             <Sparkles className="w-3.5 h-3.5 text-accent" />

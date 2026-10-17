@@ -37,6 +37,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { professorNamesMatch } from "@/lib/name-matching";
+import {
+  ReviewStatsRow,
+  SummaryTips,
+  SummaryTldr,
+} from "@/components/summary-insights";
 
 interface ProfessorPageProps {
   params: Promise<{
@@ -951,6 +956,19 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
 
                 <Card className="rounded-2xl shadow-none bg-card border-border dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm overflow-hidden">
                   <CardContent className="p-6">
+                    {(professor.overallSummary.tldr ||
+                      professor.overallSummary.reviewStats) && (
+                      <div className="mb-6 space-y-3">
+                        <SummaryTldr
+                          tldr={professor.overallSummary.tldr}
+                          className="text-base"
+                        />
+                        <ReviewStatsRow
+                          stats={professor.overallSummary.reviewStats}
+                        />
+                      </div>
+                    )}
+
                     {/* Sentiment & Confidence Header */}
                     <div className="flex flex-wrap items-center gap-4 mb-6">
                       <div className="flex items-center gap-2">
@@ -1102,6 +1120,8 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                             </span>
                           </div>
                         </div>
+
+                        <SummaryTips tips={course.tips} className="mb-4" />
 
                         <Link
                           href={`/course/${course.course_id?.replace(/\s+/g, "") || ""}`}

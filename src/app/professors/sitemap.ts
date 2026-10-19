@@ -1,61 +1,51 @@
 import { MetadataRoute } from 'next'
-import { getCachedProfessorIds, getBaseUrl, logSitemapGeneration } from '@/lib/sitemap-utils'
+import { getCachedProfessorIds, logSitemapGeneration, PROFESSORS_PER_SITEMAP, sitemapIds } from '@/lib/sitemap-utils'
+import { SITE_URL } from '@/lib/site-url'
 
-const BASE_URL = getBaseUrl()
+// Rebuild daily so new professors show up without a redeploy
+export const revalidate = 86400
 
 // Generate multiple sitemaps if we have too many professors
 export async function generateSitemaps() {
-  try {
-    const professorIds = await getCachedProfessorIds()
-    const PROFESSORS_PER_SITEMAP = 25000 // Half of Google's limit since we include both professor pages and review pages
-    
-    const sitemapCount = Math.ceil(professorIds.length / PROFESSORS_PER_SITEMAP)
-    
-    return Array.from({ length: sitemapCount }, (_, i) => ({
-      id: i
-    }))
-  } catch (error) {
-    console.error('Error generating professor sitemaps:', error)
-    return [{ id: 0 }]
-  }
+  const professorIds = await getCachedProfessorIds()
+  return sitemapIds(professorIds.length, PROFESSORS_PER_SITEMAP)
 }
 
-export default async function sitemap({
-  id,
-}: {
-  id: number
+export default async function sitemap(props: {
+  id: Promise<string>
 }): Promise<MetadataRoute.Sitemap> {
+  // Next 16 passes the id as a Promise<string>
+  const id = Number(await props.id)
   try {
     const professorIds = await getCachedProfessorIds()
-    const PROFESSORS_PER_SITEMAP = 25000
-    
+
     // Calculate pagination
     const start = id * PROFESSORS_PER_SITEMAP
     const end = start + PROFESSORS_PER_SITEMAP
     const paginatedProfessors = professorIds.slice(start, end)
-    
-    // Generate sitemap entries for this batch - both professor pages and review pages
+
+    // Generate sitemap entries for this batch - both professor pages and review pages.
+    // No lastModified: the API has no real per-professor update date, and a fake
+    // "now" on every URL teaches Google to ignore lastmod.
     const professorPages: MetadataRoute.Sitemap = paginatedProfessors.map((professor) => ({
-      url: `${BASE_URL}/professor/${professor.id}`,
-      lastModified: professor.lastModified,
+      url: `${SITE_URL}/professor/${professor.id}`,
       changeFrequency: 'weekly',
       priority: 0.8,
     }))
-    
+
     const reviewPages: MetadataRoute.Sitemap = paginatedProfessors.map((professor) => ({
-      url: `${BASE_URL}/professor/${professor.id}/reviews`,
-      lastModified: professor.lastModified,
+      url: `${SITE_URL}/professor/${professor.id}/reviews`,
       changeFrequency: 'weekly',
       priority: 0.7,
     }))
-    
+
     const allPages = [...professorPages, ...reviewPages]
-    
+
     logSitemapGeneration('professor', allPages.length, id)
     return allPages
-    
+
   } catch (error) {
     console.error(`Error generating professor sitemap ${id}:`, error)
     return []
   }
-} 
+}

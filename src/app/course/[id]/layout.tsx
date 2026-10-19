@@ -21,6 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
         title: `${courseCode} - Aggie Schedule Builder Plus`,
         description: `View details, professors, GPA statistics, and reviews for ${courseCode} at Texas A&M University.`,
+        alternates: { canonical: `/course/${resolvedParams.id}` },
     };
 }
 

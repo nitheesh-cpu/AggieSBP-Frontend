@@ -38,18 +38,15 @@ export const getCachedSitemapCounts = unstable_cache(
   }
 )
 
-// Utility to get the base URL with fallback
-export function getBaseUrl(): string {
-  if (process.env.NEXT_PUBLIC_BASE_URL) {
-    return process.env.NEXT_PUBLIC_BASE_URL
-  }
+// Google allows 50,000 URLs per sitemap. Each professor yields two URLs
+// (profile + reviews), so professors get half the budget per file.
+export const COURSES_PER_SITEMAP = 50000
+export const PROFESSORS_PER_SITEMAP = 25000
 
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`
-  }
-
-  // Default fallback
-  return 'https://aggieschedulebuilderplus.vercel.app'
+// Sitemap ids for `count` items; always at least one so /…/sitemap/0.xml exists.
+export function sitemapIds(count: number, perSitemap: number): { id: number }[] {
+  const sitemapCount = Math.max(1, Math.ceil(count / perSitemap))
+  return Array.from({ length: sitemapCount }, (_, i) => ({ id: i }))
 }
 
 // Utility to determine if large sitemaps are needed

@@ -7,6 +7,7 @@ import { ProfessorComparisonProvider } from "@/contexts/ProfessorComparisonConte
 import { ThemeProvider } from "@/components/theme-provider";
 import { IBM_Plex_Mono, Press_Start_2P } from "next/font/google";
 import { SWRegister } from "@/components/sw-register";
+import { SITE_URL } from "@/lib/site-url";
 
 const ibmPlexMono = IBM_Plex_Mono({
   subsets: ["latin"],
@@ -26,6 +27,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  // Resolves relative canonical/OpenGraph URLs against the production origin
+  metadataBase: new URL(SITE_URL),
   title: "Aggie Schedule Builder Plus - A&M Course Planner",
   description:
     "The fastest way to choose the right Texas A&M courses. Compare course difficulty, workload, and professor quality in one elegant dashboard.",

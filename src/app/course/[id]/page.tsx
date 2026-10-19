@@ -784,7 +784,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                       icon: Zap,
                       display:
                         courseData.difficulty && courseData.difficulty !== "Unknown" ? (
-                          <span className="block font-semibold tracking-tight leading-tight break-words">
+                          <span className="block whitespace-nowrap text-base min-[360px]:text-lg sm:text-xl lg:text-lg xl:text-xl font-semibold tracking-tight leading-tight">
                             {courseData.difficulty}
                           </span>
                         ) : (
@@ -839,7 +839,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                             <Icon className="w-5 h-5" />
                           </div>
                           <div className="min-w-0">
-                            <div className="text-[#500000] dark:text-[#FFCF3F] text-xl sm:text-2xl font-semibold tracking-tight leading-tight break-words">
+                            <div className="text-[#500000] dark:text-[#FFCF3F] text-xl sm:text-2xl font-semibold tracking-tight leading-tight break-normal">
                               {m.display}
                             </div>
                             <div className="text-text-body text-xs sm:text-sm dark:text-white/80">

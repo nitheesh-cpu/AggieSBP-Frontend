@@ -118,7 +118,7 @@
 .dark {
   --color-canvas: #0f0f0f;
   --color-card: #111111;
-  --color-border: #1d1d1d;
+  --color-border: #333333; /* light enough to see against #0f0f0f */
   --color-text-body: #e6e6e6;
   --color-text-heading: #ffffff;
   --color-button-hover: rgba(80, 0, 0, 0.08);

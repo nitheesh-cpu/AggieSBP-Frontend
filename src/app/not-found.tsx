@@ -19,7 +19,7 @@ export default function NotFound() {
       <Navigation variant="glass" />
 
       <main className="relative z-10 flex flex-1 flex-col items-center px-4 pb-16 pt-28 text-center sm:pt-32">
-        <p className="text-xs font-medium uppercase tracking-[0.2em] text-text-body/70 dark:text-white/50">
+        <p className="text-xs font-medium uppercase tracking-[0.2em] text-text-body/70 dark:text-white/65">
           Error 404
         </p>
         <h1

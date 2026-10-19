@@ -74,7 +74,7 @@ export function HomeHeroScroll() {
   return (
     <section className="relative isolate">
       {/* Scroll area that controls the sticky hero */}
-      <div ref={targetRef} className="relative h-[210dvh] min-h-[210svh]">
+      <div ref={targetRef} className="relative h-[150dvh] min-h-[150svh]">
         <div className="sticky top-0 h-[100dvh] min-h-[100svh] w-full overflow-hidden relative z-20">
           <motion.div
             className="absolute inset-0"

@@ -114,7 +114,7 @@ export function QuickLinks() {
                         {link.description}
                       </p>
                     </div>
-                    <ArrowRight className="w-4 h-4 text-text-body dark:text-white/40 group-hover:text-[#FFCF3F] group-hover:translate-x-1 transition-all duration-200" />
+                    <ArrowRight className="w-4 h-4 text-text-body dark:text-white/65 group-hover:text-[#FFCF3F] group-hover:translate-x-1 transition-all duration-200" />
                   </div>
                   <div className="hidden md:block">
                     <h3 className="text-text-heading dark:text-white font-semibold text-sm mb-1 group-hover:text-[#FFCF3F] transition-colors">

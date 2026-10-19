@@ -231,7 +231,7 @@ export default function ProfessorReviewsPage({
 
           {/* Filters - Compact inline */}
           <div className="flex flex-wrap items-center gap-3 mb-6 pb-6 border-b border-border dark:border-white/10">
-            <Filter className="w-4 h-4 text-text-body/50 dark:text-white/40" />
+            <Filter className="w-4 h-4 text-text-body/75 dark:text-white/65" />
             <Select
               value={courseFilter || "all"}
               onValueChange={(value) =>
@@ -306,7 +306,7 @@ export default function ProfessorReviewsPage({
               <MessageSquare className="w-5 h-5" />
               Student Reviews
             </h2>
-            <span className="text-sm text-text-body/60 dark:text-white/50">
+            <span className="text-sm text-text-body/75 dark:text-white/65">
               {reviewsData.reviews.length} shown
             </span>
           </div>
@@ -323,12 +323,17 @@ export default function ProfessorReviewsPage({
                   <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
                     <div className="flex flex-wrap items-center gap-2">
                       {/* Overall Rating - Larger and more prominent */}
-                      <div className="flex items-center gap-1.5 bg-yellow-500 text-black px-3 py-1.5 rounded-lg shadow-sm font-bold">
-                        <Star className="w-4 h-4 fill-current" />
-                        <span className="text-base">
-                          {review.overall_rating.toFixed(1)}
-                        </span>
-                      </div>
+                      {review.overall_rating != null && (
+                        <div
+                          className="flex items-center gap-1.5 bg-yellow-500 text-black px-3 py-1.5 rounded-lg shadow-sm font-bold"
+                          title="This student's quality rating (1-5)"
+                        >
+                          <Star className="w-4 h-4 fill-current" />
+                          <span className="text-base">
+                            {review.overall_rating.toFixed(1)}
+                          </span>
+                        </div>
+                      )}
                       {/* Course Code */}
                       <Badge className="bg-[#500000] text-white border-transparent px-2.5 py-0.5 text-xs font-semibold">
                         {review.course.code}
@@ -353,17 +358,17 @@ export default function ProfessorReviewsPage({
                   <div className="flex flex-wrap items-center gap-3 mb-4 text-sm">
                     <div className="flex items-center gap-1.5 text-text-body dark:text-white/80">
                       <span className="text-blue-600 dark:text-blue-400 font-semibold">{review.clarity_rating.toFixed(1)}</span>
-                      <span className="text-text-body/60 dark:text-white/50">clarity</span>
+                      <span className="text-text-body/75 dark:text-white/65">clarity</span>
                     </div>
                     <span className="text-text-body/30 dark:text-white/20">•</span>
                     <div className="flex items-center gap-1.5 text-text-body dark:text-white/80">
                       <span className="text-red-600 dark:text-red-400 font-semibold">{review.difficulty_rating.toFixed(1)}</span>
-                      <span className="text-text-body/60 dark:text-white/50">difficulty</span>
+                      <span className="text-text-body/75 dark:text-white/65">difficulty</span>
                     </div>
                     <span className="text-text-body/30 dark:text-white/20">•</span>
                     <div className="flex items-center gap-1.5 text-text-body dark:text-white/80">
                       <span className="text-green-600 dark:text-green-400 font-semibold">{review.helpful_rating.toFixed(1)}</span>
-                      <span className="text-text-body/60 dark:text-white/50">helpful</span>
+                      <span className="text-text-body/75 dark:text-white/65">helpful</span>
                     </div>
                   </div>
 
@@ -389,11 +394,11 @@ export default function ProfessorReviewsPage({
 
                     {/* Votes */}
                     <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1 text-text-body/60 dark:text-white/50 text-xs">
+                      <div className="flex items-center gap-1 text-text-body/75 dark:text-white/65 text-xs">
                         <ThumbsUp className="w-3.5 h-3.5" />
                         <span>{review.thumbs_up}</span>
                       </div>
-                      <div className="flex items-center gap-1 text-text-body/60 dark:text-white/50 text-xs">
+                      <div className="flex items-center gap-1 text-text-body/75 dark:text-white/65 text-xs">
                         <ThumbsDown className="w-3.5 h-3.5" />
                         <span>{review.thumbs_down}</span>
                       </div>

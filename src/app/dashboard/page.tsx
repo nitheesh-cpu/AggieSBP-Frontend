@@ -187,7 +187,7 @@ export default function DashboardPage() {
                 <h2 className="text-base font-semibold text-heading dark:text-white">
                   Explore
                 </h2>
-                <span className="text-xs text-body/70 dark:text-white/40">Choose a tool</span>
+                <span className="text-xs text-body/70 dark:text-white/65">Choose a tool</span>
               </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {ACTIONS.map((action) => (
@@ -205,7 +205,7 @@ export default function DashboardPage() {
                       <h3 className="text-sm font-semibold text-heading dark:text-white">
                         {action.title}
                       </h3>
-                      <ArrowRight className="h-3.5 w-3.5 shrink-0 text-text-body/45 transition-transform group-hover:translate-x-0.5 dark:text-white/35" />
+                      <ArrowRight className="h-3.5 w-3.5 shrink-0 text-text-body/75 transition-transform group-hover:translate-x-0.5 dark:text-white/65" />
                       </div>
                       <p className="mt-1 text-xs leading-5 text-body dark:text-gray-400">
                         {action.description}

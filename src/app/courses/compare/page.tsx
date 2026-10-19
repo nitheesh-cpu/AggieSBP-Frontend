@@ -39,8 +39,9 @@ function CourseComparisonPageContent() {
   const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
+    // Fewer than two picked: go to the compare page, where courses can be added.
     if (selectedCourses.length < 2) {
-      router.push("/courses");
+      router.replace("/compare");
       return;
     }
 

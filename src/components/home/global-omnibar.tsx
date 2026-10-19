@@ -193,7 +193,7 @@ export function GlobalOmnibar() {
                   </motion.span>
                 </AnimatePresence>
               </motion.span>
-              <motion.span layout>&nbsp;at Texas A&amp;M…</motion.span>
+              <motion.span layout className="hidden sm:inline">&nbsp;at Texas A&amp;M…</motion.span>
             </span>
           )}
         </span>

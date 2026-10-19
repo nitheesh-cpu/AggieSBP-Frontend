@@ -266,7 +266,7 @@ function ComparePageContent() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center justify-center gap-2 text-xs text-text-body mb-8 dark:text-white/70">
             <span>Home</span>
-            <ChevronRight className="w-4 h-4 text-text-body/60 dark:text-white/40" />
+            <ChevronRight className="w-4 h-4 text-text-body/75 dark:text-white/65" />
             <span className="text-text-heading dark:text-white/90">
               Compare
             </span>
@@ -325,7 +325,7 @@ function ComparePageContent() {
                               if (e.target.value.length > 0) loadCourses();
                             }}
                             onFocus={() => loadCourses()}
-                            className="pl-10 bg-canvas border-border text-text-body placeholder:text-text-body/60 dark:bg-black/30 dark:border-white/15 dark:text-white dark:placeholder:text-white/40"
+                            className="pl-10 bg-canvas border-border text-text-body placeholder:text-text-body/75 dark:bg-black/30 dark:border-white/15 dark:text-white dark:placeholder:text-white/65"
                           />
                         </div>
                       </div>
@@ -341,7 +341,7 @@ function ComparePageContent() {
                         ) : courses.length === 0 &&
                           courseSearchTerm.length === 0 ? (
                           <div className="text-center py-8">
-                            <BookOpen className="w-12 h-12 text-text-body/50 mx-auto mb-3 dark:text-white/50" />
+                            <BookOpen className="w-12 h-12 text-text-body/75 mx-auto mb-3 dark:text-white/65" />
                             <p className="text-sm text-text-body dark:text-white/70">
                               Start typing to search for courses
                             </p>
@@ -395,7 +395,7 @@ function ComparePageContent() {
                     {selectedCourses.length === 0 ? (
                       <Card className="p-12 bg-card border-border dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm">
                         <div className="text-center">
-                          <BookOpen className="w-16 h-16 text-text-body/50 mx-auto mb-4 dark:text-white/50" />
+                          <BookOpen className="w-16 h-16 text-text-body/75 mx-auto mb-4 dark:text-white/65" />
                           <h3 className="text-xl font-semibold text-text-heading dark:text-white mb-2">
                             No courses selected
                           </h3>
@@ -520,7 +520,7 @@ function ComparePageContent() {
                               if (e.target.value.length > 0) loadProfessors();
                             }}
                             onFocus={() => loadProfessors()}
-                            className="pl-10 bg-canvas border-border text-text-body placeholder:text-text-body/60 dark:bg-black/30 dark:border-white/15 dark:text-white dark:placeholder:text-white/40"
+                            className="pl-10 bg-canvas border-border text-text-body placeholder:text-text-body/75 dark:bg-black/30 dark:border-white/15 dark:text-white dark:placeholder:text-white/65"
                           />
                         </div>
                       </div>
@@ -536,7 +536,7 @@ function ComparePageContent() {
                         ) : professors.length === 0 &&
                           professorSearchTerm.length === 0 ? (
                           <div className="text-center py-8">
-                            <GraduationCap className="w-12 h-12 text-text-body/50 mx-auto mb-3 dark:text-white/50" />
+                            <GraduationCap className="w-12 h-12 text-text-body/75 mx-auto mb-3 dark:text-white/65" />
                             <p className="text-sm text-text-body dark:text-white/70">
                               Start typing to search for professors
                             </p>
@@ -605,7 +605,7 @@ function ComparePageContent() {
                     {selectedProfessors.length === 0 ? (
                       <Card className="p-12 bg-card border-border dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm">
                         <div className="text-center">
-                          <GraduationCap className="w-16 h-16 text-text-body/50 mx-auto mb-4 dark:text-white/50" />
+                          <GraduationCap className="w-16 h-16 text-text-body/75 mx-auto mb-4 dark:text-white/65" />
                           <h3 className="text-xl font-semibold text-text-heading dark:text-white mb-2">
                             No professors selected
                           </h3>

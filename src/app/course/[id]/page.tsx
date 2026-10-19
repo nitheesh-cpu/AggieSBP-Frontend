@@ -1,6 +1,15 @@
 "use client";
 
 import React, { useState, useEffect, use } from "react";
+import { BackButton } from "@/components/back-button";
+import { TermSelect } from "@/components/term-select";
+import { WatchSectionButton } from "@/components/watch-section-button";
+import {
+  confidenceLabel,
+  isLegacySummary,
+  looksLikeQuotedReview,
+} from "@/components/summary-insights";
+import { pickDefaultTerm, shortTermName } from "@/lib/terms";
 import {
   animate,
   MotionConfig,
@@ -430,6 +439,15 @@ export default function CoursePage({ params }: CoursePageProps) {
   const [profSummaryMode, setProfSummaryMode] = useState<Record<string, string>>(
     {}
   );
+  // Professor cards start collapsed so the list is scannable on a phone.
+  const [expandedProfs, setExpandedProfs] = useState<Set<string>>(new Set());
+  const toggleProf = (key: string) =>
+    setExpandedProfs((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
 
   // Comparison context
   const { addCourse, removeCourse, isSelected, canAddMore } = useComparison();
@@ -465,6 +483,8 @@ export default function CoursePage({ params }: CoursePageProps) {
       try {
         const termsData = await getTerms();
         setTerms(termsData);
+        // Default to the term students are registering for.
+        setSelectedTerm((current) => current || pickDefaultTerm(termsData));
       } catch (err) {
         console.error("Failed to load terms:", err);
       }
@@ -567,7 +587,7 @@ export default function CoursePage({ params }: CoursePageProps) {
           />
           <Navigation variant="glass" />
           <main className="pt-24 pb-20 relative z-10">
-            <div className="max-w-7xl mx-auto px-6">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6">
               <Card className="p-8 rounded-2xl shadow-none bg-card border-border dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm">
                 <div className="text-center text-text-body dark:text-white/70">
                   Loading course details...
@@ -601,7 +621,7 @@ export default function CoursePage({ params }: CoursePageProps) {
           />
           <Navigation variant="glass" />
           <main className="pt-24 pb-20 relative z-10">
-            <div className="max-w-7xl mx-auto px-6">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6">
               <Card className="p-8 rounded-2xl shadow-none bg-red-50 border border-red-200 mb-6">
                 <div className="text-center text-red-700 font-semibold">
                   {error || "Course not found"}
@@ -644,23 +664,12 @@ export default function CoursePage({ params }: CoursePageProps) {
         <Navigation variant="glass" />
 
         <main className="pt-24 pb-20 relative z-10">
-          <div className="max-w-7xl mx-auto px-6">
-            {/* Breadcrumb */}
-            <div>
-              <Link href="/courses">
-                <Button
-                  variant="outline"
-                  className="flex items-center gap-2 mb-4"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  Back to Courses
-                </Button>
-              </Link>
-            </div>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
+            <BackButton fallbackHref="/courses" fallbackLabel="All courses" />
 
             {/* Course Header */}
             <div className="">
-              <Card className="p-6 gap-4 rounded-2xl shadow-none bg-card border-border relative overflow-hidden dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm">
+              <Card className="p-4 sm:p-6 gap-4 rounded-2xl shadow-none bg-card border-border relative overflow-clip dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm">
                 {/* subtle corner highlight (match Courses cards) */}
                 <div
                   aria-hidden
@@ -703,7 +712,7 @@ export default function CoursePage({ params }: CoursePageProps) {
 
                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 relative">
                   <div className="flex-1">
-                    <h1 className="text-3xl font-bold text-text-heading dark:text-white">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-text-heading dark:text-white break-words">
                       {courseData.code}: {courseData.name}
                     </h1>
 
@@ -750,12 +759,15 @@ export default function CoursePage({ params }: CoursePageProps) {
                 </div>
 
                 {/* Key Metrics */}
-                <div className="grid grid-cols-1 lg:grid-cols-4 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                   {[
                     {
-                      label: "Avg GPA",
-                      value: courseData.avgGPA !== -1 ? courseData.avgGPA : 0,
-                      decimals: 2,
+                      label:
+                        courseData.avgGPA === -1
+                          ? "Avg GPA"
+                          : courseData.gpaScope === "all"
+                            ? `Avg GPA (through ${courseData.gpaLastYear ?? "last offered"})`
+                            : "Avg GPA (last 4 semesters)",
                       icon: BarChart3,
                       display:
                         courseData.avgGPA !== -1 ? (
@@ -764,41 +776,50 @@ export default function CoursePage({ params }: CoursePageProps) {
                             decimals={2}
                           />
                         ) : (
-                          "N/A"
+                          <span className="text-base sm:text-lg">No grade data</span>
                         ),
                     },
                     {
-                      label: "Difficulty",
+                      label: "Difficulty (from GPA)",
                       icon: Zap,
-                      display: (
-                        <span
-                          className="block font-semibold tracking-tight leading-tight break-words text-balance line-clamp-2"
-                          // Auto-fit the label: short strings stay big, longer shrink.
-                          // Uses a CSS variable so the math is stable across renders.
-                          style={
-                            {
-                              ["--len" as never]: courseData.difficulty.length,
-                              fontSize:
-                                "clamp(1rem, calc(2.3rem - (var(--len) * 0.085rem)), 1.55rem)",
-                            } as React.CSSProperties
-                          }
-                        >
-                          {courseData.difficulty}
-                        </span>
-                      ),
+                      display:
+                        courseData.difficulty && courseData.difficulty !== "Unknown" ? (
+                          <span className="block font-semibold tracking-tight leading-tight break-words">
+                            {courseData.difficulty}
+                          </span>
+                        ) : (
+                          <span className="text-base sm:text-lg">Not enough data</span>
+                        ),
                     },
                     {
-                      label: "Enrollment",
+                      label: courseData.enrollmentYear
+                        ? `Students in ${courseData.enrollmentYear}`
+                        : "Students last year",
                       icon: Users,
-                      display: (
-                        <CountUpNumber value={courseData.enrollment ?? 0} />
-                      ),
+                      display:
+                        (courseData.enrollment ?? 0) > 0 ? (
+                          <CountUpNumber value={courseData.enrollment ?? 0} />
+                        ) : (
+                          <span className="text-base sm:text-lg">None recorded</span>
+                        ),
                     },
                     {
-                      label: "Sections",
+                      label: selectedTerm
+                        ? `Sections in ${shortTermName(terms.find((t) => t.termCode === selectedTerm)) || "this term"}`
+                        : "Sections",
                       icon: BookOpen,
-                      display: (
+                      display: loadingTermData ? (
+                        <span className="text-base sm:text-lg">…</span>
+                      ) : selectedTerm ? (
+                        sections.length > 0 ? (
+                          <CountUpNumber value={sections.length} />
+                        ) : (
+                          <span className="text-base sm:text-lg">Not offered</span>
+                        )
+                      ) : (courseData.sections ?? 0) > 0 ? (
                         <CountUpNumber value={courseData.sections ?? 0} />
+                      ) : (
+                        <span className="text-base sm:text-lg">Not offered</span>
                       ),
                     },
                   ].map((m) => {
@@ -811,10 +832,10 @@ export default function CoursePage({ params }: CoursePageProps) {
                         }
                         animate={{ opacity: 1, y: 0 }}
                         whileHover={shouldReduceMotion ? undefined : { y: -2 }}
-                        className="rounded-2xl border border-border bg-card px-4 py-4 flex items-center dark:border-white/10 dark:bg-black/45 dark:backdrop-blur-sm"
+                        className="rounded-2xl border border-border bg-card px-3 py-3 sm:px-4 sm:py-4 flex items-center dark:border-white/10 dark:bg-black/45 dark:backdrop-blur-sm"
                       >
                         <div className="flex items-center gap-3 w-full">
-                          <div className="h-10 w-10 rounded-xl bg-canvas border border-border flex items-center justify-center text-accent dark:bg-white/10 dark:border-white/10">
+                          <div className="hidden sm:flex h-10 w-10 shrink-0 rounded-xl bg-canvas border border-border items-center justify-center text-accent dark:bg-white/10 dark:border-white/10">
                             <Icon className="w-5 h-5" />
                           </div>
                           <div className="min-w-0">
@@ -899,14 +920,14 @@ export default function CoursePage({ params }: CoursePageProps) {
                                         ) => (
                                           <div
                                             key={groupIndex}
-                                            className="flex items-center gap-1"
+                                            className="flex flex-wrap items-center gap-1"
                                           >
                                             {groupIndex > 0 && (
-                                              <span className="text-xs text-text-body/60 dark:text-white/50 mx-1 font-medium">
+                                              <span className="text-xs text-text-body/75 dark:text-white/65 mx-1 font-medium">
                                                 AND
                                               </span>
                                             )}
-                                            <div className="flex items-center gap-1">
+                                            <div className="flex flex-wrap items-center gap-1">
                                               {group.map(
                                                 (
                                                   prereq: string,
@@ -967,7 +988,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                                           return (
                                             <React.Fragment key={index}>
                                               {index > 0 && (
-                                                <span className="text-xs text-text-body/60 dark:text-white/50">
+                                                <span className="text-xs text-text-body/75 dark:text-white/65">
                                                   ,
                                                 </span>
                                               )}
@@ -1066,7 +1087,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                                   <p className="text-sm text-text-body dark:text-white/70 mt-1">
                                     {courseData.corequisites.text}
                                   </p>
-                                  <p className="text-xs text-text-body/70 dark:text-white/50 mt-1 italic">
+                                  <p className="text-xs text-text-body/70 dark:text-white/65 mt-1 italic">
                                     (Same as prerequisites marked in green above
                                     - can be taken before or concurrently)
                                   </p>
@@ -1150,9 +1171,10 @@ export default function CoursePage({ params }: CoursePageProps) {
                         </div>
                       )}
 
+                    {(courseData.sectionAttributes?.length ?? 0) > 0 && (
                     <div>
                       <span className="text-xs font-semibold text-body uppercase tracking-wider">
-                        Section Attributes:
+                        Counts toward:
                       </span>
                       <div className="flex flex-wrap gap-1 mt-2 max-h-24 overflow-y-auto md:max-h-none md:overflow-visible">
                         {courseData.sectionAttributes?.map(
@@ -1160,7 +1182,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                             <Badge
                               key={index}
                               variant="outline"
-                              className="text-xs border-white/15 text-white/80 bg-black/20 dark:border-white/15 dark:text-white/80 dark:bg-black/30 px-2 py-1 font-medium flex-shrink-0 rounded-full"
+                              className="text-xs border-border text-text-body bg-canvas/70 dark:border-white/15 dark:text-white/80 dark:bg-black/30 px-2 py-1 font-medium flex-shrink-0 rounded-full"
                             >
                               {attr}
                             </Badge>
@@ -1168,41 +1190,93 @@ export default function CoursePage({ params }: CoursePageProps) {
                         )}
                       </div>
                     </div>
-
-                    <div className="flex items-center justify-between rounded-lg">
-                      <span className="text-xs font-semibold text-body uppercase tracking-wider">
-                        Total Sections:
-                      </span>
-                      <div className="text-xs text-text-body/80 dark:text-white/70 border border-border dark:border-white/15 px-3 py-1 rounded-full font-medium bg-canvas dark:bg-black/30">
-                        <CountUpNumber value={courseData.sections ?? 0} />{" "}
-                        sections
-                      </div>
-                    </div>
+                    )}
                   </div>
                 </Card>
 
                 {/* Term Selector */}
-                <div className="flex items-center gap-3 mb-2">
-                  <label
-                    htmlFor="term-selector"
-                    className="text-sm font-semibold text-text-heading dark:text-white"
-                  >
-                    Select Term:
-                  </label>
-                  <select
-                    id="term-selector"
-                    value={selectedTerm}
-                    onChange={(e) => setSelectedTerm(e.target.value)}
-                    className="flex-1 max-w-xs bg-canvas border border-border rounded-xl px-4 py-2 text-text-body dark:bg-black/45 dark:border-white/15 dark:text-white/90 dark:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
-                  >
-                    <option value="">All Terms</option>
-                    {terms.map((term) => (
-                      <option key={term.termCode} value={term.termCode}>
-                        {term.termDesc}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <TermSelect
+                  id="term-selector"
+                  label="Term:"
+                  terms={terms}
+                  value={selectedTerm}
+                  onChange={setSelectedTerm}
+                  allTermsLabel="Any term (all professors on record)"
+                  className="mb-2"
+                />
+
+                {/* Sections for the chosen term, with seat alerts */}
+                {selectedTerm && !loadingTermData && (
+                  <Card className="p-4 rounded-2xl shadow-none bg-card border-border dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm">
+                    <h3 className="text-xl font-bold text-text-heading dark:text-white">
+                      Sections in {shortTermName(terms.find((t) => t.termCode === selectedTerm)) || selectedTerm}
+                    </h3>
+                    {sections.length === 0 ? (
+                      <p className="text-sm text-text-body dark:text-white/80">
+                        {courseData.code}{" "}isn&apos;t offered in this term. Pick another
+                        term above, or see past professors below.
+                      </p>
+                    ) : (
+                      <>
+                        <p className="text-sm text-text-body dark:text-white/80">
+                          {sections.filter((s) => s.isOpen).length} of {sections.length}{" "}
+                          open. Full sections can be watched for a seat.
+                        </p>
+                        <ul className="divide-y divide-border/70 rounded-xl border border-border/70 dark:divide-white/10 dark:border-white/10">
+                          {sections.map((section) => (
+                            <li
+                              key={section.id}
+                              className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-3 py-2.5 text-sm"
+                            >
+                              <span className="font-semibold text-text-heading dark:text-white">
+                                Sec {section.sectionNumber}
+                              </span>
+                              <span className="text-text-body dark:text-white/80">
+                                {section.meetings && section.meetings.length > 0
+                                  ? section.meetings
+                                      .filter((m) => m.beginTime && m.endTime)
+                                      .map(
+                                        (m) =>
+                                          `${(m.daysOfWeek || []).join("")} ${m.beginTime}–${m.endTime}`,
+                                      )
+                                      .join("; ") || "Time TBA / online"
+                                  : "Time TBA / online"}
+                              </span>
+                              {section.instructors?.[0]?.name && (
+                                <span className="text-text-body dark:text-white/80">
+                                  {section.instructors[0].name}
+                                </span>
+                              )}
+                              <span className="text-xs text-text-body dark:text-white/75">
+                                CRN {section.crn}
+                              </span>
+                              <span className="ml-auto flex items-center gap-2">
+                                {section.isOpen ? (
+                                  <Badge className="border-transparent bg-emerald-700 text-white dark:bg-emerald-500 dark:text-black">
+                                    Open
+                                  </Badge>
+                                ) : (
+                                  <>
+                                    <Badge className="border-transparent bg-red-700 text-white dark:bg-red-400 dark:text-black">
+                                      Full
+                                    </Badge>
+                                    <WatchSectionButton
+                                      termCode={selectedTerm}
+                                      crn={section.crn}
+                                      dept={section.dept}
+                                      courseNumber={section.courseNumber}
+                                      section={section.sectionNumber}
+                                    />
+                                  </>
+                                )}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
+                  </Card>
+                )}
 
                 {/* Professors Section */}
                 <Card className="p-4 rounded-2xl shadow-none bg-card border-border dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm">
@@ -1212,8 +1286,8 @@ export default function CoursePage({ params }: CoursePageProps) {
                     </h3>
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
                       {loadingTermData && (
-                        <div className="text-xs text-text-body/80 dark:text-white/70">
-                          Loading term data...
+                        <div className="text-xs text-text-body dark:text-white/75">
+                          Checking this term&apos;s sections…
                         </div>
                       )}
                       {(displayedProfessors || []).length >= 2 && (
@@ -1233,12 +1307,10 @@ export default function CoursePage({ params }: CoursePageProps) {
                           </Button>
                         </Link>
                       )}
-                      <div className="text-xs text-text-body/80 dark:text-white/70 border border-border dark:border-white/15 px-3 py-1 rounded-full bg-canvas dark:bg-black/30">
-                        <CountUpNumber
-                          value={displayedProfessors?.length || 0}
-                        />{" "}
-                        professors
-                        {selectedTerm && " (this term)"}
+                      <div className="text-xs text-text-body dark:text-white/75 border border-border dark:border-white/15 px-3 py-1 rounded-full bg-canvas dark:bg-black/30">
+                        {displayedProfessors?.length || 0}{" "}
+                        {(displayedProfessors?.length || 0) === 1 ? "professor" : "professors"}
+                        {selectedTerm && !loadingTermData && termProfessorIds.size > 0 && " teaching this term"}
                       </div>
                     </div>
                   </div>
@@ -1246,7 +1318,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                     {displayedProfessors?.map((prof, index: number) => (
                       <Card
                         key={index}
-                        className="p-4 gap-0 rounded-2xl shadow-none bg-card border-border hover:border-border transition-all duration-200 group relative overflow-hidden dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm dark:hover:border-white/20"
+                        className="p-3 sm:p-4 gap-0 rounded-2xl shadow-none bg-card border-border hover:border-border transition-all duration-200 group relative overflow-clip dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm dark:hover:border-white/20"
                       >
                         {/* Decorative gradient accent */}
                         <div
@@ -1366,24 +1438,16 @@ export default function CoursePage({ params }: CoursePageProps) {
                                 return (
                                   <div className="flex flex-wrap items-center gap-2 mt-1">
                                     <h5 className="text-xs font-semibold text-heading uppercase tracking-wide">
-                                      AI Summary
+                                      Summary
                                     </h5>
-                                    <span className="text-xs text-text-body/70 dark:text-white/60">
-                                      based on{" "}
+                                    <span className="text-xs text-text-body dark:text-white/75">
+                                      from{" "}
                                       {active?.reviewCount ??
                                         (prof.totalReviews ?? prof.reviews ?? 0)}{" "}
                                       reviews
+                                      {confidenceLabel(active?.confidence) &&
+                                        ` · ${confidenceLabel(active?.confidence)}`}
                                     </span>
-                                    {active?.confidence !== undefined &&
-                                      active?.confidence !== null && (
-                                        <Badge
-                                          variant="outline"
-                                          className="text-xs border-border bg-canvas text-text-body dark:border-white/15 dark:bg-black/30 dark:text-white/70 font-medium rounded-full"
-                                        >
-                                          {((active.confidence as number) * 100).toFixed(0)}%
-                                          confident
-                                        </Badge>
-                                      )}
                                     {options.length > 1 && (
                                       <select
                                         className="ml-auto text-xs border border-border bg-canvas/70 rounded-full px-2 py-1 dark:bg-black/30 dark:border-white/15 dark:text-white/80"
@@ -1407,16 +1471,26 @@ export default function CoursePage({ params }: CoursePageProps) {
                               })()}
                             </div>
 
-                            {/* Right side: Large rating badge */}
-                            {prof.id && prof.rating !== undefined && (
-                              <div className="flex items-center justify-center bg-[#FFCF3F] text-[#0f0f0f] px-4 py-2 rounded-2xl min-w-[70px] self-stretch">
+                            {/* Right side: rating for this course when we have one */}
+                            {prof.id && (prof.courseRating ?? prof.rating) != null && (
+                              <div
+                                className="flex items-center justify-center bg-[#FFCF3F] text-[#0f0f0f] px-3 py-2 rounded-2xl min-w-[70px] self-start"
+                                title={
+                                  prof.courseRating != null
+                                    ? "Average rating in reviews of this course"
+                                    : "Average rating across all their courses"
+                                }
+                              >
                                 <div className="flex flex-col items-center">
                                   <div className="flex items-center gap-1">
                                     <Star className="h-5 w-5 fill-current" />
                                     <span className="text-xl font-bold">
-                                      {prof.rating.toFixed(1)}
+                                      {(prof.courseRating ?? prof.rating ?? 0).toFixed(1)}
                                     </span>
                                   </div>
+                                  <span className="text-[10px] font-medium">
+                                    {prof.courseRating != null ? "this course" : "overall"}
+                                  </span>
                                 </div>
                               </div>
                             )}
@@ -1483,9 +1557,35 @@ export default function CoursePage({ params }: CoursePageProps) {
                               return null;
                             }
 
+                            const expanded = expandedProfs.has(key);
+                            const legacy =
+                              selected !== "overall" &&
+                              !!activeCourseSummary &&
+                              isLegacySummary(activeCourseSummary);
+                            const sectionText = (text?: string | null) =>
+                              legacy && looksLikeQuotedReview(text) ? (
+                                <>
+                                  <span className="not-italic font-medium text-text-heading dark:text-white/90">
+                                    One student wrote:{" "}
+                                  </span>
+                                  <span className="italic">&ldquo;{text}&rdquo;</span>
+                                </>
+                              ) : (
+                                text
+                              );
                             return (
                               <div className="mb-3 mt-3">
-                                <div className="bg-canvas/70 border border-border rounded-2xl p-3 dark:bg-black/30 dark:border-white/10 space-y-3">
+                                {legacy && (
+                                  <p className="mb-2 text-xs text-text-body dark:text-white/75">
+                                    Older summary, not yet updated. It may quote
+                                    individual reviews.
+                                  </p>
+                                )}
+                                <div
+                                  className={`relative bg-canvas/70 border border-border rounded-2xl p-3 dark:bg-black/30 dark:border-white/10 space-y-3 ${
+                                    expanded ? "" : "max-h-56 overflow-hidden"
+                                  }`}
+                                >
                                   {selected === "overall" && hasOverall ? (
                                     <div className="space-y-2">
                                       <SummaryTldr tldr={overall?.tldr} />
@@ -1537,7 +1637,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                                             </span>
                                           </div>
                                           <p className="text-text-body dark:text-white/80 leading-relaxed text-sm pl-5">
-                                            {activeCourseSummary.teaching}
+                                            {sectionText(activeCourseSummary.teaching)}
                                           </p>
                                         </div>
                                       )}
@@ -1550,7 +1650,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                                             </span>
                                           </div>
                                           <p className="text-text-body dark:text-white/80 leading-relaxed text-sm pl-5">
-                                            {activeCourseSummary.exams}
+                                            {sectionText(activeCourseSummary.exams)}
                                           </p>
                                         </div>
                                       )}
@@ -1563,7 +1663,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                                             </span>
                                           </div>
                                           <p className="text-text-body dark:text-white/80 leading-relaxed text-sm pl-5">
-                                            {activeCourseSummary.grading}
+                                            {sectionText(activeCourseSummary.grading)}
                                           </p>
                                         </div>
                                       )}
@@ -1576,7 +1676,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                                             </span>
                                           </div>
                                           <p className="text-text-body dark:text-white/80 leading-relaxed text-sm pl-5">
-                                            {activeCourseSummary.workload}
+                                            {sectionText(activeCourseSummary.workload)}
                                           </p>
                                         </div>
                                       )}
@@ -1589,7 +1689,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                                             </span>
                                           </div>
                                           <p className="text-text-body dark:text-white/80 leading-relaxed text-sm pl-5">
-                                            {activeCourseSummary.personality}
+                                            {sectionText(activeCourseSummary.personality)}
                                           </p>
                                         </div>
                                       )}
@@ -1602,7 +1702,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                                             </span>
                                           </div>
                                           <p className="text-text-body dark:text-white/80 leading-relaxed text-sm pl-5">
-                                            {activeCourseSummary.policies}
+                                            {sectionText(activeCourseSummary.policies)}
                                           </p>
                                         </div>
                                       )}
@@ -1618,7 +1718,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                                             </span>
                                           </div>
                                           <p className="text-text-body dark:text-white/80 leading-relaxed text-sm pl-5">
-                                            {activeCourseSummary.other}
+                                            {sectionText(activeCourseSummary.other)}
                                           </p>
                                         </div>
                                       )}
@@ -1628,13 +1728,28 @@ export default function CoursePage({ params }: CoursePageProps) {
                                       {legacyDesc}
                                     </p>
                                   )}
+                                  {!expanded && (
+                                    <div
+                                      aria-hidden
+                                      className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-card to-transparent dark:from-black"
+                                    />
+                                  )}
                                 </div>
+                                <button
+                                  type="button"
+                                  onClick={() => toggleProf(key)}
+                                  aria-expanded={expanded}
+                                  className="mt-2 text-xs font-medium text-[#500000] underline underline-offset-2 dark:text-[#FFCF3F]"
+                                >
+                                  {expanded ? "Show less" : "Read full summary"}
+                                </button>
                               </div>
                             );
                           })()}
 
                           {/* Professor Tags - only show if available and not empty */}
-                          {prof.tag_frequencies &&
+                          {expandedProfs.has((prof.id || prof.name) as string) &&
+                            prof.tag_frequencies &&
                             Object.keys(prof.tag_frequencies).length > 0 && (
                               <div className="mt-3">
                                 <h5 className="text-xs font-semibold text-heading mb-2 uppercase tracking-wide">
@@ -1665,7 +1780,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                         {prof.gradeDistribution && (
                           <div className="border-t border-border pt-3 mt-3">
                             <h5 className="text-sm font-semibold text-heading mb-2">
-                              Grade Distribution
+                              Official grades (their latest semester)
                             </h5>
                             <div className="flex gap-1 h-6 mb-2 rounded-lg overflow-hidden shadow-md">
                               <div
@@ -1839,14 +1954,9 @@ export default function CoursePage({ params }: CoursePageProps) {
                             </div>
                           ) : (
                             <div className="flex justify-center">
-                              <div className="text-xs text-text-body bg-gray-50 border border-gray-200 px-3 py-2 rounded-lg">
-                                <span className="font-medium">
-                                  Limited data available
-                                </span>
-                                <br />
-                                <span className="text-gray-500">
-                                  Grade distribution only
-                                </span>
+                              <div className="text-xs text-text-body bg-canvas/70 border border-border px-3 py-2 rounded-lg dark:bg-black/30 dark:border-white/10 dark:text-white/80">
+                                No reviews found for this professor yet. Only
+                                official grade data.
                               </div>
                             </div>
                           )}
@@ -1856,172 +1966,6 @@ export default function CoursePage({ params }: CoursePageProps) {
                   </div>
                 </Card>
 
-                {/* Sections Section - Only show when term is selected */}
-                {selectedTerm && sections.length > 0 && (
-                  <Card className="p-4 rounded-2xl shadow-none bg-card border-border dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm">
-                    <h3 className="text-xl font-bold text-text-heading dark:text-white mb-4">
-                      Course Sections (
-                      {terms.find((t) => t.termCode === selectedTerm)
-                        ?.termDesc || selectedTerm}
-                      )
-                    </h3>
-                    <div className="space-y-3">
-                      {sections.map((section) => (
-                        <Card
-                          key={section.id}
-                          className="p-4 rounded-xl shadow-none bg-canvas/70 border border-border hover:bg-canvas transition-all duration-200 dark:bg-black/30 dark:border-white/10 dark:hover:bg-black/40"
-                        >
-                          <div className="flex flex-col gap-3">
-                            {/* Header: Section Number and Title */}
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <Badge
-                                  variant="outline"
-                                  className="text-xs font-semibold border-accent text-accent bg-canvas/70 dark:bg-black/30 dark:border-accent"
-                                >
-                                  Section {section.sectionNumber}
-                                </Badge>
-                                {section.crn && (
-                                  <Badge
-                                    variant="outline"
-                                    className="text-xs border-border text-text-body bg-canvas/70 dark:bg-black/30 dark:border-white/15 dark:text-white/80"
-                                  >
-                                    CRN: {section.crn}
-                                  </Badge>
-                                )}
-                                {section.isOpen ? (
-                                  <Badge
-                                    variant="outline"
-                                    className="text-xs border-green-500 text-green-700 bg-green-50 dark:border-green-400 dark:text-green-200 dark:bg-green-600/40"
-                                  >
-                                    Open
-                                  </Badge>
-                                ) : (
-                                  <Badge
-                                    variant="outline"
-                                    className="text-xs border-red-500 text-red-700 bg-red-50 dark:border-red-400 dark:text-red-200 dark:bg-red-600/40"
-                                  >
-                                    Closed
-                                  </Badge>
-                                )}
-                              </div>
-                              <div className="text-xs text-text-body dark:text-white/70">
-                                {section.creditHours} Credits
-                              </div>
-                            </div>
-
-                            {/* Course Title */}
-                            {section.courseTitle && (
-                              <div className="text-sm font-medium text-text-heading dark:text-white">
-                                {section.courseTitle}
-                              </div>
-                            )}
-
-                            {/* Instructors */}
-                            {section.instructors &&
-                              section.instructors.length > 0 && (
-                                <div>
-                                  <span className="text-xs font-semibold text-text-heading dark:text-white/90 mb-1 block">
-                                    Instructor
-                                    {section.instructors.length > 1 ? "s" : ""}:
-                                  </span>
-                                  <div className="flex flex-wrap gap-2">
-                                    {section.instructors.map(
-                                      (instructor, idx) => (
-                                        <div
-                                          key={idx}
-                                          className="flex items-center gap-1"
-                                        >
-                                          <span className="text-sm text-text-body dark:text-white/80">
-                                            {instructor.name}
-                                          </span>
-                                          {instructor.isPrimary && (
-                                            <Badge
-                                              variant="outline"
-                                              className="text-[10px] border-accent text-accent bg-canvas/70 dark:bg-black/30 dark:border-accent px-1.5 py-0"
-                                            >
-                                              Primary
-                                            </Badge>
-                                          )}
-                                        </div>
-                                      )
-                                    )}
-                                  </div>
-                                </div>
-                              )}
-
-                            {/* Meetings */}
-                            {section.meetings &&
-                              section.meetings.length > 0 && (
-                                <div>
-                                  <span className="text-xs font-semibold text-text-heading dark:text-white/90 mb-2 block">
-                                    Schedule:
-                                  </span>
-                                  <div className="space-y-2">
-                                    {section.meetings.map((meeting, idx) => (
-                                      <div
-                                        key={idx}
-                                        className="flex flex-wrap items-center gap-3 text-xs text-text-body dark:text-white/70 bg-canvas/50 dark:bg-black/20 p-2 rounded-lg"
-                                      >
-                                        <Badge
-                                          variant="outline"
-                                          className="text-[10px] border-border text-text-body bg-canvas/70 dark:bg-black/30 dark:border-white/15 dark:text-white/80"
-                                        >
-                                          {meeting.meetingType}
-                                        </Badge>
-                                        {meeting.daysOfWeek &&
-                                          meeting.daysOfWeek.length > 0 && (
-                                            <span className="font-medium">
-                                              {meeting.daysOfWeek.join("")}
-                                            </span>
-                                          )}
-                                        {meeting.beginTime &&
-                                          meeting.endTime && (
-                                            <span>
-                                              {meeting.beginTime} -{" "}
-                                              {meeting.endTime}
-                                            </span>
-                                          )}
-                                        {meeting.building && meeting.room && (
-                                          <span>
-                                            {meeting.building} {meeting.room}
-                                          </span>
-                                        )}
-                                        {meeting.startDate &&
-                                          meeting.endDate && (
-                                            <span className="text-text-body/60 dark:text-white/50">
-                                              {meeting.startDate} -{" "}
-                                              {meeting.endDate}
-                                            </span>
-                                          )}
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-
-                            {/* Attributes */}
-                            {section.attributesText && (
-                              <div className="flex flex-wrap gap-1">
-                                {section.attributesText
-                                  .split("|")
-                                  .map((attr, idx) => (
-                                    <Badge
-                                      key={idx}
-                                      variant="outline"
-                                      className="text-[10px] border-border text-text-body bg-canvas/70 dark:bg-black/30 dark:border-white/15 dark:text-white/80"
-                                    >
-                                      {attr.trim()}
-                                    </Badge>
-                                  ))}
-                              </div>
-                            )}
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                  </Card>
-                )}
               </div>
 
               {/* Sidebar */}
@@ -2031,15 +1975,19 @@ export default function CoursePage({ params }: CoursePageProps) {
                   courseData.relatedCourses.length > 0 && (
                     <Card className="p-4 rounded-2xl shadow-none bg-card border-border dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm">
                       <h3 className="text-md font-bold text-text-heading dark:text-white mb-3">
-                        Related Courses
+                        Nearby {courseData.code.split(" ")[0]} courses
                       </h3>
                       <div className="space-y-2">
                         {courseData.relatedCourses
                           .slice(0, 5)
                           .map((course, index: number) => (
-                            <Card
+                            <Link
                               key={index}
-                              className="gap-2 p-3 rounded-2xl shadow-none bg-canvas/70 border border-border hover:bg-canvas transition-all duration-200 cursor-pointer group relative overflow-hidden dark:bg-black/30 dark:border-white/10 dark:hover:bg-black/40"
+                              href={`/course/${course.code.replace(/\s+/g, "")}`}
+                              className="block"
+                            >
+                            <Card
+                              className="gap-2 p-3 rounded-2xl shadow-none bg-canvas/70 border border-border hover:bg-canvas transition-all duration-200 group relative overflow-clip dark:bg-black/30 dark:border-white/10 dark:hover:bg-black/40"
                             >
                               {/* Small decorative accent */}
                               <div
@@ -2053,15 +2001,8 @@ export default function CoursePage({ params }: CoursePageProps) {
                               <div className="text-xs text-text-body dark:text-white/75 line-clamp-2 leading-relaxed">
                                 {course.name}
                               </div>
-                              <div className="flex items-center gap-1">
-                                <Badge
-                                  variant="outline"
-                                  className="text-[11px] border-accent text-accent bg-canvas/70 font-medium px-2 py-0.5 rounded-full dark:bg-black/30"
-                                >
-                                  {course.similarity}% match
-                                </Badge>
-                              </div>
                             </Card>
+                            </Link>
                           ))}
                       </div>
                     </Card>
@@ -2073,16 +2014,20 @@ export default function CoursePage({ params }: CoursePageProps) {
                     Quick Actions
                   </h3>
                   <div className="space-y-2 mb-2">
-                    <Button className="w-full bg-button-primary text-button-primary hover:opacity-95 transition-all duration-200 py-2 text-xs rounded-full">
-                      <BarChart3 className="w-3 h-3 mr-1" />
-                      Compare Courses
-                      <ChevronRight className="w-3 h-3 ml-1" />
-                    </Button>
-                    <Button className="w-full border border-accent text-accent bg-canvas/70 hover:bg-button-hover transition-all duration-200 py-2 text-xs rounded-full dark:bg-black/30 dark:border-accent dark:hover:bg-black/40">
-                      <Award className="w-3 h-3 mr-1" />
-                      Professor Reviews
-                      <ChevronRight className="w-3 h-3 ml-1" />
-                    </Button>
+                    <Link href="/compare" className="block">
+                      <Button className="w-full bg-button-primary text-button-primary hover:opacity-95 transition-all duration-200 py-2 text-xs rounded-full">
+                        <BarChart3 className="w-3 h-3 mr-1" />
+                        Compare courses
+                        <ChevronRight className="w-3 h-3 ml-1" />
+                      </Button>
+                    </Link>
+                    <Link href="/discover/fit" className="block">
+                      <Button className="w-full border border-accent text-accent bg-canvas/70 hover:bg-button-hover transition-all duration-200 py-2 text-xs rounded-full dark:bg-black/30 dark:border-accent dark:hover:bg-black/40">
+                        <Award className="w-3 h-3 mr-1" />
+                        Find classes that fit my schedule
+                        <ChevronRight className="w-3 h-3 ml-1" />
+                      </Button>
+                    </Link>
                   </div>
                 </Card>
               </div>

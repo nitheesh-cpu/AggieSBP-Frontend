@@ -68,6 +68,7 @@ export const Navigation = ({
     { name: "Dashboard", href: "/dashboard" },
     { name: "Courses", href: "/courses" },
     { name: "Professors", href: "/professors" },
+    { name: "Compare", href: "/compare" },
   ] as const;
 
   const discoverItems = [
@@ -88,6 +89,12 @@ export const Navigation = ({
       description:
         "Find the highest-GPA, lowest-difficulty courses in each department",
       href: "/discover/dept",
+      icon: Building2,
+    },
+    {
+      name: "Departments",
+      description: "Course counts, GPA, and ratings for every department",
+      href: "/departments",
       icon: Building2,
     },
   ] as const;
@@ -185,7 +192,7 @@ export const Navigation = ({
                       className="absolute left-1/2 top-full w-80 -translate-x-1/2 pt-3"
                     >
                       <div className="rounded-2xl border border-[#500000]/25 bg-white/95 p-2 shadow-xl backdrop-blur-xl dark:border-[#FFCF3F]/35 dark:bg-black/95">
-                        <p className="px-3 pb-2 pt-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-text-body dark:text-white/50">
+                        <p className="px-3 pb-2 pt-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-text-body dark:text-white/65">
                           Discover
                         </p>
                         {discoverItems.map((item) => {
@@ -206,7 +213,7 @@ export const Navigation = ({
                                 <span className="block text-sm font-semibold text-heading dark:text-white">
                                   {item.name}
                                 </span>
-                                <span className="mt-0.5 block text-xs leading-relaxed text-body dark:text-white/55">
+                                <span className="mt-0.5 block text-xs leading-relaxed text-body dark:text-white/65">
                                   {item.description}
                                 </span>
                               </span>

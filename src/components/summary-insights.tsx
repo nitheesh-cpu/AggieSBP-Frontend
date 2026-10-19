@@ -7,6 +7,8 @@ interface StatChip {
   value: string;
   label: string;
   n: number;
+  /** How the count reads, e.g. "11 answered" or "5 reviews". */
+  countLabel: string;
 }
 
 function pct(value: number) {
@@ -15,6 +17,11 @@ function pct(value: number) {
 
 function reviewsLabel(n: number) {
   return `${n} review${n === 1 ? "" : "s"}`;
+}
+
+// Not every review answers every question, so these say how many did.
+function answeredLabel(n: number) {
+  return `${n} answered`;
 }
 
 // The three most reported grades, as shares of all reported grades.
@@ -36,6 +43,7 @@ function buildChips(stats: ReviewStats): StatChip[] {
       value: pct(stats.would_take_again_pct),
       label: "would take again",
       n: takeAgainN,
+      countLabel: answeredLabel(takeAgainN),
     });
   }
 
@@ -46,8 +54,9 @@ function buildChips(stats: ReviewStats): StatChip[] {
       chips.push({
         key: "grades",
         value: grades,
-        label: "reported grades",
+        label: "grades students reported on RMP",
         n: gradesN,
+        countLabel: `${gradesN} reported`,
       });
     }
   }
@@ -59,6 +68,7 @@ function buildChips(stats: ReviewStats): StatChip[] {
       value: pct(stats.attendance_mandatory_pct),
       label: "say attendance is mandatory",
       n: attendanceN,
+      countLabel: answeredLabel(attendanceN),
     });
   }
 
@@ -69,6 +79,7 @@ function buildChips(stats: ReviewStats): StatChip[] {
       value: pct(stats.textbook_used_pct),
       label: "used the textbook",
       n: textbookN,
+      countLabel: answeredLabel(textbookN),
     });
   }
 
@@ -81,6 +92,7 @@ function buildChips(stats: ReviewStats): StatChip[] {
       value: stats.avg_rating_recent.toFixed(1),
       label: `avg rating, last ${years} years`,
       n: recentN,
+      countLabel: reviewsLabel(recentN),
     });
   }
   if (olderN > 0 && stats.avg_rating_older != null) {
@@ -89,6 +101,7 @@ function buildChips(stats: ReviewStats): StatChip[] {
       value: stats.avg_rating_older.toFixed(1),
       label: "avg rating, earlier",
       n: olderN,
+      countLabel: reviewsLabel(olderN),
     });
   }
   return chips;
@@ -115,16 +128,16 @@ export function ReviewStatsRow({
         <li
           key={chip.key}
           title={`Based on ${reviewsLabel(chip.n)}`}
-          className="flex items-baseline gap-1.5 rounded-xl border border-border bg-canvas/70 px-3 py-1.5 text-xs dark:border-white/10 dark:bg-black/30"
+          className="flex min-w-0 max-w-full flex-wrap items-baseline gap-x-1.5 rounded-xl border border-border bg-canvas/70 px-3 py-1.5 text-xs dark:border-white/10 dark:bg-black/30"
         >
           <span className="font-semibold tabular-nums text-text-heading dark:text-white">
             {chip.value}
           </span>
-          <span className="text-text-body dark:text-white/70">
+          <span className="text-text-body dark:text-white/80">
             {chip.label}
           </span>
-          <span className="tabular-nums text-text-body/60 dark:text-white/45">
-            ({reviewsLabel(chip.n)})
+          <span className="tabular-nums text-text-body/80 dark:text-white/65">
+            ({chip.countLabel})
           </span>
         </li>
       ))}
@@ -179,4 +192,70 @@ export function SummaryTldr({
       {tldr}
     </p>
   );
+}
+
+/**
+ * One sentence when recent ratings differ clearly from older ones, so a high
+ * lifetime average can't hide a recent drop (or a recent improvement).
+ */
+export function RatingTrend({
+  stats,
+  className = "",
+}: {
+  stats?: ReviewStats | null;
+  className?: string;
+}) {
+  if (!stats) return null;
+  const recent = stats.avg_rating_recent;
+  const older = stats.avg_rating_older;
+  const recentN = stats.recent_n ?? 0;
+  const olderN = stats.older_n ?? 0;
+  if (recent == null || older == null || recentN < 3 || olderN < 3) return null;
+  const diff = recent - older;
+  if (Math.abs(diff) < 0.5) return null;
+  const years = stats.recent_window_years ?? 2;
+  const dropped = diff < 0;
+  return (
+    <p
+      className={`rounded-xl border px-3 py-2 text-sm ${
+        dropped
+          ? "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-400/40 dark:bg-amber-500/10 dark:text-amber-100"
+          : "border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-400/40 dark:bg-emerald-500/10 dark:text-emerald-100"
+      } ${className}`}
+    >
+      <span className="font-semibold">
+        {dropped ? "Ratings dropped recently: " : "Ratings improved recently: "}
+      </span>
+      {recent.toFixed(1)} in the last {years} years ({reviewsLabel(recentN)})
+      vs {older.toFixed(1)} before ({reviewsLabel(olderN)}).
+    </p>
+  );
+}
+
+/** Plain-words confidence used everywhere a summary is shown. */
+export function confidenceLabel(confidence?: number | null): string | null {
+  if (confidence == null) return null;
+  if (confidence >= 0.75) return "High confidence";
+  if (confidence >= 0.5) return "Medium confidence";
+  return "Low confidence";
+}
+
+/**
+ * Older summaries (before the TL;DR/tips/stats format) sometimes copy a single
+ * review word for word. Those are labelled so students don't read them as an
+ * AI digest of many reviews.
+ */
+export function isLegacySummary(summary?: {
+  tips?: string[] | null;
+  reviewStats?: ReviewStats | null;
+} | null): boolean {
+  if (!summary) return false;
+  const hasTips = (summary.tips || []).some((t) => t && t.trim());
+  return !hasTips && !summary.reviewStats;
+}
+
+/** True when text reads like a first-person review rather than a summary. */
+export function looksLikeQuotedReview(text?: string | null): boolean {
+  if (!text) return false;
+  return /(^|[\s"'(])(I|I'm|I've|I'd|my|me)\b/.test(text);
 }

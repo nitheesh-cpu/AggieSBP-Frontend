@@ -802,10 +802,11 @@ export default function DepartmentsPage() {
           return b.courses - a.courses;
         case "professors":
           return b.professors - a.professors;
+        // Departments without data sort last instead of counting as 0.
         case "gpa":
-          return b.avgGpa - a.avgGpa;
+          return (b.avgGpa ?? -1) - (a.avgGpa ?? -1);
         case "rating":
-          return b.rating - a.rating;
+          return (b.rating ?? -1) - (a.rating ?? -1);
         default:
           return a.name.localeCompare(b.name);
       }
@@ -929,7 +930,7 @@ export default function DepartmentsPage() {
             {/* Breadcrumbs */}
             <div className="flex items-center justify-center gap-2 text-xs text-text-body mb-8 dark:text-white/70">
               <span>Home</span>
-              <ChevronRight className="w-4 h-4 text-text-body/60 dark:text-white/40" />
+              <ChevronRight className="w-4 h-4 text-text-body/75 dark:text-white/65" />
               <span className="text-text-heading dark:text-white/90">
                 Departments
               </span>
@@ -960,7 +961,7 @@ export default function DepartmentsPage() {
                   placeholder="Search departments..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="h-12 rounded-full border-2 border-[#500000]/25 bg-canvas pl-12 pr-10 text-[14px] text-text-body shadow-sm transition-colors placeholder:text-text-body/60 hover:border-[#500000]/40 focus-visible:border-[#500000]/60 focus-visible:ring-2 focus-visible:ring-[#500000]/15 focus-visible:ring-offset-0 dark:border-white/25 dark:bg-black/45 dark:text-white dark:placeholder:text-white/40 dark:backdrop-blur-sm dark:hover:border-[#FFCF3F]/40 dark:focus-visible:border-[#FFCF3F]/60 dark:focus-visible:ring-[#FFCF3F]/20 sm:h-14 sm:text-[15px]"
+                  className="h-12 rounded-full border-2 border-[#500000]/25 bg-canvas pl-12 pr-10 text-[14px] text-text-body shadow-sm transition-colors placeholder:text-text-body/75 hover:border-[#500000]/40 focus-visible:border-[#500000]/60 focus-visible:ring-2 focus-visible:ring-[#500000]/15 focus-visible:ring-offset-0 dark:border-white/25 dark:bg-black/45 dark:text-white dark:placeholder:text-white/65 dark:backdrop-blur-sm dark:hover:border-[#FFCF3F]/40 dark:focus-visible:border-[#FFCF3F]/60 dark:focus-visible:ring-[#FFCF3F]/20 sm:h-14 sm:text-[15px]"
                 />
               </div>
             </motion.div>
@@ -1304,8 +1305,11 @@ export default function DepartmentsPage() {
                             <h3 className="text-xl font-semibold tracking-tight text-text-heading dark:text-white">
                               {department.code}
                             </h3>
-                            {department.rating > 0 && (
-                            <div className="flex shrink-0 items-center gap-1 rounded-full border border-border/70 bg-canvas/60 px-2 py-0.5 dark:border-white/10 dark:bg-white/5">
+                            {department.rating != null && department.rating > 0 && (
+                            <div
+                              className="flex shrink-0 items-center gap-1 rounded-full border border-border/70 bg-canvas/60 px-2 py-0.5 dark:border-white/10 dark:bg-white/5"
+                              title="Average RateMyProfessor rating of this department's professors"
+                            >
                               <Star className="h-3.5 w-3.5 fill-current text-accent" />
                               <span className="text-xs font-semibold text-text-heading dark:text-white">
                                 {department.rating}
@@ -1347,21 +1351,23 @@ export default function DepartmentsPage() {
                             <span className="text-sm font-semibold text-text-heading dark:text-white">
                               {department.courses}
                             </span>
-                            <span className="hidden text-[11px] text-text-body/65 dark:text-white/45 lg:inline">courses</span>
+                            <span className="text-[11px] text-text-body dark:text-white/70">courses</span>
                         </div>
                         <div className="flex items-center justify-center gap-1.5 px-2">
                             <Users className="h-3.5 w-3.5 text-accent" />
                             <span className="text-sm font-semibold text-text-heading dark:text-white">
                               {department.professors}
                             </span>
-                            <span className="hidden text-[11px] text-text-body/65 dark:text-white/45 lg:inline">faculty</span>
+                            <span className="text-[11px] text-text-body dark:text-white/70">profs</span>
                         </div>
                         <div className="flex items-center justify-center gap-1.5 px-2">
                             <TrendingUp className="h-3.5 w-3.5 text-accent" />
                             <span className="text-sm font-semibold text-text-heading dark:text-white">
-                              {department.avgGpa > 0 ? department.avgGpa : "—"}
+                              {department.avgGpa != null && department.avgGpa > 0
+                                ? department.avgGpa.toFixed(2)
+                                : "—"}
                             </span>
-                            <span className="text-[11px] text-text-body/65 dark:text-white/45">GPA</span>
+                            <span className="text-[11px] text-text-body dark:text-white/70">avg GPA</span>
                         </div>
                       </div>
 
@@ -1379,14 +1385,27 @@ export default function DepartmentsPage() {
                       </div>
                       )}
 
-                      <Link
-                        href={`/courses?department=${encodeURIComponent(department.name)}`}
-                      >
-                        <Button className="h-10 w-full rounded-full bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966]">
-                          View Department
-                          <ChevronRight className="w-4 h-4 ml-2" />
-                        </Button>
-                      </Link>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Link
+                          href={`/courses?department=${encodeURIComponent(department.name)}`}
+                        >
+                          <Button className="h-10 w-full rounded-full bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966]">
+                            All courses
+                            <ChevronRight className="w-4 h-4 ml-1" />
+                          </Button>
+                        </Link>
+                        <Link
+                          href={`/discover/dept?dept=${encodeURIComponent(department.code)}`}
+                        >
+                          <Button
+                            variant="outline"
+                            className="h-10 w-full rounded-full border-border dark:border-white/20"
+                          >
+                            Easiest
+                            <ChevronRight className="w-4 h-4 ml-1" />
+                          </Button>
+                        </Link>
+                      </div>
                     </Card>
                   </motion.div>
                 ))}

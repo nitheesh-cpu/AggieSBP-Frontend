@@ -3,6 +3,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, MotionConfig, useReducedMotion } from "motion/react";
 import { Navigation } from "@/components/navigation";
+import { EasinessBadge, EasinessLegend } from "@/components/easiness";
+import { pickDefaultTerm, sortTermsForMenu } from "@/lib/terms";
+import type { Term as ApiTerm } from "@/lib/api";
 import { Footer } from "@/components/footer";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -35,17 +38,14 @@ const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL?.trim() || "http://localhost:8000";
 
 const CAMPUS_OPTIONS = [
-  { value: "all", label: "All Campuses" },
+  { value: "all", label: "All campuses" },
   { value: "College Station", label: "College Station" },
   { value: "Galveston", label: "Galveston" },
   { value: "Qatar", label: "Qatar" },
   { value: "Health Science", label: "Health Science Center" },
 ];
 
-interface Term {
-  termCode: string;
-  termDesc: string;
-}
+type Term = ApiTerm;
 
 interface Department {
   code: string;
@@ -98,7 +98,7 @@ export default function DiscoverDeptPage() {
   const [departmentOpen, setDepartmentOpen] = useState(false);
   const [departmentSearch, setDepartmentSearch] = useState("");
   const departmentListRef = useRef<HTMLDivElement>(null);
-  const [selectedCampus, setSelectedCampus] = useState("all");
+  const [selectedCampus, setSelectedCampus] = useState("College Station");
   const [includeGraduate, setIncludeGraduate] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("easiness");
 
@@ -124,13 +124,15 @@ export default function DiscoverDeptPage() {
       .then((r) => r.json())
       .then((data: Term[]) => {
         setTerms(data);
-        const defaultTerm = data.find((term) =>
-          term.termDesc.toLowerCase().includes("college station"),
-        );
+        const defaultTerm = pickDefaultTerm(data);
         if (defaultTerm) {
-          setSelectedTerm(defaultTerm.termCode);
+          setSelectedTerm(defaultTerm);
           setCourses([]);
-          void fetchDepartments(defaultTerm.termCode);
+          // ?dept=CSCE (linked from the Departments page) preselects one.
+          const wanted = new URLSearchParams(window.location.search)
+            .get("dept")
+            ?.toUpperCase();
+          void fetchDepartments(defaultTerm, wanted);
         }
       })
       .catch(console.error)
@@ -138,14 +140,19 @@ export default function DiscoverDeptPage() {
   }, []);
 
   // Fetch departments from sections for the selected term
-  const fetchDepartments = async (term: string) => {
+  const fetchDepartments = async (term: string, preselect?: string) => {
     setFetchingDepts(true);
     setDepartments([]);
     setSelectedDept("");
     try {
       const res = await fetch(`${API_BASE_URL}/discover/${term}/departments`);
       const data = await res.json();
-      setDepartments(Array.isArray(data) ? data : []);
+      const list: Department[] = Array.isArray(data) ? data : [];
+      setDepartments(list);
+      if (preselect && list.some((d) => d.code === preselect)) {
+        setSelectedDept(preselect);
+        void fetchCourses(term, preselect, selectedCampus, includeGraduate);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -231,16 +238,16 @@ export default function DiscoverDeptPage() {
         <Navigation variant="glass" />
 
         <main className="relative pt-24 pb-20">
-          <div className="max-w-7xl mx-auto px-6">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
 
             {/* Header */}
             <div className="mb-8 space-y-6">
               <div className="space-y-2">
                 <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-text-heading dark:text-white">
-                  Discover by Department
+                  Explore Easy Courses
                 </h1>
-                <p className="text-text-body dark:text-white/70 text-lg max-w-2xl">
-                  Pick a term and department to find courses ranked by easiness score.
+                <p className="text-text-body dark:text-white/80 text-lg max-w-2xl">
+                  Pick a department to see its courses and professors ranked by easiness.
                 </p>
               </div>
 
@@ -248,13 +255,16 @@ export default function DiscoverDeptPage() {
               <div className="flex flex-wrap gap-3 items-center">
                 {/* Term */}
                 <Select onValueChange={handleTermChange} value={selectedTerm}>
-                  <SelectTrigger className="w-48 h-10 bg-card/80 backdrop-blur-md border-border dark:border-white/15 dark:bg-black/50 dark:text-white rounded-full px-5 shadow-sm transition-all">
+                  <SelectTrigger aria-label="Term" className="w-full sm:w-56 h-10 bg-card/80 backdrop-blur-md border-border dark:border-white/15 dark:bg-black/50 dark:text-white rounded-full px-5 shadow-sm transition-all">
                     <SelectValue placeholder={fetchingTerms ? "Loading..." : "Select Term"} />
                   </SelectTrigger>
                   <SelectContent className="dark:bg-black/90 dark:border-white/15 dark:text-white">
                     <SelectGroup>
                       <SelectLabel>Available Terms</SelectLabel>
-                      {terms.map((term) => (
+                      {(() => {
+                        const { main, other } = sortTermsForMenu(terms);
+                        return [...main, ...other];
+                      })().map((term) => (
                         <SelectItem key={term.termCode} value={term.termCode}>
                           {term.termDesc}
                         </SelectItem>
@@ -278,7 +288,7 @@ export default function DiscoverDeptPage() {
                       role="combobox"
                       aria-expanded={departmentOpen}
                       disabled={!selectedTerm || fetchingDepts}
-                      className="h-10 w-64 justify-between rounded-full border-border bg-card/80 px-5 font-normal text-text-body shadow-sm backdrop-blur-md transition-all dark:border-white/15 dark:bg-black/50 dark:text-white disabled:opacity-50"
+                      className="h-10 w-full sm:w-64 justify-between rounded-full border-border bg-card/80 px-5 font-normal text-text-body shadow-sm backdrop-blur-md transition-all dark:border-white/15 dark:bg-black/50 dark:text-white disabled:opacity-50"
                     >
                       <span className="truncate text-left">
                         {!selectedTerm
@@ -317,7 +327,7 @@ export default function DiscoverDeptPage() {
                               <Check
                                 className={`h-4 w-4 ${selectedDept === dept.code ? "opacity-100" : "opacity-0"}`}
                               />
-                              <span className="w-12 shrink-0 font-mono text-xs text-text-body/60 dark:text-white/45">
+                              <span className="w-12 shrink-0 font-mono text-xs text-text-body/75 dark:text-white/65">
                                 {dept.code}
                               </span>
                               <span className="truncate">{dept.name}</span>
@@ -331,8 +341,8 @@ export default function DiscoverDeptPage() {
 
                 {/* Campus */}
                 <Select onValueChange={handleCampusChange} value={selectedCampus}>
-                  <SelectTrigger className="w-48 h-10 bg-card/80 backdrop-blur-md border-border dark:border-white/15 dark:bg-black/50 dark:text-white rounded-full px-5 shadow-sm transition-all">
-                    <MapPin className="w-3.5 h-3.5 mr-1 shrink-0 text-text-body/50 dark:text-white/40" />
+                  <SelectTrigger aria-label="Campus" className="w-full sm:w-48 h-10 bg-card/80 backdrop-blur-md border-border dark:border-white/15 dark:bg-black/50 dark:text-white rounded-full px-5 shadow-sm transition-all">
+                    <MapPin className="w-3.5 h-3.5 mr-1 shrink-0 text-text-body/75 dark:text-white/65" />
                     <SelectValue placeholder="All Campuses" />
                   </SelectTrigger>
                   <SelectContent className="dark:bg-black/90 dark:border-white/15 dark:text-white">
@@ -349,8 +359,8 @@ export default function DiscoverDeptPage() {
 
                 {/* Sort */}
                 <Select onValueChange={(v) => setSortKey(v as SortKey)} value={sortKey}>
-                  <SelectTrigger className="w-44 h-10 bg-card/80 backdrop-blur-md border-border dark:border-white/15 dark:bg-black/50 dark:text-white rounded-full px-5 shadow-sm transition-all">
-                    <ArrowUpDown className="w-3.5 h-3.5 mr-1 shrink-0 text-text-body/50 dark:text-white/40" />
+                  <SelectTrigger aria-label="Sort by" className="w-full sm:w-44 h-10 bg-card/80 backdrop-blur-md border-border dark:border-white/15 dark:bg-black/50 dark:text-white rounded-full px-5 shadow-sm transition-all">
+                    <ArrowUpDown className="w-3.5 h-3.5 mr-1 shrink-0 text-text-body/75 dark:text-white/65" />
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="dark:bg-black/90 dark:border-white/15 dark:text-white">
@@ -432,34 +442,8 @@ export default function DiscoverDeptPage() {
                     </>
                   ) : (
                     <>
-                      <h3 className="font-bold text-lg lg:text-xl text-primary mb-4">Here&apos;s what the numbers mean!</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-md xl:text-lg">
-                        <div className="space-y-1">
-                          <h4 className="font-bold text-emerald-500 flex items-center gap-2">
-                            <span className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center text-xs">90</span>
-                            Easiness Score
-                          </h4>
-                          <p className="text-xs xl:text-sm text-text-body/80 dark:text-white/70 leading-relaxed">
-                            Combines <strong>Average GPA</strong> (50%), <strong>Difficulty</strong> (30%), and <strong>Rating</strong> (20%).
-                          </p>
-                        </div>
-                        <div className="space-y-1">
-                          <h4 className="font-bold text-text-heading dark:text-white flex items-center gap-2">
-                            <span className="text-text-body/50 text-xs tracking-widest">●●●</span>
-                            Confidence
-                          </h4>
-                          <p className="text-xs xl:text-sm text-text-body/80 dark:text-white/70 leading-relaxed">
-                            <strong>3 Dots</strong> = Lots of data.<br />
-                            <strong>1 Dot</strong> = Limited data, take with a grain of salt!
-                          </p>
-                        </div>
-                        <div className="space-y-1">
-                          <h4 className="font-bold text-blue-500">% A/B Rate</h4>
-                          <p className="text-xs xl:text-sm text-text-body/80 dark:text-white/70 leading-relaxed">
-                            Percentage of students who earned an <strong>A</strong> or <strong>B</strong> in this section.
-                          </p>
-                        </div>
-                      </div>
+                      <h3 className="font-bold text-lg lg:text-xl text-primary mb-4">Here&apos;s what the numbers mean</h3>
+                      <EasinessLegend showAbRate />
                     </>
                   )}
                 </div>
@@ -473,7 +457,7 @@ export default function DiscoverDeptPage() {
                 <h2 className="text-xl font-semibold text-text-heading dark:text-white">
                   {deptLabel} — Ranked by Easiness
                 </h2>
-                <Badge className="bg-[#FFCF3F]/10 text-[#FFCF3F] border-transparent dark:bg-[#FFCF3F]/20">
+                <Badge className="bg-[#FFCF3F]/25 text-[#5c4400] border-transparent dark:bg-[#FFCF3F]/20 dark:text-[#FFCF3F]">
                   {courses.length} courses
                 </Badge>
                 {selectedCampus && (
@@ -535,25 +519,10 @@ export default function DiscoverDeptPage() {
                               </p>
                             </div>
 
-                            <div
-                              className="flex flex-col items-center"
-                              title={`Easiness: GPA×50% + Ease×30% + Rating×20%\nConfidence: ${course.confidenceScore.toFixed(0)}%`}
-                            >
-                              <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold ${
-                                course.easinessScore >= 80
-                                  ? "bg-emerald-500/20 text-emerald-400 ring-2 ring-emerald-500/30"
-                                  : course.easinessScore >= 60
-                                  ? "bg-yellow-500/20 text-yellow-400 ring-2 ring-yellow-500/30"
-                                  : course.easinessScore >= 40
-                                  ? "bg-orange-500/20 text-orange-400 ring-2 ring-orange-500/30"
-                                  : "bg-red-500/20 text-red-400 ring-2 ring-red-500/30"
-                              }`}>
-                                {course.easinessScore.toFixed(0)}
-                              </div>
-                              <span className="text-[10px] text-text-body/50 dark:text-white/40 mt-1">
-                                {course.confidenceScore >= 70 ? "●●●" : course.confidenceScore >= 40 ? "●●○" : "●○○"}
-                              </span>
-                            </div>
+                            <EasinessBadge
+                              score={course.easinessScore}
+                              confidence={course.confidenceScore}
+                            />
                           </div>
 
                           {/* Professor */}
@@ -600,13 +569,13 @@ export default function DiscoverDeptPage() {
                               {course.professor.tags.slice(0, 2).map((tag, tagIdx) => (
                                 <span
                                   key={tagIdx}
-                                  className="text-xs px-2 py-0.5 rounded-full bg-white/5 text-text-body/70 dark:text-white/50"
+                                  className="text-xs px-2 py-0.5 rounded-full bg-white/5 text-text-body/70 dark:text-white/65"
                                 >
                                   {tag}
                                 </span>
                               ))}
                               {course.professor.tags.length > 2 && (
-                                <span className="text-xs text-text-body/50 dark:text-white/30">
+                                <span className="text-xs text-text-body/75 dark:text-white/65">
                                   +{course.professor.tags.length - 2}
                                 </span>
                               )}

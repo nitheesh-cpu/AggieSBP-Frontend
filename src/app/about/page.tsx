@@ -283,7 +283,7 @@ export default function AboutPage() {
                         placeholder="Search courses (try 'CSCE' or 'calculus')"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10 bg-canvas border-border text-text-body placeholder:text-text-body/60 dark:bg-black/35 dark:border-white/10 dark:text-white dark:placeholder:text-white/45"
+                        className="pl-10 bg-canvas border-border text-text-body placeholder:text-text-body/75 dark:bg-black/35 dark:border-white/10 dark:text-white dark:placeholder:text-white/65"
                       />
                     </div>
                     <div className="space-y-2">
@@ -461,7 +461,7 @@ export default function AboutPage() {
                       {selectedCourses.length === 0 ? (
                         <Card className="p-12 bg-card border-border dark:bg-black/35 dark:border-white/10">
                           <div className="text-center">
-                            <BookOpen className="w-16 h-16 text-text-body/60 mx-auto mb-4 dark:text-white/60" />
+                            <BookOpen className="w-16 h-16 text-text-body/75 mx-auto mb-4 dark:text-white/60" />
                             <h3 className="text-xl font-semibold text-text-heading dark:text-white mb-2">
                               No courses selected
                             </h3>

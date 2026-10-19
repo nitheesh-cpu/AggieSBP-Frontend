@@ -63,7 +63,7 @@ export function ReveilleIntro() {
 
                             <p className="text-base lg:text-lg text-text-body dark:text-white/90 mb-6 leading-relaxed">
                                 I&apos;m <strong className="text-primary">Reveille</strong>, and I&apos;m here to help you
-                                navigate your academic journey at Texas A&M! <strong className="text-[#FFCF3F]">AggieSB+</strong> is
+                                navigate your academic journey at Texas A&M! <strong className="text-[#500000] dark:text-[#FFCF3F]">AggieSB+</strong> is
                                 your ultimate schedule builder and course discovery tool.
                             </p>
 

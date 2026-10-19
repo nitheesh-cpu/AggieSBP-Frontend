@@ -29,7 +29,12 @@ import {
   postDiscoverFitSectionCampusOptions,
   type DiscoverFitCourseMatch,
   type DiscoverFitSeatFilter,
+  type DiscoverFitSection,
+  type Term as ApiTerm,
 } from "@/lib/api";
+import { pickDefaultTerm, sortTermsForMenu } from "@/lib/terms";
+import { EasinessBadge, EasinessLegend } from "@/components/easiness";
+import { WatchSectionButton } from "@/components/watch-section-button";
 import {
   Loader2,
   CalendarClock,
@@ -44,7 +49,7 @@ import Link from "next/link";
 
 type Day = "M" | "T" | "W" | "R" | "F";
 type ScheduleBlock = { id: string; days: Day[]; start: string; end: string };
-type Term = { termCode: string; termDesc: string };
+type Term = ApiTerm;
 type DiscoverCourse = {
   dept: string;
   courseNumber: string;
@@ -55,6 +60,7 @@ type FitResult = {
   course: DiscoverCourse;
   compatibleSectionCount: number;
   sampleCrn: string | null;
+  sections: DiscoverFitSection[];
 };
 type DiscoverDepartment = { code: string; name: string | null };
 type DepartmentApiItem = { code?: string; name?: string };
@@ -121,9 +127,12 @@ function buildFitResults(
         course: c,
         compatibleSectionCount: found.compatible_section_count,
         sampleCrn: found.sample_crn ?? null,
+        sections: found.sections ?? [],
       };
     })
-    .filter((v): v is FitResult => v !== null);
+    .filter((v): v is FitResult => v !== null)
+    // Easiest first, like the other discover pages.
+    .sort((a, b) => (b.course.easinessScore ?? 0) - (a.course.easinessScore ?? 0));
 }
 
 export default function DiscoverFitPage() {
@@ -139,15 +148,14 @@ export default function DiscoverFitPage() {
     UCC_CATEGORY_OPTIONS[0],
   ]);
   const [departmentSearch, setDepartmentSearch] = useState("");
-  const [blocks, setBlocks] = useState<ScheduleBlock[]>([
-    { id: `${Date.now()}-0`, days: ["M", "W", "F"], start: "09:00", end: "10:15" },
-  ]);
+  const [blocks, setBlocks] = useState<ScheduleBlock[]>([]);
   const [loadingCandidates, setLoadingCandidates] = useState(false);
   const [loadingFit, setLoadingFit] = useState(false);
   const [courses, setCourses] = useState<DiscoverCourse[]>([]);
   const [fitResults, setFitResults] = useState<FitResult[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [seatFilter, setSeatFilter] = useState<DiscoverFitSeatFilter>("any");
+  const [seatFilter, setSeatFilter] = useState<DiscoverFitSeatFilter>("open");
+  const [expandedCourse, setExpandedCourse] = useState<string | null>(null);
   const [selectedAttributeDescs, setSelectedAttributeDescs] = useState<string[]>([]);
   const [attributeOptions, setAttributeOptions] = useState<string[]>([]);
   const [sectionCampus, setSectionCampus] = useState("");
@@ -203,13 +211,7 @@ export default function DiscoverFitPage() {
       try {
         const t = await getTerms();
         setTerms(t);
-        setTermCode((current) =>
-          current ||
-          t.find((term) =>
-            term.termDesc.toLowerCase().includes("college station"),
-          )?.termCode ||
-          "",
-        );
+        setTermCode((current) => current || pickDefaultTerm(t));
       } catch {
         setError("Failed to load terms.");
       }
@@ -333,21 +335,26 @@ export default function DiscoverFitPage() {
   }, [attributeOptions, attributeSearch]);
 
   const hasActiveSectionFilters =
-    seatFilter !== "any" ||
+    seatFilter !== "open" ||
     selectedAttributeDescs.length > 0 ||
     sectionCampus.trim().length > 0;
 
   const addBlock = () =>
     setBlocks((prev) => [
       ...prev,
-      { id: `${Date.now()}-${prev.length}`, days: ["T", "R"], start: "13:00", end: "14:15" },
+      {
+        id: `${Date.now()}-${prev.length}`,
+        days: prev.length % 2 === 0 ? ["M", "W", "F"] : ["T", "R"],
+        start: prev.length % 2 === 0 ? "09:10" : "11:10",
+        end: prev.length % 2 === 0 ? "10:00" : "12:25",
+      },
     ]);
 
   const updateBlock = (id: string, partial: Partial<ScheduleBlock>) =>
     setBlocks((prev) => prev.map((b) => (b.id === id ? { ...b, ...partial } : b)));
 
   const removeBlock = (id: string) =>
-    setBlocks((prev) => (prev.length > 1 ? prev.filter((b) => b.id !== id) : prev));
+    setBlocks((prev) => prev.filter((b) => b.id !== id));
 
   const tryAutoFillFromExtension = () => {
     try {
@@ -427,7 +434,7 @@ export default function DiscoverFitPage() {
     setLoadingCandidates(true);
     setLoadingFit(true);
     setFitResults([]);
-    setSeatFilter("any");
+    setSeatFilter("open");
     setSelectedAttributeDescs([]);
     setSectionCampus("");
     setAttributeSearch("");
@@ -455,7 +462,7 @@ export default function DiscoverFitPage() {
           termCode,
           courseKeys,
           blocks.map((b) => ({ days: b.days, start: b.start, end: b.end })),
-          { seatFilter: "any", sectionAttributeDescs: [] },
+          { seatFilter: "open", sectionAttributeDescs: [] },
         ),
         postDiscoverFitSectionAttributeOptions(termCode, courseKeys).catch((e) => {
           console.error("Failed to load attribute options:", e);
@@ -489,7 +496,7 @@ export default function DiscoverFitPage() {
     setFitResults([]);
     hasCompletedFitOnceRef.current = false;
     setFitReady(false);
-    setSeatFilter("any");
+    setSeatFilter("open");
     setSelectedAttributeDescs([]);
     setSectionCampus("");
     setAttributeOptions([]);
@@ -506,7 +513,7 @@ export default function DiscoverFitPage() {
     setFitResults([]);
     hasCompletedFitOnceRef.current = false;
     setFitReady(false);
-    setSeatFilter("any");
+    setSeatFilter("open");
     setSelectedAttributeDescs([]);
     setSectionCampus("");
     setAttributeOptions([]);
@@ -528,7 +535,7 @@ export default function DiscoverFitPage() {
   return (
     <div className="min-h-screen relative" style={{ background: "var(--app-bg-gradient)" }}>
       <Navigation variant="glass" />
-      <main className="pt-24 pb-20 max-w-7xl mx-auto px-6 space-y-6">
+      <main className="pt-24 pb-20 max-w-7xl mx-auto px-4 sm:px-6 space-y-6">
         <div className="rounded-2xl border border-border bg-white/55 dark:bg-black/45 backdrop-blur-md p-6">
           <div className="flex items-center gap-3 mb-3">
             <CalendarClock className="w-6 h-6 text-accent" />
@@ -536,9 +543,9 @@ export default function DiscoverFitPage() {
               Fit My Schedule
             </h1>
           </div>
-          <p className="text-sm text-text-body dark:text-white/70">
-            Build your current time blocks, then find UCC or department classes with at least one
-            section that does not conflict.
+          <p className="text-sm text-text-body dark:text-white/80">
+            Add the times you&apos;re already busy, pick core curriculum categories or
+            departments, and see which classes still have a section that fits.
           </p>
         </div>
 
@@ -546,11 +553,14 @@ export default function DiscoverFitPage() {
           <CardContent className="pt-6 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <Select value={termCode || undefined} onValueChange={setTermCode}>
-            <SelectTrigger><SelectValue placeholder="Select term" /></SelectTrigger>
+            <SelectTrigger aria-label="Term"><SelectValue placeholder="Select term" /></SelectTrigger>
             <SelectContent>
-              {terms.map((t) => (
-                <SelectItem key={t.termCode} value={t.termCode}>{t.termDesc}</SelectItem>
-              ))}
+              {(() => {
+                const { main, other } = sortTermsForMenu(terms);
+                return [...main, ...other].map((t) => (
+                  <SelectItem key={t.termCode} value={t.termCode}>{t.termDesc}</SelectItem>
+                ));
+              })()}
             </SelectContent>
           </Select>
           <Select
@@ -561,7 +571,7 @@ export default function DiscoverFitPage() {
               setFitResults([]);
               hasCompletedFitOnceRef.current = false;
               setFitReady(false);
-              setSeatFilter("any");
+              setSeatFilter("open");
               setSelectedAttributeDescs([]);
               setSectionCampus("");
               setAttributeOptions([]);
@@ -570,8 +580,8 @@ export default function DiscoverFitPage() {
           >
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="ucc">Filter by UCC</SelectItem>
-              <SelectItem value="department">Filter by department</SelectItem>
+              <SelectItem value="ucc">Core curriculum categories</SelectItem>
+              <SelectItem value="department">Departments</SelectItem>
             </SelectContent>
           </Select>
           <div className="hidden md:block" />
@@ -594,7 +604,7 @@ export default function DiscoverFitPage() {
                     setFitResults([]);
                     hasCompletedFitOnceRef.current = false;
                     setFitReady(false);
-                    setSeatFilter("any");
+                    setSeatFilter("open");
                     setSelectedAttributeDescs([]);
                     setSectionCampus("");
                     setAttributeOptions([]);
@@ -705,17 +715,23 @@ export default function DiscoverFitPage() {
         <Card className="bg-white/55 dark:bg-black/45 backdrop-blur-md border-border">
           <CardContent className="pt-6 space-y-3">
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <h2 className="font-semibold text-text-heading dark:text-white">Current schedule blocks</h2>
-              <div className="flex gap-2">
+              <h2 className="font-semibold text-text-heading dark:text-white">Times you&apos;re busy</h2>
+              <div className="flex flex-wrap gap-2">
                 <Button variant="outline" onClick={tryAutoFillFromExtension}>
                   Auto-fill from extension
                 </Button>
                 <Button variant="outline" onClick={addBlock}>
                   <Plus className="w-4 h-4 mr-1" />
-                  Add block
+                  Add busy time
                 </Button>
               </div>
             </div>
+          {blocks.length === 0 && (
+            <p className="text-sm text-text-body dark:text-white/80">
+              No busy times yet, so every section counts as fitting. Add your current
+              classes, work, or other commitments to narrow it down.
+            </p>
+          )}
           {blocks.map((b) => (
             <div key={b.id} className="grid grid-cols-1 md:grid-cols-4 gap-2">
               <div className="rounded-md border border-border p-2">
@@ -741,11 +757,13 @@ export default function DiscoverFitPage() {
               </div>
               <Input
                 type="time"
+                aria-label="Busy from"
                 value={b.start}
                 onChange={(e) => updateBlock(b.id, { start: e.target.value })}
               />
               <Input
                 type="time"
+                aria-label="Busy until"
                 value={b.end}
                 onChange={(e) => updateBlock(b.id, { end: e.target.value })}
               />
@@ -758,7 +776,7 @@ export default function DiscoverFitPage() {
           </CardContent>
         </Card>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Button
             onClick={loadCandidates}
             disabled={loadingCandidates || loadingFit}
@@ -773,15 +791,14 @@ export default function DiscoverFitPage() {
               "Find classes that fit"
             )}
           </Button>
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {error && <p className="text-sm text-red-700 dark:text-red-300">{error}</p>}
         </div>
 
         {!loadingCandidates && courses.length > 0 && (
-          <p className="text-sm text-text-body dark:text-white/70">
-            {fitResults.length} of {courses.length} candidate classes
-            {hasActiveSectionFilters
-              ? " have at least one section that fits your schedule and matches the filters below."
-              : " have at least one section that fits your current schedule."}
+          <p className="text-sm text-text-body dark:text-white/80">
+            {fitResults.length} of {courses.length} classes have at least one
+            {seatFilter === "open" ? " open" : ""} section that fits your busy times
+            {hasActiveSectionFilters ? " and the filters below" : ""}.
           </p>
         )}
 
@@ -793,8 +810,9 @@ export default function DiscoverFitPage() {
                   <Filter className="w-4 h-4 shrink-0 text-accent" />
                   <span className="text-sm font-semibold">Refine by section</span>
                 </div>
+                {campusOptions.length > 1 && (
                 <div className="flex flex-col gap-1.5 min-w-[200px]">
-                  <Label className="text-xs text-text-body dark:text-white/70">
+                  <Label className="text-xs text-text-body dark:text-white/75">
                     Campus
                   </Label>
                   <Select
@@ -816,8 +834,9 @@ export default function DiscoverFitPage() {
                     </SelectContent>
                   </Select>
                 </div>
+                )}
                 <div className="flex flex-col gap-1.5 min-w-[200px]">
-                  <Label className="text-xs text-text-body dark:text-white/70">
+                  <Label className="text-xs text-text-body dark:text-white/75">
                     Seats
                   </Label>
                   <Select
@@ -828,15 +847,15 @@ export default function DiscoverFitPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="any">Open or full</SelectItem>
-                      <SelectItem value="open">Open only</SelectItem>
-                      <SelectItem value="full">Full only</SelectItem>
+                      <SelectItem value="open">Open seats only</SelectItem>
+                      <SelectItem value="any">Include full sections</SelectItem>
+                      <SelectItem value="full">Full sections only</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="flex flex-col gap-1.5 min-w-[220px]">
-                  <Label className="text-xs text-text-body dark:text-white/70">
-                    Catalog attributes
+                  <Label className="text-xs text-text-body dark:text-white/75">
+                    Section type (honors, online, …)
                   </Label>
                   <Popover>
                     <PopoverTrigger asChild>
@@ -847,7 +866,7 @@ export default function DiscoverFitPage() {
                       >
                         <span className="truncate text-left">
                           {selectedAttributeDescs.length === 0
-                            ? "Any attribute"
+                            ? "Any type"
                             : `${selectedAttributeDescs.length} selected`}
                         </span>
                         <ChevronDown className="w-4 h-4 shrink-0 opacity-60" />
@@ -912,18 +931,9 @@ export default function DiscoverFitPage() {
                     </PopoverContent>
                   </Popover>
                 </div>
-                <p className="text-xs text-text-body dark:text-white/60 max-w-xl">
-                  <span className="font-medium text-text-heading/90 dark:text-white/70">
-                    Campus
-                  </span>{" "}
-                  uses the registration site on each section (College Station vs Galveston, etc.).
-                  <span className="font-medium text-text-heading/90 dark:text-white/70">
-                    {" "}
-                    Catalog attributes
-                  </span>{" "}
-                  come from Howdy’s attribute list (UCC tags, honors, distance, etc.); multiple
-                  selections match if a section has any one of them (OR). Counts only include
-                  sections that fit your time blocks and pass the seat filter.
+                <p className="text-xs text-text-body dark:text-white/75 max-w-xl">
+                  Picking several section types shows sections that have any of them.
+                  Full sections can be watched for an open seat.
                 </p>
               </div>
 
@@ -935,76 +945,104 @@ export default function DiscoverFitPage() {
               )}
 
               {!filteringFit && fitResults.length > 0 && (
-                <div className="overflow-x-auto rounded-md border border-border">
-                  <table className="w-full min-w-[760px] text-sm">
-                    <thead className="bg-black/5 dark:bg-white/5">
-                      <tr className="text-left">
-                        <th className="px-3 py-2 font-semibold text-text-heading dark:text-white">
-                          Course
-                        </th>
-                        <th className="px-3 py-2 font-semibold text-text-heading dark:text-white">
-                          Title
-                        </th>
-                        <th className="px-3 py-2 font-semibold text-text-heading dark:text-white whitespace-nowrap">
-                          Easiness
-                        </th>
-                        <th className="px-3 py-2 font-semibold text-text-heading dark:text-white whitespace-nowrap">
-                          Compatible Sections
-                        </th>
-                        <th className="px-3 py-2 font-semibold text-text-heading dark:text-white whitespace-nowrap">
-                          Example CRN
-                        </th>
-                        <th className="px-3 py-2 font-semibold text-text-heading dark:text-white text-right">
-                          Action
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {fitResults.map(({ course, compatibleSectionCount, sampleCrn }) => (
-                        <tr
-                          key={`${course.dept}-${course.courseNumber}`}
-                          className="border-t border-border/80"
+                <>
+                  <EasinessLegend compact />
+                  <ul className="space-y-3">
+                    {fitResults.map(({ course, compatibleSectionCount, sections }) => {
+                      const key = `${course.dept}-${course.courseNumber}`;
+                      const expanded = expandedCourse === key;
+                      const shown = expanded ? sections : sections.slice(0, 3);
+                      return (
+                        <li
+                          key={key}
+                          className="rounded-xl border border-border bg-card/70 p-3 sm:p-4 dark:border-white/10 dark:bg-black/30"
                         >
-                          <td className="px-3 py-2.5 font-medium text-text-heading dark:text-white whitespace-nowrap">
-                            {course.dept} {course.courseNumber}
-                          </td>
-                          <td className="px-3 py-2.5 text-text-body dark:text-white/75 max-w-[360px] truncate">
-                            {course.courseTitle}
-                          </td>
-                          <td className="px-3 py-2.5 whitespace-nowrap">
-                            <Badge className="bg-[#FFCF3F]/10 text-[#FFCF3F] border-transparent px-2 py-0.5">
-                              <Sparkles className="w-3 h-3 mr-1" />
-                              {(course.easinessScore ?? 0).toFixed(1)}
-                            </Badge>
-                          </td>
-                          <td className="px-3 py-2.5 text-text-body dark:text-white/75 whitespace-nowrap">
-                            {compatibleSectionCount}
-                          </td>
-                          <td className="px-3 py-2.5 text-text-body dark:text-white/75 whitespace-nowrap">
-                            {sampleCrn ?? "-"}
-                          </td>
-                          <td className="px-3 py-2.5 text-right">
-                            <Link
-                              href={`/course/${`${course.dept}${course.courseNumber}`.replace(/\s+/g, "")}`}
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <Link
+                                href={`/course/${course.dept}${course.courseNumber}`}
+                                className="font-semibold text-text-heading hover:underline dark:text-white"
+                              >
+                                {course.dept} {course.courseNumber}
+                              </Link>
+                              <p className="text-sm text-text-body dark:text-white/80">
+                                {course.courseTitle}
+                              </p>
+                              <p className="mt-1 text-xs text-text-body dark:text-white/75">
+                                {compatibleSectionCount}{" "}
+                                {compatibleSectionCount === 1 ? "section fits" : "sections fit"}
+                              </p>
+                            </div>
+                            <EasinessBadge score={course.easinessScore} />
+                          </div>
+                          {shown.length > 0 && (
+                            <ul className="mt-3 divide-y divide-border/70 rounded-lg border border-border/70 dark:divide-white/10 dark:border-white/10">
+                              {shown.map((s) => (
+                                <li
+                                  key={s.id}
+                                  className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-3 py-2 text-sm"
+                                >
+                                  <span className="font-medium text-text-heading dark:text-white">
+                                    Sec {s.section ?? "—"}
+                                  </span>
+                                  <span className="text-text-body dark:text-white/80">
+                                    {s.meetings || "Time TBA / online"}
+                                  </span>
+                                  {s.instructor && (
+                                    <span className="text-text-body dark:text-white/80">
+                                      {s.instructor}
+                                    </span>
+                                  )}
+                                  <span className="text-xs text-text-body dark:text-white/75">
+                                    CRN {s.crn}
+                                  </span>
+                                  <span className="ml-auto flex items-center gap-2">
+                                    {s.is_open ? (
+                                      <Badge className="border-transparent bg-emerald-700 text-white dark:bg-emerald-500 dark:text-black">
+                                        Open
+                                      </Badge>
+                                    ) : (
+                                      <>
+                                        <Badge className="border-transparent bg-red-700 text-white dark:bg-red-400 dark:text-black">
+                                          Full
+                                        </Badge>
+                                        <WatchSectionButton
+                                          termCode={termCode}
+                                          crn={s.crn}
+                                          dept={course.dept}
+                                          courseNumber={course.courseNumber}
+                                          section={s.section}
+                                        />
+                                      </>
+                                    )}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                          {sections.length > 3 && (
+                            <button
+                              type="button"
+                              onClick={() => setExpandedCourse(expanded ? null : key)}
+                              className="mt-2 text-xs font-medium text-[#500000] underline underline-offset-2 dark:text-[#FFCF3F]"
                             >
-                              <Button variant="outline" size="sm" className="h-8 text-xs">
-                                <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
-                                View
-                              </Button>
-                            </Link>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                              {expanded
+                                ? "Show fewer sections"
+                                : `Show all ${sections.length} sections`}
+                            </button>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </>
               )}
 
               {!filteringFit && fitResults.length === 0 && fitReady && (
                 <p className="text-sm text-text-body dark:text-white/75">
                   {hasActiveSectionFilters
-                    ? "No courses still have a compatible section under these filters. Try “Any campus”, “Open or full”, clearing catalog attributes, or broadening your search."
-                    : "None of the candidate courses have a section that fits your current time blocks."}
+                    ? "No class still has a section that fits under these filters. Try “Include full sections”, clearing section types, or picking more categories."
+                    : "None of these classes has a section that fits your busy times."}
                 </p>
               )}
             </CardContent>

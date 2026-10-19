@@ -31,8 +31,8 @@ export interface Department {
   category: "stem" | "liberal-arts" | "business" | "agriculture";
   courses: number;
   professors: number;
-  avgGpa: number;
-  rating: number;
+  avgGpa: number | null;
+  rating: number | null;
   topCourses: string[];
   description: string;
 }
@@ -50,7 +50,8 @@ export interface Course {
   difficulty: string;
   enrollment: number;
   sections: number;
-  rating: number;
+  /** Average RateMyProfessor rating of this course's professors; null without reviews. */
+  rating: number | null;
   description: string;
   tags: string[];
   sectionAttributes: string[];
@@ -101,10 +102,17 @@ export interface CourseDetail {
   name: string;
   description: string;
   credits: number;
+  /** -1 when there is no grade data at all. */
   avgGPA: number;
+  /** "recent" = last 4 semesters, "all" = every semester on record. */
+  gpaScope?: "recent" | "all" | null;
+  gpaLastYear?: string | null;
   difficulty: string;
   enrollment?: number;
+  enrollmentYear?: string | null;
+  /** Section count in sectionsTermCode (the latest College Station term). */
   sections?: number;
+  sectionsTermCode?: string | null;
   rating?: number;
   lectureHours?: number;
   labHours?: number;
@@ -112,7 +120,10 @@ export interface CourseDetail {
   professors?: Array<{
     id?: string; // Optional for ANEX-only data
     name: string;
-    rating?: number; // Optional for ANEX-only data
+    rating?: number | null; // Overall RMP rating; optional for ANEX-only data
+    overallRating?: number | null;
+    courseRating?: number | null; // Rating from this course's reviews only
+    courseReviewCount?: number;
     reviews?: number; // Legacy field
     totalReviews?: number; // New field from API
     confidence?: number; // Confidence score for AI summary
@@ -165,7 +176,10 @@ export interface Review {
   clarity_rating: number;
   difficulty_rating: number;
   helpful_rating: number;
-  overall_rating: number;
+  /** Quality rating (1-5); null when the review has none. */
+  overall_rating: number | null;
+  course_code?: string | null;
+  course_name?: string | null;
   would_take_again: boolean;
   grade: string;
   review_text: string;
@@ -241,7 +255,7 @@ export interface DepartmentsInfo {
 export interface Professor {
   id: string;
   name: string;
-  overall_rating: number;
+  overall_rating: number | null;
   total_reviews: number;
   would_take_again_percent: number;
   departments: string[];
@@ -262,15 +276,20 @@ export interface OverallSummary {
 export interface ProfessorDetail {
   id: string;
   name: string;
-  overall_rating: number;
+  overall_rating: number | null;
   total_reviews: number;
-  would_take_again_percent: number;
+  would_take_again_percent: number | null;
   departments: string[];
   courses: Array<{
     course_id: string;
-    course_name: string;
+    course_name: string | null;
     reviews_count: number;
-    avg_rating: number;
+    /** Rating from this course's reviews only. */
+    avg_rating: number | null;
+    /** Official (anex) GPA for this professor in this course. */
+    avg_gpa?: number | null;
+    gpa_students?: number;
+    gpa_last_year?: string | null;
     tips?: string[];
   }>;
   recent_reviews?: Review[];
@@ -888,6 +907,18 @@ export interface DiscoverFitCourseMatch {
   compatible_section_count: number;
   sample_section_id?: string | null;
   sample_crn?: string | null;
+  /** Every section that fits the busy times (and filters). */
+  sections?: DiscoverFitSection[];
+}
+
+export interface DiscoverFitSection {
+  id: string;
+  crn: string;
+  section?: string | null;
+  is_open?: boolean | null;
+  instructor?: string | null;
+  /** e.g. "MWF 09:10 AM-10:00 AM"; several meetings joined with "; ". */
+  meetings?: string | null;
 }
 
 export type DiscoverFitSeatFilter = "any" | "open" | "full";

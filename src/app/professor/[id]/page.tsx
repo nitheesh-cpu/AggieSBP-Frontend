@@ -38,10 +38,26 @@ import {
 import Link from "next/link";
 import { professorNamesMatch } from "@/lib/name-matching";
 import {
+  RatingTrend,
   ReviewStatsRow,
   SummaryTips,
   SummaryTldr,
+  confidenceLabel,
 } from "@/components/summary-insights";
+import { BackButton } from "@/components/back-button";
+import { TermSelect } from "@/components/term-select";
+import { useOfficialSubjects } from "@/hooks/use-official-subjects";
+
+function formatCourseCode(code: string) {
+  return code.replace(/^([A-Z]+)\s*(\d+)/, "$1 $2");
+}
+
+function formatReviewDate(iso?: string | null) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return null;
+  return d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+}
 
 interface ProfessorPageProps {
   params: Promise<{
@@ -119,7 +135,7 @@ function SummaryThemeColumn({
             {title}
           </h3>
         </div>
-        <span className="rounded-full border border-border/70 bg-card/70 px-2 py-0.5 text-xs tabular-nums text-text-body/70 dark:border-white/10 dark:bg-black/20 dark:text-white/50">
+        <span className="rounded-full border border-border/70 bg-card/70 px-2 py-0.5 text-xs tabular-nums text-text-body/70 dark:border-white/10 dark:bg-black/20 dark:text-white/65">
           {items.length}
         </span>
       </div>
@@ -488,6 +504,7 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
   const [selectedTerm, setSelectedTerm] = useState<string>("");
   const [termCourseIds, setTermCourseIds] = useState<Set<string>>(new Set());
   const [loadingTermData, setLoadingTermData] = useState(false);
+  const { codes: officialCodes } = useOfficialSubjects();
 
   useEffect(() => {
     const fetchProfessor = async () => {
@@ -597,8 +614,8 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
   const displayedCourses = React.useMemo(() => {
     if (!professor?.courses) return [];
 
-    // If no term selected, show all courses
-    if (!selectedTerm || termCourseIds.size === 0) {
+    // No term picked (or still loading it): every course they've taught.
+    if (!selectedTerm || loadingTermData) {
       return professor.courses.filter((course) => course.course_id);
     }
 
@@ -610,7 +627,7 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
         .toUpperCase();
       return termCourseIds.has(normalizedCourseId);
     });
-  }, [professor?.courses, selectedTerm, termCourseIds]);
+  }, [professor?.courses, selectedTerm, termCourseIds, loadingTermData]);
 
   if (loading) {
     return (
@@ -632,7 +649,7 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
           />
           <Navigation variant="glass" />
           <main className="pt-24 pb-20 relative z-10">
-            <div className="max-w-7xl mx-auto px-6">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6">
               <Card className="p-8 rounded-2xl shadow-none bg-card border-border dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm">
                 <div className="text-center text-text-body dark:text-white/70">
                   <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-accent" />
@@ -667,7 +684,7 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
           />
           <Navigation variant="glass" />
           <main className="pt-24 pb-20 relative z-10">
-            <div className="max-w-7xl mx-auto px-6">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6">
               <Card className="p-8 rounded-2xl shadow-none bg-red-50 border border-red-200">
                 <div className="text-center">
                   <AlertCircle className="h-8 w-8 mx-auto mb-4 text-red-500" />
@@ -677,9 +694,9 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                   <p className="text-red-700/90 mb-6">
                     {error || "Professor profile could not be loaded"}
                   </p>
-                  <Link href="/courses">
+                  <Link href="/professors">
                     <Button className="rounded-full bg-button-primary text-button-primary hover:opacity-95">
-                      Browse Courses
+                      Browse professors
                     </Button>
                   </Link>
                 </div>
@@ -712,19 +729,8 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
         <Navigation variant="glass" />
 
         <main className="pt-24 pb-20 relative z-10">
-          <div className="max-w-7xl mx-auto px-6">
-            {/* Breadcrumb */}
-            <div>
-              <Link href="/courses">
-                <Button
-                  variant="outline"
-                  className="flex items-center gap-2 mb-4"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  Back to Courses
-                </Button>
-              </Link>
-            </div>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
+            <BackButton fallbackHref="/professors" fallbackLabel="All professors" />
 
             {/* Professor Header */}
             <div className="">
@@ -748,8 +754,8 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                 <CardContent className="p-6">
                   <div className="flex flex-col lg:flex-row lg:items-center gap-4">
                     {/* Avatar and Basic Info */}
-                    <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 bg-button-primary rounded-full flex items-center justify-center flex-shrink-0">
+                    <div className="flex items-center gap-4 min-w-0">
+                      <div className="hidden sm:flex w-16 h-16 bg-button-primary rounded-full items-center justify-center flex-shrink-0">
                         <span className="text-white text-xl font-bold">
                           {(
                             professor.name
@@ -760,26 +766,26 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                         </span>
                       </div>
                       <div className="min-w-0">
-                        <h1 className="text-2xl font-bold text-text-heading mb-2">
+                        <h1 className="text-2xl font-bold text-text-heading mb-2 break-words">
                           {professor.name}
                         </h1>
-                        <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="mt-3 grid grid-cols-3 gap-2 sm:gap-3">
                           {[
                             {
-                              label: "Overall Rating",
+                              label: "Overall rating",
                               icon: Star,
                               value: professor.overall_rating ?? null,
                               decimals: 1,
                             },
                             {
-                              label: "Total Reviews",
+                              label: "Reviews",
                               icon: MessageSquare,
                               value: professor.total_reviews ?? null,
                               formatter: (n: number) =>
                                 Math.round(n).toLocaleString(),
                             },
                             {
-                              label: "Would Take Again",
+                              label: "Would take again",
                               icon: TrendingUp,
                               value: professor.would_take_again_percent ?? null,
                               decimals: 0,
@@ -790,10 +796,10 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                             return (
                               <div
                                 key={s.label}
-                                className="rounded-2xl border border-border bg-canvas/70 px-4 py-3 dark:border-white/10 dark:bg-black/30"
+                                className="rounded-2xl border border-border bg-canvas/70 px-3 py-3 sm:px-4 dark:border-white/10 dark:bg-black/30"
                               >
                                 <div className="flex items-center gap-3">
-                                  <div className="h-10 w-10 rounded-xl bg-canvas border border-border flex items-center justify-center text-accent dark:bg-white/10 dark:border-white/10">
+                                  <div className="hidden sm:flex h-10 w-10 rounded-xl bg-canvas border border-border items-center justify-center text-accent dark:bg-white/10 dark:border-white/10">
                                     <Icon className="w-5 h-5" />
                                   </div>
                                   <div className="min-w-0">
@@ -809,7 +815,7 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                                           formatter={s.formatter}
                                         />
                                       ) : (
-                                        "N/A"
+                                        <span title="Not enough reviews yet">—</span>
                                       )}
                                     </div>
                                     <div className="text-text-body text-xs dark:text-white/70">
@@ -835,6 +841,11 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                     </div>
                   </div>
 
+                  <RatingTrend
+                    stats={professor.overallSummary?.reviewStats}
+                    className="mt-4"
+                  />
+
                   {/* Overall Summary */}
                   {professor.overall_summary && (
                     <div className="mt-4 pt-4 border-t border-border">
@@ -859,14 +870,14 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
 
                   {/* Departments */}
                   {professor.departments &&
-                    professor.departments.length > 0 && (
+                    professor.departments.some((dept) => dept && officialCodes.has(dept)) && (
                       <div className="mt-4 pt-4 border-t border-border">
                         <h3 className="text-xs font-semibold text-text-heading mb-2 uppercase tracking-wide">
                           Departments
                         </h3>
                         <div className="flex flex-wrap gap-1">
                           {professor.departments.map((dept, index) =>
-                            dept ? (
+                            dept && officialCodes.has(dept) ? (
                               <Badge
                                 key={index}
                                 variant="outline"
@@ -969,63 +980,17 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                       </div>
                     )}
 
-                    {/* Sentiment & Confidence Header */}
-                    <div className="flex flex-wrap items-center gap-4 mb-6">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className={`h-10 w-10 rounded-xl flex items-center justify-center ${
-                            professor.overallSummary.sentiment
-                              ?.toLowerCase()
-                              .includes("positive")
-                              ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400"
-                              : professor.overallSummary.sentiment
-                                    ?.toLowerCase()
-                                    .includes("negative")
-                                ? "bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400"
-                                : "bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400"
-                          }`}
-                        >
-                          <TrendingUp className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <div className="text-xs text-text-body dark:text-white/60 uppercase tracking-wide">
-                            Overall Sentiment
-                          </div>
-                          <div className="font-semibold text-text-heading dark:text-white">
-                            {professor.overallSummary.sentiment || "Mixed"}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 ml-auto">
-                        <div className="h-10 w-10 rounded-xl bg-canvas border border-border flex items-center justify-center text-accent dark:bg-white/10 dark:border-white/10">
-                          <BarChart3 className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <div className="text-xs text-text-body dark:text-white/60 uppercase tracking-wide">
-                            Confidence
-                          </div>
-                          <div className="font-semibold text-text-heading dark:text-white">
-                            {Math.round(
-                              (professor.overallSummary.confidence || 0) * 100,
-                            )}
-                            %
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Consistency Note */}
-                    {professor.overallSummary.consistency && (
-                      <div className="mb-6 px-4 py-3 rounded-xl bg-canvas/70 border border-border dark:bg-black/30 dark:border-white/10">
-                        <p className="text-sm text-text-body dark:text-white/80">
-                          <span className="font-medium text-text-heading dark:text-white">
-                            Pattern:{" "}
-                          </span>
-                          {professor.overallSummary.consistency}
-                        </p>
-                      </div>
-                    )}
+                    <p className="mb-6 text-sm text-text-body dark:text-white/80">
+                      {professor.overallSummary.sentiment && (
+                        <span className="font-semibold text-text-heading dark:text-white">
+                          {professor.overallSummary.sentiment}
+                        </span>
+                      )}
+                      {professor.overallSummary.sentiment && " · "}
+                      Based on {professor.total_reviews} reviews
+                      {confidenceLabel(professor.overallSummary.confidence) &&
+                        ` · ${confidenceLabel(professor.overallSummary.confidence)}`}
+                    </p>
 
                     {/* Strengths & Concerns Grid */}
                     <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
@@ -1049,39 +1014,36 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                 <h2 className="text-2xl font-bold text-text-heading">
                   Courses Taught
                 </h2>
-                <div className="text-sm text-text-body/80 dark:text-white/70 border border-border dark:border-white/15 px-3 py-1 rounded-full bg-canvas/70 dark:bg-black/30">
-                  {displayedCourses.length} courses
-                  {selectedTerm && " (this term)"}
+                <div className="text-sm text-text-body dark:text-white/75 border border-border dark:border-white/15 px-3 py-1 rounded-full bg-canvas/70 dark:bg-black/30">
+                  {displayedCourses.length}{" "}
+                  {displayedCourses.length === 1 ? "course" : "courses"}
+                  {selectedTerm && !loadingTermData && " this term"}
                 </div>
               </div>
 
               {/* Term Selector */}
-              <div className="flex items-center gap-3 mb-6">
-                <label
-                  htmlFor="term-selector-professor"
-                  className="text-sm font-semibold text-text-heading dark:text-white"
-                >
-                  Select Term:
-                </label>
-                <select
+              <div className="mb-6 flex flex-wrap items-center gap-3">
+                <TermSelect
                   id="term-selector-professor"
+                  label="Show courses taught in:"
+                  terms={terms}
                   value={selectedTerm}
-                  onChange={(e) => setSelectedTerm(e.target.value)}
-                  className="flex-1 max-w-xs bg-canvas border border-border rounded-xl px-4 py-2 text-text-body dark:bg-black/45 dark:border-white/15 dark:text-white/90 dark:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
-                >
-                  <option value="">All Terms</option>
-                  {terms.map((term) => (
-                    <option key={term.termCode} value={term.termCode}>
-                      {term.termDesc}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setSelectedTerm}
+                  allTermsLabel="Any term (full history)"
+                />
                 {loadingTermData && (
-                  <div className="text-xs text-text-body/80 dark:text-white/70">
-                    Loading...
+                  <div className="text-xs text-text-body dark:text-white/75">
+                    Checking this term&apos;s sections…
                   </div>
                 )}
               </div>
+
+              {selectedTerm && !loadingTermData && displayedCourses.length === 0 && (
+                <p className="mb-6 rounded-xl border border-border bg-canvas/70 px-4 py-3 text-sm text-text-body dark:border-white/10 dark:bg-black/30 dark:text-white/80">
+                  {professor.name}{" "}isn&apos;t listed on any sections of these courses
+                  in the selected term.
+                </p>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {displayedCourses.map((course) =>
@@ -1097,29 +1059,41 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                       <CardContent className="p-4">
                         <div className="mb-3">
                           <h3 className="text-lg font-bold text-text-heading mb-1 transition-colors">
-                            {course.course_id}
+                            {formatCourseCode(course.course_id)}
                           </h3>
-                          <p className="text-text-body dark:text-white/75 line-clamp-2 leading-relaxed text-sm">
-                            {course.course_name}
-                          </p>
+                          {course.course_name && (
+                            <p className="text-text-body dark:text-white/80 line-clamp-2 leading-relaxed text-sm">
+                              {course.course_name}
+                            </p>
+                          )}
                         </div>
 
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center gap-1">
-                            <Star className="w-4 h-4 text-accent fill-current" />
-                            <span className="font-semibold text-text-heading dark:text-white">
+                        <dl className="mb-4 grid grid-cols-2 gap-2">
+                          <div className="rounded-xl border border-border bg-canvas/70 px-3 py-2 dark:border-white/10 dark:bg-black/30">
+                            <dd className="flex items-center gap-1 font-semibold text-text-heading dark:text-white">
+                              <Star className="w-4 h-4 text-accent fill-current" />
                               {course.avg_rating
                                 ? course.avg_rating.toFixed(1)
-                                : "N/A"}
-                            </span>
+                                : "—"}
+                            </dd>
+                            <dt className="text-xs text-text-body dark:text-white/75">
+                              rating in this course · {course.reviews_count}{" "}
+                              {course.reviews_count === 1 ? "review" : "reviews"}
+                            </dt>
                           </div>
-                          <div className="flex items-center gap-1 text-text-body dark:text-white/70">
-                            <MessageSquare className="w-3 h-3" />
-                            <span className="text-xs font-medium">
-                              {course.reviews_count} reviews
-                            </span>
+                          <div className="rounded-xl border border-border bg-canvas/70 px-3 py-2 dark:border-white/10 dark:bg-black/30">
+                            <dd className="font-semibold text-text-heading dark:text-white">
+                              {course.avg_gpa != null
+                                ? course.avg_gpa.toFixed(2)
+                                : "—"}
+                            </dd>
+                            <dt className="text-xs text-text-body dark:text-white/75">
+                              {course.avg_gpa != null
+                                ? `avg GPA · ${(course.gpa_students ?? 0).toLocaleString()} students`
+                                : "no official grade data"}
+                            </dt>
                           </div>
-                        </div>
+                        </dl>
 
                         <SummaryTips tips={course.tips} className="mb-4" />
 
@@ -1165,21 +1139,39 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                         className="bg-card border-border hover:shadow-md transition-shadow duration-200 break-inside-avoid"
                       >
                         <CardContent className="p-4">
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex items-center gap-1 bg-yellow-600 dark:bg-yellow-500 px-2 py-1 rounded-lg">
-                              <Star className="w-3 h-3 text-white fill-current" />
-                              <span className="font-semibold text-white text-sm">
-                                {review.overall_rating
-                                  ? review.overall_rating.toFixed(1)
-                                  : "N/A"}
+                          <div className="flex flex-wrap items-center gap-2 mb-3">
+                            {review.overall_rating != null && (
+                              <div
+                                className="flex items-center gap-1 bg-yellow-700 dark:bg-yellow-500 px-2 py-1 rounded-lg"
+                                title="This student's quality rating (1-5)"
+                              >
+                                <Star className="w-3 h-3 text-white fill-current dark:text-black" />
+                                <span className="font-semibold text-white text-sm dark:text-black">
+                                  {review.overall_rating.toFixed(1)}
+                                </span>
+                              </div>
+                            )}
+                            {review.course_code && (
+                              <Badge
+                                variant="outline"
+                                className="text-xs border-border text-text-heading dark:border-white/20 dark:text-white"
+                              >
+                                {formatCourseCode(review.course_code)}
+                              </Badge>
+                            )}
+                            {review.grade && (
+                              <Badge
+                                variant="outline"
+                                className="bg-blue-700 dark:bg-blue-500 text-white border-transparent text-xs"
+                              >
+                                Grade: {review.grade}
+                              </Badge>
+                            )}
+                            {formatReviewDate(review.review_date) && (
+                              <span className="ml-auto text-xs text-text-body dark:text-white/75">
+                                {formatReviewDate(review.review_date)}
                               </span>
-                            </div>
-                            <Badge
-                              variant="outline"
-                              className="bg-blue-600 dark:bg-blue-500 text-white border-transparent text-xs"
-                            >
-                              Grade: {review.grade}
-                            </Badge>
+                            )}
                           </div>
 
                           <blockquote className="text-text-body leading-relaxed italic border-l-4 border-gray-200 dark:border-gray-600 pl-3 text-sm">

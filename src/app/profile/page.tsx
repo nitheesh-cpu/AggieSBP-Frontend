@@ -82,7 +82,7 @@ function ProfileContent() {
             transition={{ duration: 0.35 }}
             className="space-y-2"
           >
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-text-body/70 dark:text-white/50">
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-text-body/70 dark:text-white/65">
               Account
             </p>
             <h1 className="text-3xl font-bold tracking-tight text-text-heading dark:text-white sm:text-4xl">
@@ -107,14 +107,14 @@ function ProfileContent() {
                   </div>
                   <div className="min-w-0 space-y-3">
                     <div className="space-y-1">
-                      <p className="text-xs font-medium uppercase tracking-wide text-text-body/80 dark:text-white/55">
+                      <p className="text-xs font-medium uppercase tracking-wide text-text-body/80 dark:text-white/65">
                         Email
                       </p>
                       <p
                         className="flex items-center gap-2 truncate text-sm font-medium text-text-heading dark:text-white sm:text-base"
                         title={account?.primary_email ?? undefined}
                       >
-                        <Mail className="h-4 w-4 shrink-0 text-text-body/70 dark:text-white/50" />
+                        <Mail className="h-4 w-4 shrink-0 text-text-body/70 dark:text-white/65" />
                         <span className="truncate">
                           {accountPending
                             ? "Loading…"
@@ -123,12 +123,12 @@ function ProfileContent() {
                       </p>
                     </div>
                     <div className="space-y-1.5">
-                      <p className="text-xs font-medium uppercase tracking-wide text-text-body/80 dark:text-white/55">
+                      <p className="text-xs font-medium uppercase tracking-wide text-text-body/80 dark:text-white/65">
                         Sign-in methods
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {accountPending ? (
-                          <span className="text-xs text-text-body dark:text-white/55">
+                          <span className="text-xs text-text-body dark:text-white/65">
                             Loading…
                           </span>
                         ) : account?.sign_in_methods?.length ? (
@@ -142,14 +142,14 @@ function ProfileContent() {
                             </Badge>
                           ))
                         ) : (
-                          <span className="text-xs text-text-body dark:text-white/55">
+                          <span className="text-xs text-text-body dark:text-white/65">
                             —
                           </span>
                         )}
                       </div>
                     </div>
                     <div className="space-y-0.5 border-t border-border/50 pt-3 dark:border-white/10">
-                      <p className="text-[10px] font-medium uppercase tracking-wide text-text-body/70 dark:text-white/45">
+                      <p className="text-[10px] font-medium uppercase tracking-wide text-text-body/70 dark:text-white/65">
                         User id (support)
                       </p>
                       <p

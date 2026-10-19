@@ -110,7 +110,7 @@ function CountUpNumber({
 const quickFilters = [
   {
     id: "undergraduate",
-    label: "Undergraduate",
+    label: "100–200 level",
     icon: BookOpen,
     color:
       "bg-gradient-to-r from-blue-500 to-cyan-500 dark:from-blue-500/50 dark:to-cyan-500/50",
@@ -118,7 +118,7 @@ const quickFilters = [
   },
   {
     id: "advanced",
-    label: "Advanced",
+    label: "300–400 level",
     icon: TrendingUp,
     color:
       "bg-gradient-to-r from-orange-500 to-red-500 dark:from-orange-500/50 dark:to-red-500/50",
@@ -545,10 +545,12 @@ function CoursesPageContent() {
       const matchesMaxGpa = !maxGpa || course.avgGPA <= parseFloat(maxGpa);
 
       const matchesMinRating =
-        !minRating || course.rating >= parseFloat(minRating);
+        !minRating ||
+        (course.rating != null && course.rating >= parseFloat(minRating));
 
       const matchesMaxRating =
-        !maxRating || course.rating <= parseFloat(maxRating);
+        !maxRating ||
+        (course.rating != null && course.rating <= parseFloat(maxRating));
 
       // Quick filters logic
       let matchesQuickFilters = true;
@@ -636,7 +638,8 @@ function CoursesPageContent() {
         case "enrollment":
           return b.enrollment - a.enrollment;
         case "rating":
-          return b.rating - a.rating;
+          // Courses without reviews go last instead of counting as 0.
+          return (b.rating ?? -1) - (a.rating ?? -1);
         default:
           return a.code.localeCompare(b.code);
       }
@@ -954,6 +957,18 @@ function CoursesPageContent() {
     return colorMap[deptCode] || "bg-slate-700 dark:bg-slate-600";
   };
 
+  // Course-number bands; "Advanced" alone read like a difficulty level.
+  const getCourseTagLabel = (tag: string) => {
+    switch (tag.toLowerCase()) {
+      case "undergraduate":
+        return "100–200 level";
+      case "advanced":
+        return "300–400 level";
+      default:
+        return tag;
+    }
+  };
+
   const getCourseTagColor = (tag: string) => {
     switch (tag.toLowerCase()) {
       case "undergraduate":
@@ -1069,7 +1084,7 @@ function CoursesPageContent() {
             <div className="max-w-7xl mx-auto px-6">
               <div className="flex items-center justify-center gap-2 text-xs text-text-body mb-8 dark:text-white/70">
                 <span>Home</span>
-                <ChevronRight className="w-4 h-4 text-text-body/60 dark:text-white/40" />
+                <ChevronRight className="w-4 h-4 text-text-body/75 dark:text-white/65" />
                 <span className="text-text-heading dark:text-white/90">
                   Courses
                 </span>
@@ -1100,7 +1115,7 @@ function CoursesPageContent() {
                     placeholder="Search courses..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="h-12 rounded-full border-2 border-[#500000]/25 bg-card pl-12 pr-10 text-[14px] text-text-body shadow-sm backdrop-blur-sm transition-colors placeholder:text-text-body/55 hover:border-[#500000]/40 focus-visible:border-[#500000]/60 focus-visible:ring-2 focus-visible:ring-[#500000]/15 focus-visible:ring-offset-0 dark:border-white/25 dark:bg-black/45 dark:text-white dark:placeholder:text-white/40 dark:hover:border-[#FFCF3F]/40 dark:focus-visible:border-[#FFCF3F]/60 dark:focus-visible:ring-[#FFCF3F]/20 sm:h-14 sm:text-[15px]"
+                    className="h-12 rounded-full border-2 border-[#500000]/25 bg-card pl-12 pr-10 text-[14px] text-text-body shadow-sm backdrop-blur-sm transition-colors placeholder:text-text-body/75 hover:border-[#500000]/40 focus-visible:border-[#500000]/60 focus-visible:ring-2 focus-visible:ring-[#500000]/15 focus-visible:ring-offset-0 dark:border-white/25 dark:bg-black/45 dark:text-white dark:placeholder:text-white/65 dark:hover:border-[#FFCF3F]/40 dark:focus-visible:border-[#FFCF3F]/60 dark:focus-visible:ring-[#FFCF3F]/20 sm:h-14 sm:text-[15px]"
                   />
                 </div>
               </motion.div>
@@ -1127,7 +1142,7 @@ function CoursesPageContent() {
                     icon: BookOpen,
                   },
                   {
-                    label: "Avg GPA",
+                    label: "Avg course GPA",
                     value: Number(avgGPA),
                     decimals: 2,
                     icon: TrendingUp,
@@ -1411,12 +1426,20 @@ function CoursesPageContent() {
                               {course.name}
                             </p>
                           </div>
-                          <div className="flex shrink-0 items-center gap-1 rounded-full border border-border/70 bg-canvas/60 px-2.5 py-1 dark:border-white/10 dark:bg-white/5">
-                              <Star className="h-3.5 w-3.5 fill-current text-accent" />
-                              <span className="text-sm font-semibold text-text-heading dark:text-white">
+                          {course.rating != null && (
+                            <div
+                              className="flex shrink-0 flex-col items-center rounded-xl border border-border/70 bg-canvas/60 px-2.5 py-1 dark:border-white/10 dark:bg-white/5"
+                              title="Average RateMyProfessor rating of the professors who teach this course"
+                            >
+                              <span className="flex items-center gap-1 text-sm font-semibold text-text-heading dark:text-white">
+                                <Star className="h-3.5 w-3.5 fill-current text-accent" />
                                 {course.rating.toFixed(1)}
                               </span>
-                          </div>
+                              <span className="text-[10px] leading-tight text-text-body dark:text-white/70">
+                                prof rating
+                              </span>
+                            </div>
+                          )}
                         </div>
 
                         <Badge
@@ -1435,22 +1458,29 @@ function CoursesPageContent() {
                                   ? course.avgGPA.toFixed(2)
                                   : "—"}
                               </span>
-                              <span className="text-[11px] text-text-body/65 dark:text-white/45">GPA</span>
+                              <span className="text-[11px] text-text-body dark:text-white/70">avg GPA</span>
                           </div>
                           <div className="flex items-center justify-center gap-1.5 px-2">
                               <BookOpen className="h-3.5 w-3.5 text-accent" />
                               <span className="text-sm font-semibold text-text-heading dark:text-white">
                                 {course.credits}
                               </span>
-                              <span className="text-[11px] text-text-body/65 dark:text-white/45">credits</span>
+                              <span className="text-[11px] text-text-body dark:text-white/70">
+                                {course.credits === 1 ? "credit" : "credits"}
+                              </span>
                           </div>
                           {course.sections > 0 && (
-                            <div className="flex items-center justify-center gap-1.5 px-2">
+                            <div
+                              className="flex items-center justify-center gap-1.5 px-2"
+                              title="Sections in the latest College Station term"
+                            >
                                 <Users className="h-3.5 w-3.5 text-accent" />
                                 <span className="text-sm font-semibold text-text-heading dark:text-white">
                                   {course.sections}
                                 </span>
-                                <span className="text-[11px] text-text-body/65 dark:text-white/45">sections</span>
+                                <span className="text-[11px] text-text-body dark:text-white/70">
+                                  {course.sections === 1 ? "section" : "sections"}
+                                </span>
                             </div>
                           )}
                         </div>
@@ -1467,7 +1497,7 @@ function CoursesPageContent() {
                               variant="outline"
                               className={`text-xs ${getCourseTagColor(tag)} font-medium`}
                             >
-                              {tag}
+                              {getCourseTagLabel(tag)}
                             </Badge>
                           ))}
                           {course.sectionAttributes.map((attr, index) => {

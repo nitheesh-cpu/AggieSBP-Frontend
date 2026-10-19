@@ -10,11 +10,12 @@ export type AppQuickLink = {
  */
 export const MOBILE_APP_QUICK_LINKS: AppQuickLink[] = [
   { name: "Seat Alerts", href: "/alerts", emphasis: true },
-  { name: "Dashboard", href: "/dashboard" },
-  { name: "Departments", href: "/departments" },
   { name: "Courses", href: "/courses" },
   { name: "Professors", href: "/professors" },
+  { name: "Compare", href: "/compare" },
   { name: "Fit My Schedule", href: "/discover/fit" },
   { name: "Core Curriculum", href: "/discover/ucc" },
   { name: "Explore Easy Courses", href: "/discover/dept" },
+  { name: "Departments", href: "/departments" },
+  { name: "Dashboard", href: "/dashboard" },
 ];

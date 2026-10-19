@@ -378,7 +378,7 @@ function MyAlertsContent() {
               <p className="mt-3 text-2xl font-semibold text-heading dark:text-white">
                 {trackedLoading ? "—" : tracked.length}
               </p>
-              <p className="text-xs text-body dark:text-white/55">
+              <p className="text-xs text-body dark:text-white/65">
                 watched section{tracked.length === 1 ? "" : "s"}
               </p>
             </button>
@@ -395,7 +395,7 @@ function MyAlertsContent() {
               <p className="mt-3 text-2xl font-semibold text-heading dark:text-white">
                 {devicesLoading ? "—" : devices.length}
               </p>
-              <p className="text-xs text-body dark:text-white/55">
+              <p className="text-xs text-body dark:text-white/65">
                 notification device{devices.length === 1 ? "" : "s"}
               </p>
             </button>
@@ -412,7 +412,7 @@ function MyAlertsContent() {
               <p className="mt-3 text-sm font-semibold text-heading dark:text-white">
                 {hasDeviceSetup ? "Notifications ready" : "Finish notification setup"}
               </p>
-              <p className="mt-1 text-xs text-body dark:text-white/55">
+              <p className="mt-1 text-xs text-body dark:text-white/65">
                 {hasDeviceSetup ? "This device can receive alerts" : "Required to receive seat alerts"}
               </p>
             </button>

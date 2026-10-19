@@ -153,7 +153,7 @@ export default function SeatAlertsPage() {
                 )}
               </div>
 
-              <div className="mt-5 flex items-center gap-2 text-xs text-body dark:text-white/50">
+              <div className="mt-5 flex items-center gap-2 text-xs text-body dark:text-white/65">
                 <ShieldCheck className="h-4 w-4" />
                 Sign in only when you&apos;re ready to save an alert.
               </div>
@@ -176,7 +176,7 @@ export default function SeatAlertsPage() {
                       <p className="text-sm font-semibold text-heading dark:text-white">
                         Seat Alerts
                       </p>
-                      <p className="text-xs text-body dark:text-white/50">
+                      <p className="text-xs text-body dark:text-white/65">
                         2 sections watched
                       </p>
                     </div>
@@ -212,7 +212,7 @@ export default function SeatAlertsPage() {
                           <p className="text-sm font-medium text-heading dark:text-white">
                             {section}
                           </p>
-                          <p className="mt-0.5 text-xs text-body dark:text-white/45">
+                          <p className="mt-0.5 text-xs text-body dark:text-white/65">
                             Watching for an opening
                           </p>
                         </div>
@@ -305,14 +305,14 @@ export default function SeatAlertsPage() {
                       <span className="grid h-11 w-11 place-items-center rounded-xl bg-[#500000]/10 text-[#500000] dark:bg-[#FFCF3F]/15 dark:text-[#FFCF3F]">
                         <Icon className="h-5 w-5" />
                       </span>
-                      <span className="text-xs font-semibold tracking-[0.16em] text-body/50 dark:text-white/30">
+                      <span className="text-xs font-semibold tracking-[0.16em] text-body/50 dark:text-white/65">
                         {step.number}
                       </span>
                     </div>
                     <h3 className="mt-6 text-lg font-semibold text-heading dark:text-white">
                       {step.title}
                     </h3>
-                    <p className="mt-2 text-sm leading-6 text-body dark:text-white/55">
+                    <p className="mt-2 text-sm leading-6 text-body dark:text-white/65">
                       {step.description}
                     </p>
                   </motion.article>

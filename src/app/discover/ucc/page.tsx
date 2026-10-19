@@ -3,6 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { motion, MotionConfig, useReducedMotion } from "motion/react";
 import { Navigation } from "@/components/navigation";
+import { EasinessBadge, EasinessLegend } from "@/components/easiness";
+import { pickDefaultTerm, sortTermsForMenu } from "@/lib/terms";
+import type { Term as ApiTerm } from "@/lib/api";
 import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -99,6 +102,9 @@ export default function UCCDiscoveryPage() {
         if (!res.ok) throw new Error("Failed to fetch terms");
         const data = await res.json();
         setTerms(data);
+        // Open on the term students are registering for, not an empty page.
+        const initial = pickDefaultTerm(data as ApiTerm[]);
+        if (initial) void handleTermChange(initial);
       } catch (error) {
         console.error("Error fetching terms:", error);
       } finally {
@@ -106,6 +112,7 @@ export default function UCCDiscoveryPage() {
       }
     }
     fetchTerms();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Fetch UCC data when term is selected
@@ -170,15 +177,16 @@ export default function UCCDiscoveryPage() {
         <Navigation variant="glass" />
 
         <main className="relative pt-24 pb-20">
-          <div className="max-w-7xl mx-auto px-6">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
             {/* Header Section */}
             <div className="mb-5 flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div className="space-y-3">
                 <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-text-heading dark:text-white">
                   University Core Curriculum
                 </h1>
-                <p className="text-text-body dark:text-white/70 text-lg max-w-2xl">
-                  Discover courses that satisfy your core curriculum requirements for the selected term.
+                <p className="text-text-body dark:text-white/80 text-lg max-w-2xl">
+                  The easiest professor-and-course options for each core curriculum (UCC)
+                  requirement, for the term you pick.
                 </p>
               </div>
 
@@ -190,9 +198,11 @@ export default function UCCDiscoveryPage() {
                   <SelectContent className="bg-card/80 backdrop-blur-md border-border dark:border-white/15 dark:bg-black/50 dark:text-white rounded-full px-5 shadow-sm transition-all">
                     <SelectGroup>
                       <SelectLabel>Available Terms</SelectLabel>
-                      {terms.map((term) => (
+                      {(() => {
+                        const { main, other } = sortTermsForMenu(terms as ApiTerm[]);
+                        return [...main, ...other];
+                      })().map((term) => (
                         <SelectItem key={term.termCode} value={term.termCode} className="hover:bg-card hover:dark:bg-black/70">
-
                           {term.termDesc}
                         </SelectItem>
                       ))}
@@ -205,7 +215,7 @@ export default function UCCDiscoveryPage() {
                   value={sortKey}
                 >
                   <SelectTrigger className="h-12 w-full bg-card/80 backdrop-blur-md border-border dark:border-white/15 dark:bg-black/50 dark:text-white rounded-full px-5 shadow-sm transition-all sm:w-48">
-                    <ArrowUpDown className="mr-1 h-4 w-4 shrink-0 text-text-body/50 dark:text-white/40" />
+                    <ArrowUpDown className="mr-1 h-4 w-4 shrink-0 text-text-body/75 dark:text-white/65" />
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="dark:bg-black/90 dark:border-white/15 dark:text-white">
@@ -277,42 +287,9 @@ export default function UCCDiscoveryPage() {
                     // Metrics Legend (Active State)
                     <>
                       <h3 className="font-bold text-lg lg:text-xl leading-relaxed text-primary mb-4">
-                        Here&apos;s what the numbers mean!
+                        Here&apos;s what the numbers mean
                       </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-md xl:text-lg">
-                        {/* Easiness Explanation */}
-                        <div className="space-y-1">
-                          <h4 className="font-bold text-emerald-500 flex items-center gap-2">
-                            <span className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center text-xs">90</span>
-                            Easiness Score
-                          </h4>
-                          <p className="text-xs xl:text-sm text-text-body/80 dark:text-white/70 leading-relaxed">
-                            My custom formula! Combines <strong>Average GPA</strong> (50%), <strong>Difficulty Rating</strong> (30%), and <strong>Student Quality</strong> (20%).
-                          </p>
-                        </div>
-
-                        {/* Confidence Dots */}
-                        <div className="space-y-1">
-                          <h4 className="font-bold text-text-heading dark:text-white flex items-center gap-2">
-                            <span className="text-text-body/50 text-xs tracking-widest">●●●</span>
-                            Confidence
-                          </h4>
-                          <p className="text-xs xl:text-sm text-text-body/80 dark:text-white/70 leading-relaxed">
-                            <strong>3 Dots</strong> = Lots of data.<br />
-                            <strong>1 Dot</strong> = Limited data, take it with a grain of salt!
-                          </p>
-                        </div>
-
-                        {/* A/B Rate */}
-                        <div className="space-y-1">
-                          <h4 className="font-bold text-blue-500 flex items-center gap-2">
-                            % A/B Rate
-                          </h4>
-                          <p className="text-xs xl:text-sm text-text-body/80 dark:text-white/70 leading-relaxed">
-                            Percentage of students who earned an <strong>A</strong> or <strong>B</strong> in this professor&apos;s class.
-                          </p>
-                        </div>
-                      </div>
+                      <EasinessLegend showAbRate />
                     </>
                   )}
                 </div>
@@ -334,7 +311,7 @@ export default function UCCDiscoveryPage() {
                       <div className="flex items-center gap-3 pb-3 border-b border-border dark:border-white/10">
                         <BookOpen className="w-5 h-5 text-accent" />
                         <h2 className="text-xl font-semibold text-text-heading dark:text-white">{category.category}</h2>
-                        <Badge className="bg-[#FFCF3F]/10 text-[#FFCF3F] border-transparent dark:bg-[#FFCF3F]/20">
+                        <Badge className="bg-[#FFCF3F]/25 text-[#5c4400] border-transparent dark:bg-[#FFCF3F]/20 dark:text-[#FFCF3F]">
                           {category.courses.length} courses
                         </Badge>
                       </div>
@@ -406,25 +383,10 @@ export default function UCCDiscoveryPage() {
                                     </p>
                                   </div>
 
-                                  {/* Easiness Score Circle */}
-                                  <div
-                                    className="flex flex-col items-center"
-                                    title={`Easiness: GPA×50% + Ease×30% + Rating×20%\nConfidence: ${course.confidenceScore.toFixed(0)}%`}
-                                  >
-                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold ${course.easinessScore >= 80
-                                      ? 'bg-emerald-500/20 text-emerald-400 ring-2 ring-emerald-500/30'
-                                      : course.easinessScore >= 60
-                                        ? 'bg-yellow-500/20 text-yellow-400 ring-2 ring-yellow-500/30'
-                                        : course.easinessScore >= 40
-                                          ? 'bg-orange-500/20 text-orange-400 ring-2 ring-orange-500/30'
-                                          : 'bg-red-500/20 text-red-400 ring-2 ring-red-500/30'
-                                      }`}>
-                                      {course.easinessScore.toFixed(0)}
-                                    </div>
-                                    <span className="text-[10px] text-text-body/50 dark:text-white/40 mt-1">
-                                      {course.confidenceScore >= 70 ? '●●●' : course.confidenceScore >= 40 ? '●●○' : '●○○'}
-                                    </span>
-                                  </div>
+                                  <EasinessBadge
+                                    score={course.easinessScore}
+                                    confidence={course.confidenceScore}
+                                  />
                                 </div>
 
                                 {/* Professor + Stats Row */}
@@ -467,13 +429,13 @@ export default function UCCDiscoveryPage() {
                                     {course.professor.tags.slice(0, 2).map((tag, tagIdx) => (
                                       <span
                                         key={tagIdx}
-                                        className="text-xs px-2 py-0.5 rounded-full bg-white/5 text-text-body/70 dark:text-white/50"
+                                        className="text-xs px-2 py-0.5 rounded-full bg-white/5 text-text-body/70 dark:text-white/65"
                                       >
                                         {tag}
                                       </span>
                                     ))}
                                     {course.professor.tags.length > 2 && (
-                                      <span className="text-xs text-text-body/50 dark:text-white/30">
+                                      <span className="text-xs text-text-body/75 dark:text-white/65">
                                         +{course.professor.tags.length - 2}
                                       </span>
                                     )}

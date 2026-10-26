@@ -26,11 +26,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
-      url: `${SITE_URL}/courses/compare`,
-      changeFrequency: 'weekly',
-      priority: 0.7,
-    },
-    {
       url: `${SITE_URL}/professors`,
       changeFrequency: 'weekly',
       priority: 0.9,

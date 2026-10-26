@@ -13,6 +13,11 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      { source: "/courses/compare", destination: "/compare", permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;

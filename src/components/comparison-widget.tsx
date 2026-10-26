@@ -29,7 +29,7 @@ export function ComparisonWidget() {
 
   const handleCompare = () => {
     setIsSheetOpen(false);
-    router.push("/courses/compare");
+    router.push("/compare");
   };
 
   const ComparisonContent = () => (

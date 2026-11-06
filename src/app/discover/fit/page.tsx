@@ -46,6 +46,10 @@ import {
   Filter,
 } from "lucide-react";
 import Link from "next/link";
+import { useAcademicRecord } from "@/hooks/use-academic-record";
+import { useCoursePrereqs } from "@/hooks/use-course-prereqs";
+import { buildContext, evaluateCourse, type Eligibility } from "@/lib/planner/prereqs";
+import { activeCourses, currentTermKey, termKeyFromCode } from "@/lib/planner/record";
 
 type Day = "M" | "T" | "W" | "R" | "F";
 type ScheduleBlock = { id: string; days: Day[]; start: string; end: string };
@@ -333,6 +337,56 @@ export default function DiscoverFitPage() {
     if (!q) return attributeOptions;
     return attributeOptions.filter((a) => a.toLowerCase().includes(q));
   }, [attributeOptions, attributeSearch]);
+
+  const { record } = useAcademicRecord();
+  const hasRecord = activeCourses(record).length > 0;
+  const [hideTaken, setHideTaken] = useState(true);
+  const [hideUnmet, setHideUnmet] = useState(false);
+  const resultCodes = useMemo(
+    () =>
+      hasRecord
+        ? fitResults.map((r) => `${r.course.dept} ${r.course.courseNumber}`)
+        : [],
+    [hasRecord, fitResults],
+  );
+  const {
+    info: prereqInfo,
+    unknown: prereqUnknown,
+    error: prereqError,
+  } = useCoursePrereqs(resultCodes);
+
+  const { visibleResults, hiddenTaken, hiddenUnmet, eligibility } = useMemo(() => {
+    const eligibility = new Map<string, Eligibility>();
+    const targetKey = termCode ? termKeyFromCode(termCode) : null;
+    if (!hasRecord || !targetKey) {
+      return { visibleResults: fitResults, hiddenTaken: 0, hiddenUnmet: 0, eligibility };
+    }
+    const ctx = buildContext(record, targetKey, { currentTerm: currentTermKey() });
+    let hiddenTaken = 0;
+    let hiddenUnmet = 0;
+    const visibleResults: FitResult[] = [];
+    for (const r of fitResults) {
+      const code = `${r.course.dept} ${r.course.courseNumber}`;
+      const ev = evaluateCourse(code, prereqInfo[code], ctx);
+      // Prereq data unavailable or still loading: only "taken" is trustworthy.
+      const loaded = code in prereqInfo || prereqUnknown.includes(code);
+      if (ev.status !== "taken" && (prereqError || !loaded)) {
+        visibleResults.push(r);
+        continue;
+      }
+      if (ev.status === "taken" && hideTaken) {
+        hiddenTaken++;
+        continue;
+      }
+      if (ev.status === "unmet" && hideUnmet) {
+        hiddenUnmet++;
+        continue;
+      }
+      eligibility.set(code, ev);
+      visibleResults.push(r);
+    }
+    return { visibleResults, hiddenTaken, hiddenUnmet, eligibility };
+  }, [fitResults, hasRecord, record, termCode, prereqInfo, prereqUnknown, prereqError, hideTaken, hideUnmet]);
 
   const hasActiveSectionFilters =
     seatFilter !== "open" ||
@@ -937,6 +991,39 @@ export default function DiscoverFitPage() {
                 </p>
               </div>
 
+              {hasRecord ? (
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox
+                      checked={hideTaken}
+                      onCheckedChange={(v) => setHideTaken(v === true)}
+                    />
+                    <span className="text-xs text-text-body dark:text-white/80">
+                      Hide classes I&apos;ve taken
+                    </span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox
+                      checked={hideUnmet}
+                      onCheckedChange={(v) => setHideUnmet(v === true)}
+                    />
+                    <span className="text-xs text-text-body dark:text-white/80">
+                      Hide classes I can&apos;t take yet
+                    </span>
+                  </label>
+                </div>
+              ) : (
+                <p className="text-xs text-text-body dark:text-white/75">
+                  <Link
+                    href="/planner"
+                    className="font-medium text-[#500000] underline underline-offset-2 dark:text-[#FFCF3F]"
+                  >
+                    Add your courses in the Degree Planner
+                  </Link>{" "}
+                  to hide classes you&apos;ve taken or can&apos;t take yet.
+                </p>
+              )}
+
               {filteringFit && (
                 <p className="text-sm text-text-body dark:text-white/75 flex items-center gap-2">
                   <Loader2 className="w-4 h-4 animate-spin shrink-0" />
@@ -944,14 +1031,31 @@ export default function DiscoverFitPage() {
                 </p>
               )}
 
-              {!filteringFit && fitResults.length > 0 && (
+              {!filteringFit && hiddenTaken + hiddenUnmet > 0 && (
+                <p className="text-xs text-text-body dark:text-white/75">
+                  {[
+                    hiddenTaken > 0
+                      ? `Hid ${hiddenTaken} ${hiddenTaken === 1 ? "class" : "classes"} you've taken`
+                      : null,
+                    hiddenUnmet > 0
+                      ? `${hiddenTaken > 0 ? "hid" : "Hid"} ${hiddenUnmet} you can't take yet`
+                      : null,
+                  ]
+                    .filter(Boolean)
+                    .join(", ")}
+                  .
+                </p>
+              )}
+
+              {!filteringFit && visibleResults.length > 0 && (
                 <>
                   <EasinessLegend compact />
                   <ul className="space-y-3">
-                    {fitResults.map(({ course, compatibleSectionCount, sections }) => {
+                    {visibleResults.map(({ course, compatibleSectionCount, sections }) => {
                       const key = `${course.dept}-${course.courseNumber}`;
                       const expanded = expandedCourse === key;
                       const shown = expanded ? sections : sections.slice(0, 3);
+                      const elig = eligibility.get(`${course.dept} ${course.courseNumber}`);
                       return (
                         <li
                           key={key}
@@ -973,7 +1077,35 @@ export default function DiscoverFitPage() {
                                 {compatibleSectionCount === 1 ? "section fits" : "sections fit"}
                               </p>
                             </div>
-                            <EasinessBadge score={course.easinessScore} />
+                            <div className="flex flex-col items-end gap-1.5">
+                              <EasinessBadge score={course.easinessScore} />
+                              {elig && elig.status !== "taken" && (
+                                <>
+                                  {elig.status === "met" && (
+                                    <Badge className="border-transparent bg-emerald-700 text-white dark:bg-emerald-500 dark:text-black">
+                                      Can take
+                                    </Badge>
+                                  )}
+                                  {elig.status === "approval" && (
+                                    <Badge variant="outline" className="text-text-body dark:text-white/80">
+                                      Needs approval
+                                    </Badge>
+                                  )}
+                                  {elig.status === "unknown" && (
+                                    <Badge variant="outline" className="text-text-body dark:text-white/80">
+                                      Check prereqs
+                                    </Badge>
+                                  )}
+                                  {elig.status === "unmet" && (
+                                    <Badge className="border-transparent bg-red-700 text-white dark:bg-red-400 dark:text-black whitespace-normal">
+                                      {elig.missing.length > 0
+                                        ? `Missing ${elig.missing.slice(0, 3).join(", ")}`
+                                        : "Prereqs not met"}
+                                    </Badge>
+                                  )}
+                                </>
+                              )}
+                            </div>
                           </div>
                           {shown.length > 0 && (
                             <ul className="mt-3 divide-y divide-border/70 rounded-lg border border-border/70 dark:divide-white/10 dark:border-white/10">
@@ -1036,6 +1168,12 @@ export default function DiscoverFitPage() {
                     })}
                   </ul>
                 </>
+              )}
+
+              {!filteringFit && fitResults.length > 0 && visibleResults.length === 0 && (
+                <p className="text-sm text-text-body dark:text-white/75">
+                  Every matching class is hidden by the class history filters above.
+                </p>
               )}
 
               {!filteringFit && fitResults.length === 0 && fitReady && (

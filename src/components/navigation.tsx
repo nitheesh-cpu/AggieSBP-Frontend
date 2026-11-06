@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
 import {
+  GraduationCap,
   Bell,
   BookOpenCheck,
   Building2,
@@ -72,6 +73,12 @@ export const Navigation = ({
   ] as const;
 
   const discoverItems = [
+    {
+      name: "Degree Planner",
+      description: "Track your courses and check prerequisites",
+      href: "/planner",
+      icon: GraduationCap,
+    },
     {
       name: "Fit My Schedule",
       description: "Find sections that work with your availability",

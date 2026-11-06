@@ -1,0 +1,228 @@
+// Run: npm test  (node --test with native TypeScript type stripping)
+import { test } from "node:test";
+import assert from "node:assert/strict";
+
+import {
+  activeBuckets,
+  activeWatchlist,
+  addBucket,
+  addToWatchlist,
+  bucketProgress,
+  emptyPlan,
+  isValidPlan,
+  mergePlans,
+  planKey,
+  removeBucket,
+  removeFromWatchlist,
+  updateBucket,
+  type DegreePlan,
+} from "./plan.ts";
+
+const T1 = new Date("2026-11-01T10:00:00Z");
+const T2 = new Date("2026-11-02T10:00:00Z");
+const T3 = new Date("2026-11-03T10:00:00Z");
+
+const doneSet = (...codes: string[]) => (c: string) => codes.includes(c);
+
+test("addBucket normalizes, assigns ids, clamps pick", () => {
+  const p = addBucket(emptyPlan(), {
+    name: "  Stats  ",
+    pick: 1,
+    options: [["stat211"], ["STAT-301"], ["stat 303", "stat 303", "junk"], [], ["nope"]],
+  }, T1);
+  const b = p.buckets[0];
+  assert.equal(b.name, "Stats");
+  assert.equal(b.updatedAt, T1.toISOString());
+  assert.deepEqual(b.options.map((o) => o.courses), [["STAT 211"], ["STAT 301"], ["STAT 303"]]);
+  assert.equal(new Set(b.options.map((o) => o.id)).size, 3);
+  const big = addBucket(emptyPlan(), { name: "x", pick: 9, options: [["MATH 151"]] }, T1);
+  assert.equal(big.buckets[0].pick, 1);
+  const low = addBucket(emptyPlan(), { name: "x", pick: 0, options: [["MATH 151"]] }, T1);
+  assert.equal(low.buckets[0].pick, 1);
+});
+
+test("addBucket ids are unique even for the same timestamp", () => {
+  let p = addBucket(emptyPlan(), { name: "a", pick: 1, options: [["MATH 151"]] }, T1);
+  p = addBucket(p, { name: "b", pick: 1, options: [["MATH 152"]] }, T1);
+  assert.notEqual(p.buckets[0].id, p.buckets[1].id);
+});
+
+test("updateBucket, removeBucket", () => {
+  let p = addBucket(emptyPlan(), { name: "A", pick: 1, options: [["MATH 151"], ["MATH 171"]] }, T1);
+  const id = p.buckets[0].id;
+  p = updateBucket(p, id, { name: "Calc", pick: 2 }, T2);
+  assert.equal(p.buckets[0].name, "Calc");
+  assert.equal(p.buckets[0].pick, 2);
+  assert.equal(p.buckets[0].updatedAt, T2.toISOString());
+  p = updateBucket(p, id, { options: [["csce121", "csce120"]] }, T2);
+  assert.deepEqual(p.buckets[0].options[0].courses, ["CSCE 121", "CSCE 120"]);
+  assert.equal(p.buckets[0].pick, 1); // clamped to the single option
+  const same = updateBucket(p, "missing", { name: "x" }, T3);
+  assert.equal(same, p);
+
+  p = removeBucket(p, id, T3);
+  assert.equal(activeBuckets(p).length, 0);
+  assert.equal(p.buckets.length, 1);
+  assert.equal(p.buckets[0].deleted, true);
+  assert.equal(removeBucket(p, id, T3), p);
+  assert.equal(updateBucket(p, id, { name: "x" }, T3), p);
+});
+
+test("watchlist add, remove, re-add", () => {
+  let p = addToWatchlist(emptyPlan(), "csce121", T1);
+  p = addToWatchlist(p, "MATH 151", T1);
+  assert.deepEqual(activeWatchlist(p).map((w) => w.code), ["CSCE 121", "MATH 151"]);
+  assert.equal(addToWatchlist(p, "CSCE-121", T2), p); // already there
+  assert.equal(addToWatchlist(p, "junk", T2), p);
+  p = removeFromWatchlist(p, "csce 121", T2);
+  assert.deepEqual(activeWatchlist(p).map((w) => w.code), ["MATH 151"]);
+  assert.equal(p.watchlist.length, 2);
+  assert.equal(removeFromWatchlist(p, "CSCE 121", T3), p);
+  p = addToWatchlist(p, "CSCE 121", T3);
+  const item = p.watchlist.find((w) => w.code === "CSCE 121")!;
+  assert.equal(item.deleted, undefined);
+  assert.equal(item.addedAt, T3.toISOString());
+});
+
+test("bucketProgress: 1 stats class from three options", () => {
+  const p = addBucket(emptyPlan(), {
+    name: "Stats", pick: 1, options: [["STAT 211"], ["STAT 301"], ["STAT 303"]],
+  }, T1);
+  const b = p.buckets[0];
+  let r = bucketProgress(b, doneSet());
+  assert.deepEqual(r, { satisfiedOptions: [], remaining: 1, complete: false });
+  r = bucketProgress(b, doneSet("STAT 301"));
+  assert.deepEqual(r.satisfiedOptions, [b.options[1].id]);
+  assert.equal(r.remaining, 0);
+  assert.equal(r.complete, true);
+  r = bucketProgress(b, doneSet("STAT 211", "STAT 301", "STAT 303"));
+  assert.equal(r.satisfiedOptions.length, 3);
+  assert.equal(r.remaining, 0);
+});
+
+test("bucketProgress: 2 electives from four options", () => {
+  const p = addBucket(emptyPlan(), {
+    name: "CS electives", pick: 2,
+    options: [["CSCE 221"], ["CSCE 222"], ["CSCE 310"], ["CSCE 312"]],
+  }, T1);
+  const b = p.buckets[0];
+  let r = bucketProgress(b, doneSet("CSCE 310"));
+  assert.equal(r.remaining, 1);
+  assert.equal(r.complete, false);
+  r = bucketProgress(b, doneSet("CSCE 310", "CSCE 221"));
+  assert.equal(r.remaining, 0);
+  assert.equal(r.complete, true);
+  assert.deepEqual(r.satisfiedOptions, [b.options[0].id, b.options[2].id]);
+});
+
+test("bucketProgress: (A and B) or (C and D)", () => {
+  const p = addBucket(emptyPlan(), {
+    name: "Sequence", pick: 1, options: [["PHYS 206", "PHYS 216"], ["PHYS 207", "PHYS 217"]],
+  }, T1);
+  const b = p.buckets[0];
+  assert.equal(bucketProgress(b, doneSet("PHYS 206")).complete, false);
+  assert.equal(bucketProgress(b, doneSet("PHYS 206", "PHYS 217")).complete, false);
+  const r = bucketProgress(b, doneSet("PHYS 207", "PHYS 217"));
+  assert.equal(r.complete, true);
+  assert.deepEqual(r.satisfiedOptions, [b.options[1].id]);
+});
+
+test("bucketProgress: empty bucket and empty options never count", () => {
+  const b = { id: "x", name: "x", pick: 1, options: [{ id: "x-o0", courses: [] }], updatedAt: "" };
+  assert.equal(bucketProgress(b, () => true).complete, false);
+});
+
+function twoDevices(): { base: DegreePlan; id: string } {
+  const base = addBucket(emptyPlan(), { name: "A", pick: 1, options: [["MATH 151"]] }, T1);
+  return { base: addToWatchlist(base, "CSCE 121", T1), id: base.buckets[0].id };
+}
+
+test("mergePlans: newest edit wins per item and is commutative", () => {
+  const { base, id } = twoDevices();
+  const a = updateBucket(base, id, { name: "From A" }, T2);
+  const b = updateBucket(addToWatchlist(base, "MATH 152", T2), id, { name: "From B" }, T3);
+  const ab = mergePlans(a, b, T3);
+  const ba = mergePlans(b, a, T3);
+  assert.deepEqual(ab, ba);
+  assert.equal(planKey(ab), planKey(ba));
+  assert.equal(ab.buckets[0].name, "From B");
+  assert.deepEqual(activeWatchlist(ab).map((w) => w.code), ["CSCE 121", "MATH 152"]);
+});
+
+test("mergePlans: disjoint buckets are unioned; null inputs ok", () => {
+  const a = addBucket(emptyPlan(), { name: "A", pick: 1, options: [["MATH 151"]] }, T1);
+  const b = addBucket(emptyPlan(), { name: "B", pick: 1, options: [["MATH 152"]] }, T2);
+  const m = mergePlans(a, b, T3);
+  assert.deepEqual(m.buckets.map((x) => x.name), ["A", "B"]);
+  assert.deepEqual(mergePlans(null, a, T3), a);
+  assert.deepEqual(mergePlans(undefined, null, T3), emptyPlan());
+});
+
+test("mergePlans: ties resolve the same either way round", () => {
+  const { base, id } = twoDevices();
+  const a = updateBucket(base, id, { name: "X" }, T2);
+  const b = updateBucket(base, id, { name: "Y" }, T2);
+  assert.deepEqual(mergePlans(a, b, T3), mergePlans(b, a, T3));
+});
+
+test("mergePlans: tombstones beat older edits and are not resurrected", () => {
+  const { base, id } = twoDevices();
+  const removed = removeFromWatchlist(removeBucket(base, id, T3), "CSCE 121", T3);
+  const stale = updateBucket(base, id, { name: "Old" }, T2);
+  for (const m of [mergePlans(removed, stale, T3), mergePlans(stale, removed, T3)]) {
+    assert.equal(activeBuckets(m).length, 0);
+    assert.equal(activeWatchlist(m).length, 0);
+    assert.equal(m.buckets.length, 1); // tombstone kept
+  }
+  // A newer edit after the removal wins over the tombstone.
+  const revived = addToWatchlist(removed, "CSCE 121", new Date("2026-11-04T10:00:00Z"));
+  assert.equal(activeWatchlist(mergePlans(removed, revived, T3)).length, 1);
+});
+
+test("mergePlans: tombstones older than 180 days are pruned", () => {
+  const { base, id } = twoDevices();
+  const removed = removeFromWatchlist(removeBucket(base, id, T1), "CSCE 121", T1);
+  const soon = new Date(T1.getTime() + 179 * 86_400_000);
+  const later = new Date(T1.getTime() + 181 * 86_400_000);
+  assert.equal(mergePlans(removed, null, soon).buckets.length, 1);
+  assert.equal(mergePlans(removed, null, soon).watchlist.length, 1);
+  const pruned = mergePlans(removed, null, later);
+  assert.equal(pruned.buckets.length, 0);
+  assert.equal(pruned.watchlist.length, 0);
+});
+
+test("planKey is stable across item order and detects changes", () => {
+  const { base, id } = twoDevices();
+  const shuffled: DegreePlan = {
+    ...base,
+    buckets: [...base.buckets].reverse(),
+    watchlist: [...base.watchlist].reverse(),
+  };
+  assert.equal(planKey(base), planKey(shuffled));
+  assert.notEqual(planKey(base), planKey(updateBucket(base, id, { name: "B" }, T2)));
+  assert.equal(planKey(null), planKey(emptyPlan()));
+});
+
+test("isValidPlan", () => {
+  const { base } = twoDevices();
+  assert.equal(isValidPlan(emptyPlan()), true);
+  assert.equal(isValidPlan(base), true);
+  assert.equal(isValidPlan(JSON.parse(JSON.stringify(removeBucket(base, base.buckets[0].id, T2)))), true);
+  assert.equal(isValidPlan(null), false);
+  assert.equal(isValidPlan("plan"), false);
+  assert.equal(isValidPlan([]), false);
+  assert.equal(isValidPlan({}), false);
+  assert.equal(isValidPlan({ version: 2, buckets: [], watchlist: [] }), false);
+  assert.equal(isValidPlan({ version: 1, buckets: [] }), false);
+  assert.equal(isValidPlan({ version: 1, buckets: [{ id: "x" }], watchlist: [] }), false);
+  assert.equal(
+    isValidPlan({ version: 1, buckets: [], watchlist: [{ code: "CSCE 121", addedAt: "a" }] }),
+    false,
+  );
+  const badOption = JSON.parse(JSON.stringify(base));
+  badOption.buckets[0].options[0].courses = [1];
+  assert.equal(isValidPlan(badOption), false);
+  const badDeleted = JSON.parse(JSON.stringify(base));
+  badDeleted.watchlist[0].deleted = "yes";
+  assert.equal(isValidPlan(badDeleted), false);
+});

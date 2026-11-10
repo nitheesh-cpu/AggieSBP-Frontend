@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useCoursePrereqs } from "@/hooks/use-course-prereqs";
+import { track } from "@/lib/analytics";
 import {
   defaultStatusForTerm,
   parsePastedCourses,
@@ -84,6 +85,7 @@ export function PasteImportDialog({
     <Dialog
       open={open}
       onOpenChange={(o) => {
+        if (o && !open) track("planner-import-open", { source: "paste" });
         setOpen(o);
         if (!o) reset();
       }}

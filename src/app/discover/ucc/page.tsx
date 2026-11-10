@@ -41,6 +41,7 @@ import {
   Filter,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { track } from "@/lib/analytics";
 
 interface Term {
   termCode: string;
@@ -103,6 +104,9 @@ interface FilterOptions {
 }
 
 const CAMPUS_SELECT_ANY = "__ucc_campus_any__";
+
+const trackFilter = (filter: string) =>
+  track("discover-filter", { page: "ucc", filter });
 
 export default function UCCDiscoveryPage() {
   return (
@@ -296,7 +300,13 @@ function UCCDiscoveryContent() {
               <div />
 
               <div className="flex w-full flex-col gap-3 sm:flex-row md:w-auto">
-                <Select onValueChange={handleTermChange} value={selectedTerm}>
+                <Select
+                  onValueChange={(value) => {
+                    if (value !== selectedTerm) trackFilter("term");
+                    handleTermChange(value);
+                  }}
+                  value={selectedTerm}
+                >
                   <SelectTrigger className="h-12 w-full bg-card/80 backdrop-blur-md border-border dark:bg-card dark:text-text-heading rounded-full px-5 shadow-sm transition-colors sm:w-72">
                     <SelectValue placeholder={fetchingTerms ? "Loading terms..." : "Select a Term"} />
                   </SelectTrigger>
@@ -316,7 +326,10 @@ function UCCDiscoveryContent() {
                 </Select>
 
                 <Select
-                  onValueChange={(value) => setSortKey(value as SortKey)}
+                  onValueChange={(value) => {
+                    if (value !== sortKey) trackFilter("sort");
+                    setSortKey(value as SortKey);
+                  }}
                   value={sortKey}
                 >
                   <SelectTrigger className="h-12 w-full bg-card/80 backdrop-blur-md border-border dark:bg-card dark:text-text-heading rounded-full px-5 shadow-sm transition-colors sm:w-48">
@@ -416,7 +429,11 @@ function UCCDiscoveryContent() {
                         </Label>
                         <Select
                           value={campus || CAMPUS_SELECT_ANY}
-                          onValueChange={(v) => setCampus(v === CAMPUS_SELECT_ANY ? "" : v)}
+                          onValueChange={(v) => {
+                            const next = v === CAMPUS_SELECT_ANY ? "" : v;
+                            if (next !== campus) trackFilter("campus");
+                            setCampus(next);
+                          }}
                         >
                           <SelectTrigger className="h-9 w-full sm:w-[220px]">
                             <SelectValue placeholder="Any campus" />
@@ -438,7 +455,10 @@ function UCCDiscoveryContent() {
                       </Label>
                       <Select
                         value={seatFilter}
-                        onValueChange={(v) => setSeatFilter(v as SeatFilter)}
+                        onValueChange={(v) => {
+                          if (v !== seatFilter) trackFilter("seats");
+                          setSeatFilter(v as SeatFilter);
+                        }}
                       >
                         <SelectTrigger className="h-9 w-full sm:w-[240px]">
                           <SelectValue />
@@ -493,6 +513,7 @@ function UCCDiscoveryContent() {
                                   <Checkbox
                                     checked={sectionTypes.includes(type)}
                                     onCheckedChange={() => {
+                                      trackFilter("section-type");
                                       setSectionTypes((prev) =>
                                         prev.includes(type)
                                           ? prev.filter((x) => x !== type)
@@ -515,7 +536,10 @@ function UCCDiscoveryContent() {
                                 variant="ghost"
                                 size="sm"
                                 className="h-8 w-full text-xs"
-                                onClick={() => setSectionTypes([])}
+                                onClick={() => {
+                                  trackFilter("section-type");
+                                  setSectionTypes([]);
+                                }}
                               >
                                 Clear section types
                               </Button>
@@ -531,6 +555,7 @@ function UCCDiscoveryContent() {
                         size="sm"
                         className="h-9 text-xs"
                         onClick={() => {
+                          trackFilter("reset");
                           setCampus("");
                           setSeatFilter(DEFAULT_SEAT_FILTER);
                           setSectionTypes([]);

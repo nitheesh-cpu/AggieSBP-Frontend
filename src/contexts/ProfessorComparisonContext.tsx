@@ -17,6 +17,7 @@ interface ProfessorComparisonContextType {
   canAddMore: () => boolean;
   clearAll: () => void;
   maxProfessors: number;
+  hydrated: boolean;
 }
 
 const ProfessorComparisonContext = createContext<
@@ -32,6 +33,7 @@ export function ProfessorComparisonProvider({
   children: ReactNode;
 }) {
   const [selectedProfessors, setSelectedProfessors] = useState<string[]>([]);
+  const [hydrated, setHydrated] = useState(false);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -50,6 +52,7 @@ export function ProfessorComparisonProvider({
         localStorage.removeItem(STORAGE_KEY);
       }
     }
+    setHydrated(true);
   }, []);
 
   // Save to localStorage whenever selectedProfessors changes
@@ -74,7 +77,13 @@ export function ProfessorComparisonProvider({
   };
 
   const removeProfessor = (professorId: string) => {
+    if (!selectedProfessors.includes(professorId)) return;
     setSelectedProfessors((prev) => prev.filter((id) => id !== professorId));
+    track("compare-remove", {
+      type: "professor",
+      from: pageFrom(window.location.pathname),
+      count: selectedProfessors.length - 1,
+    });
   };
 
   const isSelected = (professorId: string) => {
@@ -99,6 +108,7 @@ export function ProfessorComparisonProvider({
         canAddMore,
         clearAll,
         maxProfessors: MAX_PROFESSORS,
+        hydrated,
       }}
     >
       {children}

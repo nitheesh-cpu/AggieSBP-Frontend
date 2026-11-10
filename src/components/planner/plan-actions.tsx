@@ -20,7 +20,7 @@ import {
   type DegreePlan,
 } from "@/lib/planner/plan";
 import { topicLabel } from "@/lib/planner/topics";
-import { track } from "@/lib/analytics";
+import { track, type PlannerAddFrom } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 export type PlanUpdate = (edit: (plan: DegreePlan) => DegreePlan) => void;
@@ -35,11 +35,14 @@ export function WatchButton({
   update,
   code,
   topic,
+  from,
 }: {
   plan: DegreePlan;
   update: PlanUpdate;
   code: string;
   topic?: string | null;
+  /** Reports starring as `planner-course-add` from here. */
+  from?: PlannerAddFrom;
 }) {
   const watched = isWatched(plan, code, topic);
   const label = topicLabel(code, topic);
@@ -50,6 +53,7 @@ export function WatchButton({
       className="h-8 w-8"
       onClick={() => {
         track(watched ? "course-unstar" : "course-star", { course: label });
+        if (!watched && from) track("planner-course-add", { from });
         update((p) =>
           watched
             ? removeFromWatchlist(p, code, new Date(), topic)

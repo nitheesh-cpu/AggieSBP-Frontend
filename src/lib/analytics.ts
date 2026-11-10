@@ -67,7 +67,36 @@ export type AnalyticsEvents = {
   "course-link": { kind: "prereq" | "coreq" | "cross-list" | "related" };
   "compare-add": { type: "course" | "professor"; from: string; count: number };
   "professor-reviews-open": { from: string };
+
+  // Phase 2: planner. `schedule-builder-run` already reports how many
+  // schedules were found (`options`), so there's no separate result event.
+  "planner-import-open": { source: "paste" | "howdy" };
+  "planner-course-add": { from: PlannerAddFrom };
+
+  // Phase 2: fit my schedule
+  "fit-results": { count: number; zero: boolean };
+  "fit-result-click": { position: number };
+
+  // Phase 2: compare
+  "compare-tab": { tab: CompareTab };
+  "compare-empty": { tab: CompareTab };
+  "compare-remove": { type: "course" | "professor"; from: string; count: number };
+
+  // Phase 2: discover. The result cards there don't link anywhere, so there's
+  // no result-click event yet.
+  "discover-filter": { page: DiscoverPage; filter: string };
 };
+
+/**
+ * How a course got onto the planner: picked in the "Add courses" search, or
+ * starred in Find electives. The watchlist, requirements and prereq-check
+ * components aren't mounted right now; add values here if they come back.
+ */
+export type PlannerAddFrom = "search" | "find-courses";
+
+export type CompareTab = "courses" | "professors";
+
+export type DiscoverPage = "ucc" | "dept";
 
 export type AnalyticsEvent = keyof AnalyticsEvents;
 

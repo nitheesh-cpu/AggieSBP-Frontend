@@ -725,6 +725,7 @@ export default function DiscoverFitPage() {
         } else {
           setError("No candidate courses found for the selected departments.");
         }
+        track("fit-results", { count: 0, zero: true });
         return;
       }
       const courseKeys = candidates.map((c) => `${c.dept}-${c.courseNumber}`);
@@ -764,11 +765,14 @@ export default function DiscoverFitPage() {
           return [] as string[];
         }),
       ]);
-      setFitResults(buildFitResults(candidates, matches));
+      const results = buildFitResults(candidates, matches);
+      setFitResults(results);
       setAttributeOptions(Array.isArray(attrOpts) ? attrOpts : []);
       setCampusOptions(Array.isArray(siteOpts) ? siteOpts : []);
       hasCompletedFitOnceRef.current = true;
       setFitReady(true);
+      const count = new Set(results.map(courseKeyOf)).size;
+      track("fit-results", { count, zero: count === 0 });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load candidate classes.");
     } finally {
@@ -1293,7 +1297,7 @@ export default function DiscoverFitPage() {
                 <>
                   <EasinessLegend compact />
                   <ul className="space-y-3">
-                    {orderedResults.map((result) => {
+                    {orderedResults.map((result, index) => {
                       const { course, compatibleSectionCount, sections } = result;
                       const key = courseKeyOf(result);
                       const cardKey = cardKeyOf(result);
@@ -1313,6 +1317,7 @@ export default function DiscoverFitPage() {
                       const profsLoaded = Object.keys(profRows).length > 0;
                       const someUnknown = profsLoaded && known.length < sections.length;
                       const split = lo !== null && hi !== null && (lo !== hi || someUnknown);
+                      const trackClick = () => track("fit-result-click", { position: index + 1 });
                       return (
                         <li
                           key={cardKey}
@@ -1322,6 +1327,7 @@ export default function DiscoverFitPage() {
                             <div className="min-w-0">
                               <Link
                                 href={`/course/${course.dept}${course.courseNumber}`}
+                                onClick={trackClick}
                                 className="font-medium text-text-heading hover:underline"
                               >
                                 {course.dept} {course.courseNumber}
@@ -1470,6 +1476,7 @@ export default function DiscoverFitPage() {
                                       state={summaryCache[`${termCode}|${course.dept}${course.courseNumber}`]}
                                       instructor={s.instructor}
                                       courseId={`${course.dept}${course.courseNumber}`}
+                                      onCourseClick={trackClick}
                                     />
                                   )}
                                 </li>

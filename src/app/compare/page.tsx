@@ -34,7 +34,7 @@ import {
 } from "lucide-react";
 import { useComparison } from "@/contexts/ComparisonContext";
 import { useProfessorComparison } from "@/contexts/ProfessorComparisonContext";
-import { track, type SearchFrom } from "@/lib/analytics";
+import { track, type CompareTab, type SearchFrom } from "@/lib/analytics";
 import { useSearchTracking } from "@/lib/analytics-hooks";
 
 const MAX_ITEMS = 4;
@@ -1388,7 +1388,21 @@ function ProfessorComparison() {
 
 function ComparePageContent() {
   const searchParams = useSearchParams();
-  const tab = searchParams.get("tab") === "professors" ? "professors" : "courses";
+  const tab: CompareTab =
+    searchParams.get("tab") === "professors" ? "professors" : "courses";
+  const { selectedCourses, hydrated: coursesHydrated } = useComparison();
+  const { selectedProfessors, hydrated: professorsHydrated } =
+    useProfessorComparison();
+
+  const emptyTracked = useRef(new Set<CompareTab>());
+  const hydrated = tab === "courses" ? coursesHydrated : professorsHydrated;
+  const empty =
+    (tab === "courses" ? selectedCourses : selectedProfessors).length === 0;
+  useEffect(() => {
+    if (!hydrated || !empty || emptyTracked.current.has(tab)) return;
+    emptyTracked.current.add(tab);
+    track("compare-empty", { tab });
+  }, [tab, hydrated, empty]);
 
   const tabs = [
     { value: "courses", label: "Courses", icon: BookOpen },
@@ -1431,6 +1445,9 @@ function ComparePageContent() {
                   scroll={false}
                   role="tab"
                   aria-selected={active}
+                  onClick={() => {
+                    if (!active) track("compare-tab", { tab: value });
+                  }}
                   className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                     active
                       ? "bg-raised text-text-heading shadow-none"

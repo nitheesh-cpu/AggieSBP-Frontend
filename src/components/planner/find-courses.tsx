@@ -518,7 +518,13 @@ export function FindCourses({
               {!(error && s.state === "pending") && (
                 <CourseStateBadge state={s.state} eligibility={s.eligibility} />
               )}
-              <WatchButton plan={plan} update={update} code={course.code} topic={course.topic} />
+              <WatchButton
+                plan={plan}
+                update={update}
+                code={course.code}
+                topic={course.topic}
+                from="find-courses"
+              />
             </li>
           ))}
         </ul>

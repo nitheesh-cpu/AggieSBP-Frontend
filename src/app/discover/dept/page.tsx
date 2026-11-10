@@ -33,6 +33,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { track } from "@/lib/analytics";
 import { Search, Loader2, GraduationCap, Star, ChevronDown, Building2, MapPin, ArrowUpDown, Check, ChevronsUpDown } from "lucide-react";
 
 const API_BASE_URL =
@@ -75,6 +76,9 @@ interface Course {
   easinessScore: number;
   confidenceScore: number;
 }
+
+const trackFilter = (filter: string) =>
+  track("discover-filter", { page: "dept", filter });
 
 const INITIAL_SHOWN = 9;
 const INCREMENT = 9;
@@ -251,7 +255,13 @@ export default function DiscoverDeptPage() {
               {/* Selectors row */}
               <div className="flex flex-wrap gap-3 items-center">
                 {/* Term */}
-                <Select onValueChange={handleTermChange} value={selectedTerm}>
+                <Select
+                  onValueChange={(term) => {
+                    if (term !== selectedTerm) trackFilter("term");
+                    handleTermChange(term);
+                  }}
+                  value={selectedTerm}
+                >
                   <SelectTrigger aria-label="Term" className="w-full sm:w-56 h-10 bg-card/80 backdrop-blur-md border-border dark:bg-card dark:text-text-heading rounded-full px-5 shadow-sm transition-colors">
                     <SelectValue placeholder={fetchingTerms ? "Loading..." : "Select Term"} />
                   </SelectTrigger>
@@ -317,6 +327,7 @@ export default function DiscoverDeptPage() {
                               key={dept.code}
                               value={`${dept.code} ${dept.name}`}
                               onSelect={() => {
+                                if (dept.code !== selectedDept) trackFilter("department");
                                 handleDeptChange(dept.code);
                                 setDepartmentOpen(false);
                               }}
@@ -337,7 +348,13 @@ export default function DiscoverDeptPage() {
                 </Popover>
 
                 {/* Campus */}
-                <Select onValueChange={handleCampusChange} value={selectedCampus}>
+                <Select
+                  onValueChange={(campus) => {
+                    if (campus !== selectedCampus) trackFilter("campus");
+                    handleCampusChange(campus);
+                  }}
+                  value={selectedCampus}
+                >
                   <SelectTrigger aria-label="Campus" className="w-full sm:w-48 h-10 bg-card/80 backdrop-blur-md border-border dark:bg-card dark:text-text-heading rounded-full px-5 shadow-sm transition-colors">
                     <MapPin className="w-3.5 h-3.5 mr-1 shrink-0 text-text-muted" />
                     <SelectValue placeholder="All Campuses" />
@@ -355,7 +372,13 @@ export default function DiscoverDeptPage() {
                 </Select>
 
                 {/* Sort */}
-                <Select onValueChange={(v) => setSortKey(v as SortKey)} value={sortKey}>
+                <Select
+                  onValueChange={(v) => {
+                    if (v !== sortKey) trackFilter("sort");
+                    setSortKey(v as SortKey);
+                  }}
+                  value={sortKey}
+                >
                   <SelectTrigger aria-label="Sort by" className="w-full sm:w-44 h-10 bg-card/80 backdrop-blur-md border-border dark:bg-card dark:text-text-heading rounded-full px-5 shadow-sm transition-colors">
                     <ArrowUpDown className="w-3.5 h-3.5 mr-1 shrink-0 text-text-muted" />
                     <SelectValue />
@@ -373,7 +396,10 @@ export default function DiscoverDeptPage() {
                 {/* Graduate toggle */}
                 <button
                   type="button"
-                  onClick={handleGraduateToggle}
+                  onClick={() => {
+                    trackFilter("graduate");
+                    handleGraduateToggle();
+                  }}
                   className={`h-10 px-4 rounded-full border text-sm font-medium transition-colors flex items-center gap-2 ${
                     includeGraduate
                       ? "bg-maroon-band text-on-maroon border-transparent"

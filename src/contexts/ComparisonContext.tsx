@@ -17,6 +17,7 @@ interface ComparisonState {
   isSelected: (courseId: string) => boolean;
   canAddMore: () => boolean;
   maxCourses: number;
+  hydrated: boolean;
 }
 
 const ComparisonContext = createContext<ComparisonState | undefined>(undefined);
@@ -30,6 +31,7 @@ interface ComparisonProviderProps {
 
 export function ComparisonProvider({ children }: ComparisonProviderProps) {
   const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
+  const [hydrated, setHydrated] = useState(false);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -45,6 +47,7 @@ export function ComparisonProvider({ children }: ComparisonProviderProps) {
         localStorage.removeItem(STORAGE_KEY);
       }
     }
+    setHydrated(true);
   }, []);
 
   // Save to localStorage whenever selectedCourses changes
@@ -69,7 +72,13 @@ export function ComparisonProvider({ children }: ComparisonProviderProps) {
   };
 
   const removeCourse = (courseId: string): void => {
+    if (!selectedCourses.includes(courseId)) return;
     setSelectedCourses((prev) => prev.filter((id) => id !== courseId));
+    track("compare-remove", {
+      type: "course",
+      from: pageFrom(window.location.pathname),
+      count: selectedCourses.length - 1,
+    });
   };
 
   const clearAll = (): void => {
@@ -92,6 +101,7 @@ export function ComparisonProvider({ children }: ComparisonProviderProps) {
     isSelected,
     canAddMore,
     maxCourses: MAX_COURSES,
+    hydrated,
   };
 
   return (

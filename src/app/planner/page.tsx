@@ -117,6 +117,10 @@ export default function PlannerPage() {
     window.addEventListener("hashchange", read);
     return () => window.removeEventListener("hashchange", read);
   }, []);
+  // Covers both the button and the extension opening it.
+  useEffect(() => {
+    if (howdyOpen) track("planner-import-open", { source: "howdy" });
+  }, [howdyOpen]);
   const clearHowdy = () => {
     setHowdy(null);
     setHowdyOpen(false);
@@ -177,11 +181,12 @@ export default function PlannerPage() {
                   <div className="flex-1">
                     <CourseSearch
                       existing={existing}
-                      onSelect={(code) =>
+                      onSelect={(code) => {
+                        if (!existing.has(code)) track("planner-course-add", { from: "search" });
                         update((r) =>
                           upsertCourses(r, [{ code, status: "completed", source: "manual" }]),
-                        )
-                      }
+                        );
+                      }}
                     />
                   </div>
                   <PasteImportDialog

@@ -54,10 +54,12 @@ export function ProfessorSummaryPanel({
   state,
   instructor,
   courseId,
+  onCourseClick,
 }: {
   state: ProfessorSummaryState | undefined;
   instructor: string | null | undefined;
   courseId: string;
+  onCourseClick?: () => void;
 }) {
   let body: React.ReactNode;
   if (!state || state.status === "loading") {
@@ -139,6 +141,7 @@ export function ProfessorSummaryPanel({
       {body}
       <Link
         href={`/course/${courseId}`}
+        onClick={onCourseClick}
         className="mt-2 inline-block font-medium text-text-heading underline underline-offset-2"
       >
         Full reviews on the course page

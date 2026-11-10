@@ -61,7 +61,7 @@ export function HomeHeroScroll() {
   }, [professors.length, paused]);
 
   return (
-    <section className="relative isolate min-h-svh bg-canvas">
+    <section className="relative isolate min-h-[min(100svh,1100px)] bg-canvas">
       <picture className="pointer-events-none absolute inset-0 -z-20">
         <source
           media="(orientation: portrait)"
@@ -77,7 +77,7 @@ export function HomeHeroScroll() {
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(to_bottom,var(--color-canvas)_150px,color-mix(in_srgb,var(--color-canvas)_90%,transparent)_250px,transparent_420px,transparent_calc(100%_-_140px),var(--color-canvas)_100%)] sm:bg-[linear-gradient(to_bottom,var(--color-canvas)_300px,color-mix(in_srgb,var(--color-canvas)_90%,transparent)_420px,transparent_600px,transparent_calc(100%_-_140px),var(--color-canvas)_100%)] lg:bg-[linear-gradient(to_right,var(--color-canvas)_0%,color-mix(in_srgb,var(--color-canvas)_95%,transparent)_30%,color-mix(in_srgb,var(--color-canvas)_76%,transparent)_47%,transparent_75%)]"
       />
-      <div className="mx-auto grid min-h-svh max-w-7xl content-start gap-6 px-4 pb-14 pt-24 sm:px-6 sm:pt-28 lg:grid-cols-[minmax(0,1fr)_minmax(320px,420px)] lg:content-center lg:items-center lg:gap-12 lg:pb-20 lg:pt-28 xl:gap-24">
+      <div className="mx-auto grid min-h-[min(100svh,1100px)] max-w-7xl content-start gap-6 px-4 pb-14 pt-24 sm:px-6 sm:pt-28 lg:grid-cols-[minmax(0,1fr)_minmax(320px,420px)] lg:content-center lg:items-center lg:gap-12 lg:pb-20 lg:pt-28 xl:gap-24">
         <div className="min-w-0">
           <h1 className="max-w-[14ch] text-[clamp(2rem,5vw,3.5rem)] font-medium leading-[1.06] tracking-[-0.03em] text-text-heading">
             Course search for Texas A&amp;M

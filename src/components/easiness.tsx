@@ -46,11 +46,11 @@ export function EasinessBadge({
       >
         {score.toFixed(0)}
       </div>
-      <span className="mt-1 text-[10px] font-medium text-text-body dark:text-white/75">
+      <span className="mt-1 text-xs font-medium text-text-body">
         easiness
       </span>
       {conf && (
-        <span className="text-[10px] text-text-body dark:text-white/70">
+        <span className="text-xs text-text-body">
           <span aria-hidden>{conf.dots}</span>
           <span className="sr-only">{conf.label}</span>
         </span>
@@ -69,8 +69,8 @@ export function EasinessLegend({
 }) {
   if (compact) {
     return (
-      <p className="text-xs text-text-body dark:text-white/80">
-        <span className="font-semibold text-text-heading dark:text-white">Easiness</span>{" "}
+      <p className="text-xs text-text-body">
+        <span className="font-medium text-text-heading">Easiness</span>{" "}
         is 0–100, higher is easier: average GPA (50%), how easy students rate it (30%),
         and professor rating (20%).
       </p>
@@ -79,32 +79,32 @@ export function EasinessLegend({
   return (
     <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-3">
       <div className="space-y-1">
-        <h4 className="flex items-center gap-2 font-bold text-emerald-700 dark:text-emerald-400">
+        <h4 className="flex items-center gap-2 font-medium text-emerald-700 dark:text-emerald-400">
           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/20 text-xs">
             90
           </span>
           Easiness score
         </h4>
-        <p className="text-xs leading-relaxed text-text-body dark:text-white/80">
+        <p className="text-xs leading-relaxed text-text-body">
           0–100, higher is easier. Mixes <strong>average GPA</strong> (50%),{" "}
           <strong>how easy students rate it</strong> (30%), and{" "}
           <strong>professor rating</strong> (20%).
         </p>
       </div>
       <div className="space-y-1">
-        <h4 className="flex items-center gap-2 font-bold text-text-heading dark:text-white">
-          <span className="text-xs tracking-widest text-text-body dark:text-white/75">●●●</span>
+        <h4 className="flex items-center gap-2 font-medium text-text-heading">
+          <span className="text-xs text-text-body">●●●</span>
           How much data
         </h4>
-        <p className="text-xs leading-relaxed text-text-body dark:text-white/80">
+        <p className="text-xs leading-relaxed text-text-body">
           Three dots: lots of grades and reviews. One dot: only a little, so treat the
           score as a rough guess.
         </p>
       </div>
       {showAbRate && (
         <div className="space-y-1">
-          <h4 className="font-bold text-blue-700 dark:text-blue-400">% A/B</h4>
-          <p className="text-xs leading-relaxed text-text-body dark:text-white/80">
+          <h4 className="font-medium text-blue-700 dark:text-blue-400">% A/B</h4>
+          <p className="text-xs leading-relaxed text-text-body">
             Share of students who earned an <strong>A</strong> or <strong>B</strong> with
             this professor (official grade data).
           </p>

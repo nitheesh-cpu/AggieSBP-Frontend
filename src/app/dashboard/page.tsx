@@ -4,63 +4,117 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
-import { Button } from "@/components/ui/button";
 import { motion } from "motion/react";
 import {
-  BookOpen,
-  GraduationCap,
-  Users,
-  Bell,
-  Award,
-  Search,
   ArrowRight,
-  Clock,
+  ArrowUpRight,
+  Bell,
+  BookOpen,
+  Building2,
+  CalendarClock,
+  Gauge,
+  GitCompare,
+  GraduationCap,
+  Puzzle,
+  Shapes,
+  Users,
+  type LucideIcon,
 } from "lucide-react";
 import { MOBILE_APP_QUICK_LINKS } from "@/lib/nav-quick-links";
+import { GlobalOmnibar } from "@/components/home/global-omnibar";
+import { PageBanner } from "@/components/page-banner";
+import {
+  ComparePreview,
+  CoursesPreview,
+  DepartmentsPreview,
+  EasiestPreview,
+  ExtensionPreview,
+  FitPreview,
+  PlannerPreview,
+  ProfessorPreview,
+  SeatAlertPreview,
+  UccPreview,
+} from "@/components/dashboard/tool-previews";
 
-type DashboardAction = {
+const EXTENSION_URL =
+  "https://chromewebstore.google.com/detail/aggie-schedule-builder-pl/glckdcnecomhlmlegmjdceblibmaljpm";
+
+type Tool = {
   title: string;
   description: string;
   href: string;
-  icon: React.ReactNode;
+  icon: LucideIcon;
+  Preview: () => React.ReactElement;
 };
 
-const ACTIONS: DashboardAction[] = [
+const TOOL_GROUPS: { title: string; hint: string; tools: Tool[] }[] = [
   {
-    title: "Browse courses",
-    description: "Search by course, GPA, difficulty, or department.",
-    href: "/courses",
-    icon: <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />,
+    title: "Find courses",
+    hint: "Grades and difficulty for every A&M course",
+    tools: [
+      {
+        title: "Browse courses",
+        description: "Search by code, GPA, difficulty or department",
+        href: "/courses",
+        icon: BookOpen,
+        Preview: CoursesPreview,
+      },
+      {
+        title: "Easiest courses",
+        description: "Rank a department by easiness, GPA and professors",
+        href: "/discover/dept",
+        icon: Gauge,
+        Preview: EasiestPreview,
+      },
+      {
+        title: "Core curriculum",
+        description: "Easier options for each UCC requirement",
+        href: "/discover/ucc",
+        icon: Shapes,
+        Preview: UccPreview,
+      },
+      {
+        title: "Departments",
+        description: "Course counts, GPA and ratings by department",
+        href: "/departments",
+        icon: Building2,
+        Preview: DepartmentsPreview,
+      },
+    ],
   },
   {
-    title: "Find a professor",
-    description: "See ratings, GPA history, reviews, and AI summaries.",
-    href: "/professors",
-    icon: <Users className="w-5 h-5 sm:w-6 sm:h-6" />,
-  },
-  {
-    title: "Explore easy courses",
-    description: "Rank a department by easiness, GPA, and professors.",
-    href: "/discover/dept",
-    icon: <Search className="w-5 h-5 sm:w-6 sm:h-6" />,
-  },
-  {
-    title: "Core curriculum",
-    description: "Find easier options for each UCC requirement.",
-    href: "/discover/ucc",
-    icon: <Award className="w-5 h-5 sm:w-6 sm:h-6" />,
-  },
-  {
-    title: "Browse departments",
-    description: "Explore courses, faculty, and GPA by department.",
-    href: "/departments",
-    icon: <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6" />,
-  },
-  {
-    title: "Fit my schedule",
-    description: "Find sections that work with your availability.",
-    href: "/discover/fit",
-    icon: <Clock className="w-5 h-5 sm:w-6 sm:h-6" />,
+    title: "Plan your semester",
+    hint: "Pick professors and sections that fit",
+    tools: [
+      {
+        title: "Find a professor",
+        description: "Ratings, GPA history, reviews and summaries",
+        href: "/professors",
+        icon: Users,
+        Preview: ProfessorPreview,
+      },
+      {
+        title: "Compare",
+        description: "Courses or professors side by side",
+        href: "/compare",
+        icon: GitCompare,
+        Preview: ComparePreview,
+      },
+      {
+        title: "Fit my schedule",
+        description: "Sections that work around the times you're busy",
+        href: "/discover/fit",
+        icon: CalendarClock,
+        Preview: FitPreview,
+      },
+      {
+        title: "Degree planner",
+        description: "Track your courses and check prerequisites",
+        href: "/planner",
+        icon: GraduationCap,
+        Preview: PlannerPreview,
+      },
+    ],
   },
 ];
 
@@ -85,19 +139,10 @@ export default function DashboardPage() {
     <div
       className={
         isStandalone
-          ? "relative flex h-[100dvh] max-h-[100dvh] min-h-0 flex-col overflow-hidden"
-          : "relative flex min-h-screen flex-col"
+          ? "relative flex h-[calc(100dvh-env(safe-area-inset-top))] max-h-[calc(100dvh-env(safe-area-inset-top))] min-h-0 flex-col overflow-hidden bg-canvas"
+          : "relative flex min-h-screen flex-col bg-canvas"
       }
-      style={{ background: "var(--app-bg-gradient)" }}
     >
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-        style={{ background: "var(--app-bg-ambient)" }}
-      />
 
       <Navigation variant="glass" />
 
@@ -105,7 +150,7 @@ export default function DashboardPage() {
         className={
           isStandalone
             ? "relative z-10 flex flex-1 min-h-0 flex-col px-5 pt-16 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:px-8 sm:pt-[4.25rem]"
-            : "relative z-10 flex-grow px-4 pb-16 pt-20 sm:pt-24"
+            : "relative z-10 flex-grow pb-16"
         }
       >
         {isStandalone ? (
@@ -113,9 +158,9 @@ export default function DashboardPage() {
             {standalonePrimary ? (
               <Link
                 href="/profile/alerts"
-                className="flex shrink-0 items-center justify-center gap-2 rounded-xl border border-[#500000] bg-[#500000] px-5 py-4 text-base font-semibold text-white transition-colors hover:bg-[#3d0000] dark:border-[#FFCF3F] dark:bg-[#FFCF3F] dark:text-black dark:hover:bg-[#FFD966] sm:py-5"
+                className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-4 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90 sm:py-5"
               >
-                <Bell className="h-5 w-5 shrink-0" aria-hidden />
+                <Bell strokeWidth={1.5} className="h-[18px] w-[18px] shrink-0" aria-hidden />
                 {standalonePrimary.name}
               </Link>
             ) : null}
@@ -124,7 +169,7 @@ export default function DashboardPage() {
                 <Link
                   key={`${item.href}-${item.name}`}
                   href={item.href}
-                  className="flex min-h-0 min-w-0 items-center justify-center rounded-xl border border-[#500000]/20 bg-white/90 px-3 py-4 text-center text-sm font-medium text-heading transition-colors hover:bg-[#500000]/5 dark:border-[#FFCF3F]/25 dark:bg-black/50 dark:text-white/90 dark:hover:bg-white/10 sm:px-4 sm:text-[15px]"
+                  className="flex min-h-0 min-w-0 items-center justify-center rounded-xl border border-border bg-card px-3 py-4 text-center text-sm font-medium text-text-heading transition-colors hover:bg-raised sm:px-4 sm:text-base"
                 >
                   <span className="line-clamp-2 leading-snug">{item.name}</span>
                 </Link>
@@ -132,91 +177,118 @@ export default function DashboardPage() {
             </div>
           </div>
         ) : (
-          <div className="mx-auto max-w-5xl space-y-6 sm:space-y-8">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className="space-y-1.5 sm:space-y-2"
-            >
-              <p className="hidden text-xs font-mono uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400 sm:block">
-                AggieSB+ dashboard
-              </p>
-              <h1 className="text-2xl font-bold leading-tight tracking-tight text-heading dark:text-white sm:text-3xl">
-                Your AggieSB+ dashboard
-              </h1>
-              <p className="max-w-2xl text-sm text-body dark:text-white/60">
-                Watch sections, research courses, and find the right professors.
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35, delay: 0.05 }}
-              className="relative overflow-hidden rounded-3xl border border-[#500000]/20 bg-[#500000] p-5 text-white shadow-lg dark:border-[#FFCF3F]/30 dark:bg-black/70 sm:flex sm:items-center sm:justify-between sm:gap-8 sm:p-7"
-            >
-              <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-[#FFCF3F]/15 blur-2xl" />
-              <div className="relative flex items-start gap-4">
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#FFCF3F] text-black">
-                  <Bell className="h-5 w-5" />
-                </span>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#FFCF3F]">
-                    Primary feature
-                  </p>
-                  <h2 className="mt-1 text-xl font-semibold">Seat alerts</h2>
-                  <p className="mt-1 max-w-xl text-sm leading-6 text-white/65">
-                    Manage watched sections, confirm notification devices, and test your alert setup.
-                  </p>
-                </div>
-              </div>
-              <Button
-                asChild
-                className="relative mt-5 h-11 w-full shrink-0 rounded-full bg-[#FFCF3F] px-5 text-black hover:bg-[#FFD966] sm:mt-0 sm:w-auto"
-              >
-                <Link href="/profile/alerts">
-                  Manage alerts
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-            </motion.div>
-
-            <div>
-              <div className="mb-3 flex items-end justify-between">
-                <h2 className="text-base font-semibold text-heading dark:text-white">
-                  Explore
-                </h2>
-                <span className="text-xs text-body/70 dark:text-white/65">Choose a tool</span>
-              </div>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {ACTIONS.map((action) => (
-                <Link key={action.title} href={action.href}>
-                  <motion.div
-                    whileHover={{ y: -2 }}
-                    whileTap={{ scale: 0.97 }}
-                    className="group flex h-full items-start gap-3 rounded-2xl border border-border/70 bg-white/65 p-4 shadow-sm transition-colors hover:border-[#500000]/25 hover:bg-white/85 active:shadow-none dark:border-white/10 dark:bg-black/50 dark:hover:border-[#FFCF3F]/25 dark:hover:bg-black/65"
-                  >
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#500000]/8 text-[#500000] dark:bg-[#FFCF3F]/15 dark:text-[#FFCF3F]">
-                      {action.icon}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                      <h3 className="text-sm font-semibold text-heading dark:text-white">
-                        {action.title}
-                      </h3>
-                      <ArrowRight className="h-3.5 w-3.5 shrink-0 text-text-body/75 transition-transform group-hover:translate-x-0.5 dark:text-white/65" />
-                      </div>
-                      <p className="mt-1 text-xs leading-5 text-body dark:text-gray-400">
-                        {action.description}
-                      </p>
-                    </div>
-                  </motion.div>
-                </Link>
-              ))}
-              </div>
-            </div>
+          <>
+          <PageBanner
+            title="Dashboard"
+            subtitle="Everything AggieSB+ does, in one place. Search, or pick a tool below."
+            aside={
+              <>
+          {/* The PNG has transparent padding: the dog spans ~15-82% across and
+              ~22-83% down, head at the top right. The bubble is pinned just
+              above the head so its tail touches her ear. */}
+          <div aria-hidden className="relative -mb-12 h-44 w-44">
+            <img
+              src="/pixel-reveille.png"
+              alt=""
+              className="h-44 w-44 object-contain"
+              style={{ imageRendering: "pixelated" }}
+            />
+            <span className="absolute bottom-[142px] right-4 whitespace-nowrap rounded-lg border border-border-strong bg-card px-3 py-2 font-[family-name:var(--font-press-start-2p)] text-[10px] leading-4 text-accent">
+              Howdy
+              <span className="absolute -bottom-[6px] right-4 h-2.5 w-2.5 rotate-45 border-b border-r border-border-strong bg-card" />
+            </span>
           </div>
+              </>
+            }
+          >
+            <GlobalOmnibar />
+          </PageBanner>
+
+          <div className="mx-auto max-w-7xl px-4 pt-10 sm:px-6">
+            {/* Featured: seat alerts and the extension */}
+            <section className="mt-10 grid grid-cols-1 gap-4 lg:grid-cols-3">
+              <Link
+                href="/profile/alerts"
+                className="group flex flex-col gap-6 rounded-2xl border border-border bg-card p-6 transition-colors duration-150 hover:border-border-strong lg:col-span-2 lg:flex-row lg:items-center"
+              >
+                <div className="lg:w-60 lg:shrink-0">
+                  <div className="flex items-center gap-2">
+                    <Bell strokeWidth={1.5} className="h-[18px] w-[18px] text-text-muted" aria-hidden />
+                    <h2 className="text-lg font-medium text-text-heading">Seat alerts</h2>
+                  </div>
+                  <p className="mt-2 max-w-sm text-sm leading-5 text-text-body">
+                    Watch a full section and get a notification the moment a seat
+                    opens
+                  </p>
+                  <span className="mt-5 inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors duration-150 group-hover:bg-primary/90">
+                    Manage alerts
+                    <ArrowRight strokeWidth={1.5} className="h-4 w-4" />
+                  </span>
+                </div>
+                <div className="w-full min-w-0 lg:flex-1">
+                  <SeatAlertPreview />
+                </div>
+              </Link>
+
+              <a
+                href={EXTENSION_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex flex-col rounded-2xl border border-border bg-card p-6 transition-colors duration-150 hover:border-border-strong"
+              >
+                <div className="flex items-center gap-2">
+                  <Puzzle strokeWidth={1.5} className="h-[18px] w-[18px] text-text-muted" aria-hidden />
+                  <h2 className="text-lg font-medium text-text-heading">Browser extension</h2>
+                </div>
+                <p className="mt-2 text-sm leading-5 text-text-body">
+                  Ratings and grades right inside College Scheduler
+                </p>
+                <div className="mt-4 flex-1">
+                  <ExtensionPreview />
+                </div>
+                <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-text-heading">
+                  Add to Chrome
+                  <ArrowUpRight
+                    strokeWidth={1.5}
+                    className="h-4 w-4 transition-transform duration-150 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                  />
+                </span>
+              </a>
+            </section>
+
+            {TOOL_GROUPS.map((group) => (
+              <section key={group.title} className="mt-12">
+                <div className="flex items-baseline justify-between gap-4">
+                  <h2 className="text-lg font-medium text-text-heading">{group.title}</h2>
+                  <p className="hidden text-sm text-text-muted sm:block">{group.hint}</p>
+                </div>
+                <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {group.tools.map(({ title, description, href, icon: Icon, Preview }) => (
+                    <li key={title}>
+                      <Link
+                        href={href}
+                        className="group flex h-full flex-col rounded-xl border border-border bg-card p-3 transition-colors duration-150 hover:border-border-strong hover:bg-raised/40"
+                      >
+                        <Preview />
+                        <div className="flex flex-1 flex-col px-1 pb-1 pt-4">
+                          <div className="flex items-center gap-2">
+                            <Icon strokeWidth={1.5} className="h-4 w-4 shrink-0 text-accent" aria-hidden />
+                            <h3 className="text-sm font-medium text-text-heading">{title}</h3>
+                            <ArrowRight
+                              strokeWidth={1.5}
+                              className="ml-auto h-4 w-4 shrink-0 text-text-muted transition-[transform,color] duration-150 group-hover:translate-x-0.5 group-hover:text-text-heading"
+                            />
+                          </div>
+                          <p className="mt-1.5 text-sm leading-5 text-text-body">{description}</p>
+                        </div>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </div>
+          </>
         )}
       </main>
 

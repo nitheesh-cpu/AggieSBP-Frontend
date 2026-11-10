@@ -54,7 +54,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ className = "" }) => {
               data-oid="subheading-pill"
             >
               <p
-                className="text-[9px] sm:text-[10px] md:text-[11px] text-white tracking-[0.08em] px-6 py-3 rounded-full bg-black/70 inline-block text-center"
+                className="text-xs sm:text-xs md:text-[11px] text-white tracking-[0.08em] px-6 py-3 rounded-full bg-black/70 inline-block text-center"
                 style={{ fontFamily: "var(--font-press-start-2p)" }}
                 data-oid="9te.dl5"
               >
@@ -73,7 +73,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ className = "" }) => {
                 data-oid="sth5z5v"
               >
                 <button
-                  className="bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966] px-8 py-4 rounded-full transition-all duration-normal transform hover:scale-105"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-4 rounded-full transition-colors duration-150 transform"
                   style={{
                     fontFamily: "var(--font-press-start-2p)",
                     fontSize: "10px",
@@ -85,7 +85,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ className = "" }) => {
                   START COMPARING
                 </button>
                 <button
-                  className="text-white px-6 py-3 rounded-full border-2 border-[#FFCF3F] transition-all duration-normal hover:bg-[#FFCF3F] hover:text-[#0f0f0f] transform hover:scale-105"
+                  className="text-white px-6 py-3 rounded-full border-2 border-accent transition-colors duration-150 hover:bg-primary hover:text-[#0f0f0f] transform"
                   style={{
                     fontFamily: "var(--font-press-start-2p)",
                     fontSize: "9px",
@@ -110,13 +110,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ className = "" }) => {
                 }}
                 data-oid="6gyv.qu"
               >
-                <span className="text-[#FFCF3F]">🔍</span>
+                <span className="text-accent">🔍</span>
                 <span>SEARCH BY COURSE</span>
                 <span className="mx-1">·</span>
-                <span className="text-[#FFCF3F]">📊</span>
+                <span className="text-accent">📊</span>
                 <span>VIEW DISTRIBUTIONS</span>
                 <span className="mx-1">·</span>
-                <span className="text-[#FFCF3F]">💬</span>
+                <span className="text-accent">💬</span>
                 <span>STUDENT INSIGHTS</span>
               </p>
             </div>

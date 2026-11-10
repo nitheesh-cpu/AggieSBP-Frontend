@@ -100,10 +100,10 @@ export const TestimonialCarousel = () => {
     <section className="py-20 px-6">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-semibold text-white mb-4">
+          <h2 className="text-3xl font-medium text-white mb-4">
             Meet the students we empower
           </h2>
-          <button className="px-6 py-3 bg-white text-black rounded-full text-sm font-medium hover:bg-gray-100 transition-all duration-220">
+          <button className="px-6 py-3 bg-white text-black rounded-full text-sm font-medium hover:bg-raised transition-colors duration-220">
             Discover success stories
           </button>
         </div>
@@ -112,14 +112,14 @@ export const TestimonialCarousel = () => {
           {/* Navigation Arrows */}
           <button
             onClick={goToPrevious}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12 z-10 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-all duration-220 group"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12 z-10 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors duration-220 group"
           >
             <ChevronLeft className="w-5 h-5 text-white group-hover:text-white/90" />
           </button>
 
           <button
             onClick={goToNext}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 z-10 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-all duration-220 group"
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 z-10 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors duration-220 group"
           >
             <ChevronRight className="w-5 h-5 text-white group-hover:text-white/90" />
           </button>
@@ -129,7 +129,7 @@ export const TestimonialCarousel = () => {
             {getVisibleCards().map((testimonial, index) => (
               <div
                 key={`${testimonial.id}-${currentIndex}-${index}`}
-                className="w-80 h-96 rounded-2xl overflow-hidden relative group cursor-pointer transform hover:scale-102 transition-all duration-220 hover:shadow-lg"
+                className="w-80 h-96 rounded-2xl overflow-hidden relative group cursor-pointer transform transition-colors duration-220"
                 style={{
                   background: colorStyles[testimonial.color].gradient,
                 }}
@@ -167,7 +167,7 @@ export const TestimonialCarousel = () => {
                     </blockquote>
                   </div>
 
-                  <button className="text-sm underline underline-offset-2 hover:no-underline transition-all duration-150 self-start opacity-90 hover:opacity-100">
+                  <button className="text-sm underline underline-offset-2 hover:no-underline transition-colors duration-150 self-start opacity-90 hover:opacity-100">
                     {testimonial.link}
                   </button>
                 </div>
@@ -187,7 +187,7 @@ export const TestimonialCarousel = () => {
                   setCurrentIndex(index);
                   setIsAutoPlaying(false);
                 }}
-                className={`w-2 h-2 rounded-full transition-all duration-220 ${
+                className={`w-2 h-2 rounded-full transition-colors duration-220 ${
                   index === currentIndex
                     ? "bg-white"
                     : "bg-white/30 hover:bg-white/50"

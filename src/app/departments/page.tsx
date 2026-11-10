@@ -1,21 +1,16 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import {
-  animate,
-  MotionConfig,
-  motion,
-  useInView,
-  useMotionValue,
-  useReducedMotion,
-} from "motion/react";
+import { MotionConfig, motion, useReducedMotion } from "motion/react";
 import { Navigation } from "@/components/navigation";
+import { PageBanner } from "@/components/page-banner";
 import { Footer } from "@/components/footer";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   Search,
   Filter,
@@ -122,6 +117,7 @@ function formatAnimatedNumber(n: number, decimals: number) {
   return decimals > 0 ? `${withCommas}.${decPart}` : withCommas;
 }
 
+/** Shows the real value right away instead of counting up from zero. */
 function CountUpNumber({
   value,
   decimals = 0,
@@ -129,36 +125,7 @@ function CountUpNumber({
   value: number;
   decimals?: number;
 }) {
-  const shouldReduceMotion = useReducedMotion();
-  const ref = React.useRef<HTMLSpanElement | null>(null);
-  const isInView = useInView(ref, { once: true, amount: 0.6 });
-
-  const motionValue = useMotionValue(0);
-  const [display, setDisplay] = React.useState(() =>
-    formatAnimatedNumber(0, decimals)
-  );
-
-  React.useEffect(() => {
-    if (!isInView) return;
-
-    if (shouldReduceMotion) {
-      setDisplay(formatAnimatedNumber(value, decimals));
-      return;
-    }
-
-    const controls = animate(motionValue, value, {
-      // Slightly snappier so it doesn't feel like "loading"
-      duration: 0.8,
-      ease: [0.22, 1, 0.36, 1],
-      onUpdate(latest) {
-        setDisplay(formatAnimatedNumber(latest, decimals));
-      },
-    });
-
-    return () => controls.stop();
-  }, [decimals, isInView, motionValue, shouldReduceMotion, value]);
-
-  return <span ref={ref}>{display}</span>;
+  return <span className="tabular-nums">{formatAnimatedNumber(value, decimals)}</span>;
 }
 
 // const categories = [
@@ -166,48 +133,48 @@ function CountUpNumber({
 //     id: "all",
 //     name: "All Departments",
 //     count: 0,
-//     color: "bg-gradient-to-r from-purple-500 to-pink-500",
-//     hoverColor: "hover:from-purple-600 hover:to-pink-600",
+//     color: "",
+//     hoverColor: "",
 //     icon: GraduationCap,
 //   },
 //   {
 //     id: "stem",
 //     name: "STEM",
 //     count: 0,
-//     color: "bg-gradient-to-r from-blue-500 to-cyan-500",
-//     hoverColor: "hover:from-blue-600 hover:to-cyan-600",
+//     color: "",
+//     hoverColor: "",
 //     icon: Calculator,
 //   },
 //   {
 //     id: "liberal-arts",
 //     name: "Liberal Arts",
 //     count: 0,
-//     color: "bg-gradient-to-r from-green-500 to-emerald-500",
-//     hoverColor: "hover:from-green-600 hover:to-emerald-600",
+//     color: "",
+//     hoverColor: "",
 //     icon: Brain,
 //   },
 //   {
 //     id: "business",
 //     name: "Business",
 //     count: 0,
-//     color: "bg-gradient-to-r from-orange-500 to-red-500",
-//     hoverColor: "hover:from-orange-600 hover:to-red-600",
+//     color: "",
+//     hoverColor: "",
 //     icon: DollarSign,
 //   },
 //   {
 //     id: "agriculture",
 //     name: "Agriculture",
 //     count: 0,
-//     color: "bg-gradient-to-r from-yellow-500 to-orange-500",
-//     hoverColor: "hover:from-yellow-600 hover:to-orange-600",
+//     color: "",
+//     hoverColor: "",
 //     icon: Activity,
 //   },
 // ];
 
 const sortOptions = [
   { value: "name", label: "Name" },
-  { value: "courses", label: "Course Count" },
-  { value: "professors", label: "Professor Count" },
+  { value: "courses", label: "Course count" },
+  { value: "professors", label: "Professor count" },
   { value: "gpa", label: "Average GPA" },
   { value: "rating", label: "Rating" },
 ];
@@ -216,395 +183,404 @@ const departmentIcons = {
   // Accounting & Business
   ACCT: {
     icon: Calculator,
-    color: "bg-yellow-600 dark:bg-yellow-500 text-white",
+    color: "bg-raised text-text-body",
   },
-  BUAD: { icon: Briefcase, color: "bg-blue-600 dark:bg-blue-500 text-white" },
+  BUAD: { icon: Briefcase, color: "bg-raised text-text-body" },
   BUSN: {
     icon: Building2,
-    color: "bg-indigo-600 dark:bg-indigo-500 text-white",
+    color: "bg-raised text-text-body",
   },
-  FINC: { icon: PiggyBank, color: "bg-green-600 dark:bg-green-500 text-white" },
+  FINC: { icon: PiggyBank, color: "bg-raised text-text-body" },
   FINP: {
     icon: CreditCard,
-    color: "bg-emerald-600 dark:bg-emerald-500 text-white",
+    color: "bg-raised text-text-body",
   },
-  MGMT: { icon: Users, color: "bg-purple-600 dark:bg-purple-500 text-white" },
-  MKTG: { icon: Megaphone, color: "bg-pink-600 dark:bg-pink-500 text-white" },
-  SCMT: { icon: Cog, color: "bg-orange-600 dark:bg-orange-500 text-white" },
+  MGMT: { icon: Users, color: "bg-raised text-text-body" },
+  MKTG: { icon: Megaphone, color: "bg-raised text-text-body" },
+  SCMT: { icon: Cog, color: "bg-raised text-text-body" },
   ECON: {
     icon: DollarSign,
-    color: "bg-yellow-600 dark:bg-yellow-500 text-white",
+    color: "bg-raised text-text-body",
   },
-  IBUS: { icon: Globe, color: "bg-blue-600 dark:bg-blue-500 text-white" },
-  ISTM: { icon: Monitor, color: "bg-cyan-600 dark:bg-cyan-500 text-white" },
-  IDIS: { icon: Factory, color: "bg-gray-600 dark:bg-gray-500 text-white" },
+  IBUS: { icon: Globe, color: "bg-raised text-text-body" },
+  ISTM: { icon: Monitor, color: "bg-raised text-text-body" },
+  IDIS: { icon: Factory, color: "bg-raised text-text-body" },
 
   // Engineering
-  CSCE: { icon: Monitor, color: "bg-blue-600 dark:bg-blue-500 text-white" },
-  ECEN: { icon: Zap, color: "bg-yellow-600 dark:bg-yellow-500 text-white" },
-  MEEN: { icon: Cog, color: "bg-gray-600 dark:bg-gray-500 text-white" },
-  CVEN: { icon: HardHat, color: "bg-orange-600 dark:bg-orange-500 text-white" },
+  CSCE: { icon: Monitor, color: "bg-raised text-text-body" },
+  ECEN: { icon: Zap, color: "bg-raised text-text-body" },
+  MEEN: { icon: Cog, color: "bg-raised text-text-body" },
+  CVEN: { icon: HardHat, color: "bg-raised text-text-body" },
   CHEN: {
     icon: FlaskConical,
-    color: "bg-green-600 dark:bg-green-500 text-white",
+    color: "bg-raised text-text-body",
   },
-  AERO: { icon: Rocket, color: "bg-sky-600 dark:bg-sky-500 text-white" },
-  PETE: { icon: Drill, color: "bg-amber-600 dark:bg-amber-500 text-white" },
-  NUEN: { icon: Atom, color: "bg-red-600 dark:bg-red-500 text-white" },
-  BMEN: { icon: HeartPulse, color: "bg-rose-600 dark:bg-rose-500 text-white" },
-  ISEN: { icon: Cpu, color: "bg-purple-600 dark:bg-purple-500 text-white" },
-  OCEN: { icon: Waves, color: "bg-cyan-600 dark:bg-cyan-500 text-white" },
-  ENGR: { icon: Building, color: "bg-slate-600 dark:bg-slate-500 text-white" },
-  BAEN: { icon: Tractor, color: "bg-green-600 dark:bg-green-500 text-white" },
+  AERO: { icon: Rocket, color: "bg-raised text-text-body" },
+  PETE: { icon: Drill, color: "bg-raised text-text-body" },
+  NUEN: { icon: Atom, color: "bg-raised text-text-body" },
+  BMEN: { icon: HeartPulse, color: "bg-raised text-text-body" },
+  ISEN: { icon: Cpu, color: "bg-raised text-text-body" },
+  OCEN: { icon: Waves, color: "bg-raised text-text-body" },
+  ENGR: { icon: Building, color: "bg-raised text-text-body" },
+  BAEN: { icon: Tractor, color: "bg-raised text-text-body" },
   EVEN: {
     icon: Recycle,
-    color: "bg-emerald-600 dark:bg-emerald-500 text-white",
+    color: "bg-raised text-text-body",
   },
-  MSEN: { icon: Atom, color: "bg-indigo-600 dark:bg-indigo-500 text-white" },
-  AREN: { icon: Compass, color: "bg-blue-600 dark:bg-blue-500 text-white" },
-  SENG: { icon: Shield, color: "bg-red-600 dark:bg-red-500 text-white" },
-  SSEN: { icon: Ship, color: "bg-blue-600 dark:bg-blue-500 text-white" },
-  CLEN: { icon: Building, color: "bg-gray-600 dark:bg-gray-500 text-white" },
-  ENDG: { icon: Compass, color: "bg-purple-600 dark:bg-purple-500 text-white" },
-  ENDS: { icon: Layout, color: "bg-green-600 dark:bg-green-500 text-white" },
-  ENTC: { icon: Wrench, color: "bg-orange-600 dark:bg-orange-500 text-white" },
+  MSEN: { icon: Atom, color: "bg-raised text-text-body" },
+  AREN: { icon: Compass, color: "bg-raised text-text-body" },
+  SENG: { icon: Shield, color: "bg-raised text-text-body" },
+  SSEN: { icon: Ship, color: "bg-raised text-text-body" },
+  CLEN: { icon: Building, color: "bg-raised text-text-body" },
+  ENDG: { icon: Compass, color: "bg-raised text-text-body" },
+  ENDS: { icon: Layout, color: "bg-raised text-text-body" },
+  ENTC: { icon: Wrench, color: "bg-raised text-text-body" },
   ESET: {
     icon: CircuitBoard,
-    color: "bg-blue-600 dark:bg-blue-500 text-white",
+    color: "bg-raised text-text-body",
   },
-  MMET: { icon: Factory, color: "bg-gray-600 dark:bg-gray-500 text-white" },
+  MMET: { icon: Factory, color: "bg-raised text-text-body" },
   MXET: {
     icon: Settings,
-    color: "bg-purple-600 dark:bg-purple-500 text-white",
+    color: "bg-raised text-text-body",
   },
-  ITDE: { icon: Code, color: "bg-cyan-600 dark:bg-cyan-500 text-white" },
-  MTDE: { icon: Cpu, color: "bg-indigo-600 dark:bg-indigo-500 text-white" },
-  DAEN: { icon: Database, color: "bg-blue-600 dark:bg-blue-500 text-white" },
+  ITDE: { icon: Code, color: "bg-raised text-text-body" },
+  MTDE: { icon: Cpu, color: "bg-raised text-text-body" },
+  DAEN: { icon: Database, color: "bg-raised text-text-body" },
 
   // Sciences
   MATH: {
     icon: Calculator,
-    color: "bg-indigo-600 dark:bg-indigo-500 text-white",
+    color: "bg-raised text-text-body",
   },
   STAT: {
     icon: BarChart3,
-    color: "bg-purple-600 dark:bg-purple-500 text-white",
+    color: "bg-raised text-text-body",
   },
   CHEM: {
     icon: FlaskConical,
-    color: "bg-green-600 dark:bg-green-500 text-white",
+    color: "bg-raised text-text-body",
   },
-  BIOL: { icon: Dna, color: "bg-emerald-600 dark:bg-emerald-500 text-white" },
-  PHYS: { icon: Atom, color: "bg-purple-600 dark:bg-purple-500 text-white" },
-  GEOL: { icon: Mountain, color: "bg-amber-600 dark:bg-amber-500 text-white" },
-  GEOG: { icon: Map, color: "bg-blue-600 dark:bg-blue-500 text-white" },
-  GEOS: { icon: Globe, color: "bg-emerald-600 dark:bg-emerald-500 text-white" },
+  BIOL: { icon: Dna, color: "bg-raised text-text-body" },
+  PHYS: { icon: Atom, color: "bg-raised text-text-body" },
+  GEOL: { icon: Mountain, color: "bg-raised text-text-body" },
+  GEOG: { icon: Map, color: "bg-raised text-text-body" },
+  GEOS: { icon: Globe, color: "bg-raised text-text-body" },
   GEOP: {
     icon: Mountain,
-    color: "bg-orange-600 dark:bg-orange-500 text-white",
+    color: "bg-raised text-text-body",
   },
   ASTR: {
     icon: Telescope,
-    color: "bg-indigo-600 dark:bg-indigo-500 text-white",
+    color: "bg-raised text-text-body",
   },
-  ATMO: { icon: Globe, color: "bg-cyan-600 dark:bg-cyan-500 text-white" },
-  OCNG: { icon: Waves, color: "bg-blue-600 dark:bg-blue-500 text-white" },
+  ATMO: { icon: Globe, color: "bg-raised text-text-body" },
+  OCNG: { icon: Waves, color: "bg-raised text-text-body" },
   BICH: {
     icon: Microscope,
-    color: "bg-green-600 dark:bg-green-500 text-white",
+    color: "bg-raised text-text-body",
   },
-  GENE: { icon: Dna, color: "bg-red-600 dark:bg-red-500 text-white" },
-  BIMS: { icon: Microscope, color: "bg-blue-600 dark:bg-blue-500 text-white" },
-  BIOT: { icon: Dna, color: "bg-purple-600 dark:bg-purple-500 text-white" },
-  EEBL: { icon: Leaf, color: "bg-green-600 dark:bg-green-500 text-white" },
+  GENE: { icon: Dna, color: "bg-raised text-text-body" },
+  BIMS: { icon: Microscope, color: "bg-raised text-text-body" },
+  BIOT: { icon: Dna, color: "bg-raised text-text-body" },
+  EEBL: { icon: Leaf, color: "bg-raised text-text-body" },
   ECCB: {
     icon: TreePine,
-    color: "bg-emerald-600 dark:bg-emerald-500 text-white",
+    color: "bg-raised text-text-body",
   },
-  BESC: { icon: Leaf, color: "bg-teal-600 dark:bg-teal-500 text-white" },
-  ENSS: { icon: Recycle, color: "bg-green-600 dark:bg-green-500 text-white" },
-  WMHS: { icon: Waves, color: "bg-cyan-600 dark:bg-cyan-500 text-white" },
-  ANLY: { icon: BarChart3, color: "bg-blue-600 dark:bg-blue-500 text-white" },
+  BESC: { icon: Leaf, color: "bg-raised text-text-body" },
+  ENSS: { icon: Recycle, color: "bg-raised text-text-body" },
+  WMHS: { icon: Waves, color: "bg-raised text-text-body" },
+  ANLY: { icon: BarChart3, color: "bg-raised text-text-body" },
   MASC: {
     icon: Calculator,
-    color: "bg-purple-600 dark:bg-purple-500 text-white",
+    color: "bg-raised text-text-body",
   },
 
   // Medical & Health
-  NURS: { icon: Cross, color: "bg-red-600 dark:bg-red-500 text-white" },
-  HLTH: { icon: Stethoscope, color: "bg-blue-600 dark:bg-blue-500 text-white" },
-  HBEH: { icon: Heart, color: "bg-pink-600 dark:bg-pink-500 text-white" },
+  NURS: { icon: Cross, color: "bg-raised text-text-body" },
+  HLTH: { icon: Stethoscope, color: "bg-raised text-text-body" },
+  HBEH: { icon: Heart, color: "bg-raised text-text-body" },
   KINE: {
     icon: Activity,
-    color: "bg-orange-600 dark:bg-orange-500 text-white",
+    color: "bg-raised text-text-body",
   },
   ATTR: {
     icon: HeartPulse,
-    color: "bg-green-600 dark:bg-green-500 text-white",
+    color: "bg-raised text-text-body",
   },
-  NUTR: { icon: Apple, color: "bg-red-600 dark:bg-red-500 text-white" },
-  PHAR: { icon: Pill, color: "bg-blue-600 dark:bg-blue-500 text-white" },
+  NUTR: { icon: Apple, color: "bg-raised text-text-body" },
+  PHAR: { icon: Pill, color: "bg-raised text-text-body" },
   PHSC: {
     icon: TestTube,
-    color: "bg-purple-600 dark:bg-purple-500 text-white",
+    color: "bg-raised text-text-body",
   },
-  MPHY: { icon: HeartPulse, color: "bg-red-600 dark:bg-red-500 text-white" },
-  MSCI: { icon: Stethoscope, color: "bg-cyan-600 dark:bg-cyan-500 text-white" },
+  MPHY: { icon: HeartPulse, color: "bg-raised text-text-body" },
+  MSCI: { icon: Stethoscope, color: "bg-raised text-text-body" },
   MCMD: {
     icon: Microscope,
-    color: "bg-green-600 dark:bg-green-500 text-white",
+    color: "bg-raised text-text-body",
   },
   PHLT: {
     icon: Shield,
-    color: "bg-emerald-600 dark:bg-emerald-500 text-white",
+    color: "bg-raised text-text-body",
   },
-  PHEB: { icon: BarChart3, color: "bg-blue-600 dark:bg-blue-500 text-white" },
-  PHEO: { icon: Recycle, color: "bg-green-600 dark:bg-green-500 text-white" },
-  PHPM: { icon: Users, color: "bg-purple-600 dark:bg-purple-500 text-white" },
-  SOPH: { icon: Shield, color: "bg-blue-600 dark:bg-blue-500 text-white" },
-  HCPI: { icon: Plus, color: "bg-red-600 dark:bg-red-500 text-white" },
+  PHEB: { icon: BarChart3, color: "bg-raised text-text-body" },
+  PHEO: { icon: Recycle, color: "bg-raised text-text-body" },
+  PHPM: { icon: Users, color: "bg-raised text-text-body" },
+  SOPH: { icon: Shield, color: "bg-raised text-text-body" },
+  HCPI: { icon: Plus, color: "bg-raised text-text-body" },
   EDHP: {
     icon: GraduationCap,
-    color: "bg-teal-600 dark:bg-teal-500 text-white",
+    color: "bg-raised text-text-body",
   },
   IBST: {
     icon: Microscope,
-    color: "bg-indigo-600 dark:bg-indigo-500 text-white",
+    color: "bg-raised text-text-body",
   },
   FIVS: {
     icon: Microscope,
-    color: "bg-purple-600 dark:bg-purple-500 text-white",
+    color: "bg-raised text-text-body",
   },
-  FORS: { icon: Shield, color: "bg-gray-600 dark:bg-gray-500 text-white" },
-  NRSC: { icon: Brain, color: "bg-pink-600 dark:bg-pink-500 text-white" },
-  NEXT: { icon: Brain, color: "bg-indigo-600 dark:bg-indigo-500 text-white" },
-  PBSI: { icon: Brain, color: "bg-purple-600 dark:bg-purple-500 text-white" },
+  FORS: { icon: Shield, color: "bg-raised text-text-body" },
+  NRSC: { icon: Brain, color: "bg-raised text-text-body" },
+  NEXT: { icon: Brain, color: "bg-raised text-text-body" },
+  PBSI: { icon: Brain, color: "bg-raised text-text-body" },
 
   // Dental
-  AEGD: { icon: Smile, color: "bg-blue-600 dark:bg-blue-500 text-white" },
-  ENDO: { icon: Smile, color: "bg-green-600 dark:bg-green-500 text-white" },
-  ORTH: { icon: Smile, color: "bg-purple-600 dark:bg-purple-500 text-white" },
-  PEDD: { icon: Smile, color: "bg-pink-600 dark:bg-pink-500 text-white" },
-  PERI: { icon: Smile, color: "bg-orange-600 dark:bg-orange-500 text-white" },
-  PROS: { icon: Smile, color: "bg-cyan-600 dark:bg-cyan-500 text-white" },
-  OMFP: { icon: Smile, color: "bg-red-600 dark:bg-red-500 text-white" },
-  OMFR: { icon: Smile, color: "bg-indigo-600 dark:bg-indigo-500 text-white" },
-  OMFS: { icon: Smile, color: "bg-amber-600 dark:bg-amber-500 text-white" },
-  OBIO: { icon: Smile, color: "bg-emerald-600 dark:bg-emerald-500 text-white" },
-  DDHS: { icon: Smile, color: "bg-teal-600 dark:bg-teal-500 text-white" },
-  DPHS: { icon: Shield, color: "bg-blue-600 dark:bg-blue-500 text-white" },
+  AEGD: { icon: Smile, color: "bg-raised text-text-body" },
+  ENDO: { icon: Smile, color: "bg-raised text-text-body" },
+  ORTH: { icon: Smile, color: "bg-raised text-text-body" },
+  PEDD: { icon: Smile, color: "bg-raised text-text-body" },
+  PERI: { icon: Smile, color: "bg-raised text-text-body" },
+  PROS: { icon: Smile, color: "bg-raised text-text-body" },
+  OMFP: { icon: Smile, color: "bg-raised text-text-body" },
+  OMFR: { icon: Smile, color: "bg-raised text-text-body" },
+  OMFS: { icon: Smile, color: "bg-raised text-text-body" },
+  OBIO: { icon: Smile, color: "bg-raised text-text-body" },
+  DDHS: { icon: Smile, color: "bg-raised text-text-body" },
+  DPHS: { icon: Shield, color: "bg-raised text-text-body" },
 
   // Veterinary
-  VIBS: { icon: PawPrint, color: "bg-amber-600 dark:bg-amber-500 text-white" },
-  VLCS: { icon: Dog, color: "bg-amber-600 dark:bg-amber-500 text-white" },
-  VSCS: { icon: PawPrint, color: "bg-green-600 dark:bg-green-500 text-white" },
-  VMID: { icon: Cross, color: "bg-red-600 dark:bg-red-500 text-white" },
+  VIBS: { icon: PawPrint, color: "bg-raised text-text-body" },
+  VLCS: { icon: Dog, color: "bg-raised text-text-body" },
+  VSCS: { icon: PawPrint, color: "bg-raised text-text-body" },
+  VMID: { icon: Cross, color: "bg-raised text-text-body" },
   VPAR: {
     icon: Microscope,
-    color: "bg-purple-600 dark:bg-purple-500 text-white",
+    color: "bg-raised text-text-body",
   },
-  VPAT: { icon: TestTube, color: "bg-blue-600 dark:bg-blue-500 text-white" },
-  VTMI: { icon: Microscope, color: "bg-cyan-600 dark:bg-cyan-500 text-white" },
+  VPAT: { icon: TestTube, color: "bg-raised text-text-body" },
+  VTMI: { icon: Microscope, color: "bg-raised text-text-body" },
   VTPB: {
     icon: FlaskConical,
-    color: "bg-emerald-600 dark:bg-emerald-500 text-white",
+    color: "bg-raised text-text-body",
   },
-  VTPP: { icon: Pill, color: "bg-pink-600 dark:bg-pink-500 text-white" },
+  VTPP: { icon: Pill, color: "bg-raised text-text-body" },
 
   // Agriculture & Life Sciences
   AGEC: {
     icon: DollarSign,
-    color: "bg-green-600 dark:bg-green-500 text-white",
+    color: "bg-raised text-text-body",
   },
   AGLS: {
     icon: TreePine,
-    color: "bg-emerald-600 dark:bg-emerald-500 text-white",
+    color: "bg-raised text-text-body",
   },
-  AGSC: { icon: Leaf, color: "bg-green-600 dark:bg-green-500 text-white" },
-  AGSM: { icon: Cog, color: "bg-amber-600 dark:bg-amber-500 text-white" },
-  ANSC: { icon: PawPrint, color: "bg-amber-600 dark:bg-amber-500 text-white" },
-  HORT: { icon: Flower, color: "bg-pink-600 dark:bg-pink-500 text-white" },
+  AGSC: { icon: Leaf, color: "bg-raised text-text-body" },
+  AGSM: { icon: Cog, color: "bg-raised text-text-body" },
+  ANSC: { icon: PawPrint, color: "bg-raised text-text-body" },
+  HORT: { icon: Flower, color: "bg-raised text-text-body" },
   POSC: {
     icon: PawPrint,
-    color: "bg-yellow-600 dark:bg-yellow-500 text-white",
+    color: "bg-raised text-text-body",
   },
-  RWFM: { icon: TreePine, color: "bg-green-600 dark:bg-green-500 text-white" },
-  SCSC: { icon: Shovel, color: "bg-amber-600 dark:bg-amber-500 text-white" },
-  FSTC: { icon: Apple, color: "bg-red-600 dark:bg-red-500 text-white" },
-  CULN: { icon: ChefHat, color: "bg-orange-600 dark:bg-orange-500 text-white" },
-  MEPS: { icon: Leaf, color: "bg-emerald-600 dark:bg-emerald-500 text-white" },
+  RWFM: { icon: TreePine, color: "bg-raised text-text-body" },
+  SCSC: { icon: Shovel, color: "bg-raised text-text-body" },
+  FSTC: { icon: Apple, color: "bg-raised text-text-body" },
+  CULN: { icon: ChefHat, color: "bg-raised text-text-body" },
+  MEPS: { icon: Leaf, color: "bg-raised text-text-body" },
   PLPA: {
     icon: Microscope,
-    color: "bg-green-600 dark:bg-green-500 text-white",
+    color: "bg-raised text-text-body",
   },
   ENTO: {
     icon: Microscope,
-    color: "bg-amber-600 dark:bg-amber-500 text-white",
+    color: "bg-raised text-text-body",
   },
-  ALEC: { icon: Users, color: "bg-blue-600 dark:bg-blue-500 text-white" },
+  ALEC: { icon: Users, color: "bg-raised text-text-body" },
   ALED: {
     icon: GraduationCap,
-    color: "bg-green-600 dark:bg-green-500 text-white",
+    color: "bg-raised text-text-body",
   },
-  AGCJ: { icon: Newspaper, color: "bg-cyan-600 dark:bg-cyan-500 text-white" },
+  AGCJ: { icon: Newspaper, color: "bg-raised text-text-body" },
 
   // Liberal Arts & Humanities
-  ENGL: { icon: Feather, color: "bg-pink-600 dark:bg-pink-500 text-white" },
-  HIST: { icon: Clock, color: "bg-amber-600 dark:bg-amber-500 text-white" },
+  ENGL: { icon: Feather, color: "bg-raised text-text-body" },
+  HIST: { icon: Clock, color: "bg-raised text-text-body" },
   PHIL: {
     icon: Lightbulb,
-    color: "bg-purple-600 dark:bg-purple-500 text-white",
+    color: "bg-raised text-text-body",
   },
-  SPAN: { icon: Languages, color: "bg-red-600 dark:bg-red-500 text-white" },
+  SPAN: { icon: Languages, color: "bg-raised text-text-body" },
   FREN: {
     icon: MessageCircle,
-    color: "bg-blue-600 dark:bg-blue-500 text-white",
+    color: "bg-raised text-text-body",
   },
-  GERM: { icon: Globe, color: "bg-gray-600 dark:bg-gray-500 text-white" },
+  GERM: { icon: Globe, color: "bg-raised text-text-body" },
   CHIN: {
     icon: Languages,
-    color: "bg-yellow-600 dark:bg-yellow-500 text-white",
+    color: "bg-raised text-text-body",
   },
   JAPN: {
     icon: MessageCircle,
-    color: "bg-pink-600 dark:bg-pink-500 text-white",
+    color: "bg-raised text-text-body",
   },
-  ARAB: { icon: Languages, color: "bg-green-600 dark:bg-green-500 text-white" },
-  ITAL: { icon: Globe, color: "bg-green-600 dark:bg-green-500 text-white" },
-  RUSS: { icon: Languages, color: "bg-red-600 dark:bg-red-500 text-white" },
+  ARAB: { icon: Languages, color: "bg-raised text-text-body" },
+  ITAL: { icon: Globe, color: "bg-raised text-text-body" },
+  RUSS: { icon: Languages, color: "bg-raised text-text-body" },
   MODL: {
     icon: MessageCircle,
-    color: "bg-purple-600 dark:bg-purple-500 text-white",
+    color: "bg-raised text-text-body",
   },
-  CLAS: { icon: Columns, color: "bg-amber-600 dark:bg-amber-500 text-white" },
-  RELS: { icon: Cross, color: "bg-purple-600 dark:bg-purple-500 text-white" },
-  AFST: { icon: Globe, color: "bg-orange-600 dark:bg-orange-500 text-white" },
-  ASIA: { icon: Globe, color: "bg-red-600 dark:bg-red-500 text-white" },
+  CLAS: { icon: Columns, color: "bg-raised text-text-body" },
+  RELS: { icon: Cross, color: "bg-raised text-text-body" },
+  AFST: { icon: Globe, color: "bg-raised text-text-body" },
+  ASIA: { icon: Globe, color: "bg-raised text-text-body" },
   HISP: {
     icon: Languages,
-    color: "bg-orange-600 dark:bg-orange-500 text-white",
+    color: "bg-raised text-text-body",
   },
-  WGST: { icon: Users, color: "bg-pink-600 dark:bg-pink-500 text-white" },
-  DHUM: { icon: Monitor, color: "bg-cyan-600 dark:bg-cyan-500 text-white" },
+  WGST: { icon: Users, color: "bg-raised text-text-body" },
+  DHUM: { icon: Monitor, color: "bg-raised text-text-body" },
 
   // Social Sciences
-  POLS: { icon: Vote, color: "bg-red-600 dark:bg-red-500 text-white" },
-  SOCI: { icon: Users, color: "bg-blue-600 dark:bg-blue-500 text-white" },
-  ANTH: { icon: User, color: "bg-amber-600 dark:bg-amber-500 text-white" },
-  CPSY: { icon: Brain, color: "bg-teal-600 dark:bg-teal-500 text-white" },
-  EPSY: { icon: Brain, color: "bg-purple-600 dark:bg-purple-500 text-white" },
-  SPSY: { icon: Brain, color: "bg-pink-600 dark:bg-pink-500 text-white" },
-  GLST: { icon: Globe, color: "bg-blue-600 dark:bg-blue-500 text-white" },
-  INTA: { icon: Handshake, color: "bg-green-600 dark:bg-green-500 text-white" },
+  POLS: { icon: Vote, color: "bg-raised text-text-body" },
+  SOCI: { icon: Users, color: "bg-raised text-text-body" },
+  ANTH: { icon: User, color: "bg-raised text-text-body" },
+  CPSY: { icon: Brain, color: "bg-raised text-text-body" },
+  EPSY: { icon: Brain, color: "bg-raised text-text-body" },
+  SPSY: { icon: Brain, color: "bg-raised text-text-body" },
+  GLST: { icon: Globe, color: "bg-raised text-text-body" },
+  INTA: { icon: Handshake, color: "bg-raised text-text-body" },
 
   // Fine Arts
-  ARTS: { icon: Palette, color: "bg-violet-600 dark:bg-violet-500 text-white" },
-  MUSC: { icon: Music, color: "bg-indigo-600 dark:bg-indigo-500 text-white" },
-  THEA: { icon: Drama, color: "bg-pink-600 dark:bg-pink-500 text-white" },
+  ARTS: { icon: Palette, color: "bg-raised text-text-body" },
+  MUSC: { icon: Music, color: "bg-raised text-text-body" },
+  THEA: { icon: Drama, color: "bg-raised text-text-body" },
   DCED: {
     icon: Activity,
-    color: "bg-purple-600 dark:bg-purple-500 text-white",
+    color: "bg-raised text-text-body",
   },
-  PVFA: { icon: Camera, color: "bg-cyan-600 dark:bg-cyan-500 text-white" },
-  VIST: { icon: Camera, color: "bg-blue-600 dark:bg-blue-500 text-white" },
-  VIZA: { icon: Monitor, color: "bg-green-600 dark:bg-green-500 text-white" },
-  PERF: { icon: Drama, color: "bg-orange-600 dark:bg-orange-500 text-white" },
+  PVFA: { icon: Camera, color: "bg-raised text-text-body" },
+  VIST: { icon: Camera, color: "bg-raised text-text-body" },
+  VIZA: { icon: Monitor, color: "bg-raised text-text-body" },
+  PERF: { icon: Drama, color: "bg-raised text-text-body" },
   MSTC: {
     icon: Headphones,
-    color: "bg-purple-600 dark:bg-purple-500 text-white",
+    color: "bg-raised text-text-body",
   },
-  FILM: { icon: Camera, color: "bg-gray-600 dark:bg-gray-500 text-white" },
+  FILM: { icon: Camera, color: "bg-raised text-text-body" },
 
   // Architecture & Planning
-  ARCH: { icon: Building, color: "bg-gray-600 dark:bg-gray-500 text-white" },
-  CARC: { icon: Compass, color: "bg-blue-600 dark:bg-blue-500 text-white" },
-  LAND: { icon: Trees, color: "bg-green-600 dark:bg-green-500 text-white" },
-  PLAN: { icon: Map, color: "bg-purple-600 dark:bg-purple-500 text-white" },
-  URPN: { icon: Building2, color: "bg-amber-600 dark:bg-amber-500 text-white" },
-  URSC: { icon: Building2, color: "bg-cyan-600 dark:bg-cyan-500 text-white" },
-  COSC: { icon: HardHat, color: "bg-orange-600 dark:bg-orange-500 text-white" },
-  LDEV: { icon: Map, color: "bg-emerald-600 dark:bg-emerald-500 text-white" },
+  ARCH: { icon: Building, color: "bg-raised text-text-body" },
+  CARC: { icon: Compass, color: "bg-raised text-text-body" },
+  LAND: { icon: Trees, color: "bg-raised text-text-body" },
+  PLAN: { icon: Map, color: "bg-raised text-text-body" },
+  URPN: { icon: Building2, color: "bg-raised text-text-body" },
+  URSC: { icon: Building2, color: "bg-raised text-text-body" },
+  COSC: { icon: HardHat, color: "bg-raised text-text-body" },
+  LDEV: { icon: Map, color: "bg-raised text-text-body" },
 
   // Education
   EDCI: {
     icon: GraduationCap,
-    color: "bg-blue-600 dark:bg-blue-500 text-white",
+    color: "bg-raised text-text-body",
   },
-  EDAD: { icon: Users, color: "bg-purple-600 dark:bg-purple-500 text-white" },
-  TEED: { icon: BookOpen, color: "bg-green-600 dark:bg-green-500 text-white" },
-  SPED: { icon: Heart, color: "bg-pink-600 dark:bg-pink-500 text-white" },
-  RDNG: { icon: BookOpen, color: "bg-cyan-600 dark:bg-cyan-500 text-white" },
-  LDTC: { icon: Monitor, color: "bg-indigo-600 dark:bg-indigo-500 text-white" },
-  EHRD: { icon: Users, color: "bg-amber-600 dark:bg-amber-500 text-white" },
+  EDAD: { icon: Users, color: "bg-raised text-text-body" },
+  TEED: { icon: BookOpen, color: "bg-raised text-text-body" },
+  SPED: { icon: Heart, color: "bg-raised text-text-body" },
+  RDNG: { icon: BookOpen, color: "bg-raised text-text-body" },
+  LDTC: { icon: Monitor, color: "bg-raised text-text-body" },
+  EHRD: { icon: Users, color: "bg-raised text-text-body" },
   CEHD: {
     icon: School,
-    color: "bg-emerald-600 dark:bg-emerald-500 text-white",
+    color: "bg-raised text-text-body",
   },
   BEFB: {
     icon: Languages,
-    color: "bg-orange-600 dark:bg-orange-500 text-white",
+    color: "bg-raised text-text-body",
   },
   BESL: {
     icon: MessageCircle,
-    color: "bg-yellow-600 dark:bg-yellow-500 text-white",
+    color: "bg-raised text-text-body",
   },
   MEFB: {
     icon: GraduationCap,
-    color: "bg-purple-600 dark:bg-purple-500 text-white",
+    color: "bg-raised text-text-body",
   },
-  SEFB: { icon: Heart, color: "bg-red-600 dark:bg-red-500 text-white" },
-  TEFB: { icon: BookOpen, color: "bg-blue-600 dark:bg-blue-500 text-white" },
-  ECDE: { icon: Baby, color: "bg-pink-600 dark:bg-pink-500 text-white" },
+  SEFB: { icon: Heart, color: "bg-raised text-text-body" },
+  TEFB: { icon: BookOpen, color: "bg-raised text-text-body" },
+  ECDE: { icon: Baby, color: "bg-raised text-text-body" },
 
   // Communication & Journalism
-  COMM: { icon: Megaphone, color: "bg-blue-600 dark:bg-blue-500 text-white" },
-  JOUR: { icon: Newspaper, color: "bg-gray-600 dark:bg-gray-500 text-white" },
+  COMM: { icon: Megaphone, color: "bg-raised text-text-body" },
+  JOUR: { icon: Newspaper, color: "bg-raised text-text-body" },
 
   // Military & Defense
-  MLSC: { icon: Shield, color: "bg-green-600 dark:bg-green-500 text-white" },
-  AERS: { icon: Plane, color: "bg-sky-600 dark:bg-sky-500 text-white" },
-  NVSC: { icon: Anchor, color: "bg-blue-600 dark:bg-blue-500 text-white" },
-  SOMS: { icon: Flag, color: "bg-red-600 dark:bg-red-500 text-white" },
+  MLSC: { icon: Shield, color: "bg-raised text-text-body" },
+  AERS: { icon: Plane, color: "bg-raised text-text-body" },
+  NVSC: { icon: Anchor, color: "bg-raised text-text-body" },
+  SOMS: { icon: Flag, color: "bg-raised text-text-body" },
 
   // Law & Government
-  LAW: { icon: Scale, color: "bg-purple-600 dark:bg-purple-500 text-white" },
-  BUSH: { icon: Building2, color: "bg-blue-600 dark:bg-blue-500 text-white" },
-  PSAA: { icon: FileText, color: "bg-green-600 dark:bg-green-500 text-white" },
+  LAW: { icon: Scale, color: "bg-raised text-text-body" },
+  BUSH: { icon: Building2, color: "bg-raised text-text-body" },
+  PSAA: { icon: FileText, color: "bg-raised text-text-body" },
 
   // Recreation & Tourism
-  RPTS: { icon: Trees, color: "bg-emerald-100 text-emerald-600" },
-  HMGT: { icon: Building2, color: "bg-orange-100 text-orange-600" },
-  SPMT: { icon: Activity, color: "bg-red-100 text-red-600" },
+  RPTS: { icon: Trees, color: "bg-raised text-text-body" },
+  HMGT: { icon: Building2, color: "bg-raised text-text-body" },
+  SPMT: { icon: Activity, color: "bg-raised text-text-body" },
 
   // Technology & Information Systems
-  TCMG: { icon: Monitor, color: "bg-blue-100 text-blue-600" },
-  TCMT: { icon: Cpu, color: "bg-purple-100 text-purple-600" },
-  ITSV: { icon: Server, color: "bg-cyan-100 text-cyan-600" },
+  TCMG: { icon: Monitor, color: "bg-raised text-text-body" },
+  TCMT: { icon: Cpu, color: "bg-raised text-text-body" },
+  ITSV: { icon: Server, color: "bg-raised text-text-body" },
 
   // Energy
-  ENGY: { icon: Fuel, color: "bg-yellow-100 text-yellow-600" },
+  ENGY: { icon: Fuel, color: "bg-raised text-text-body" },
 
   // Economics & Finance
-  ECMT: { icon: BarChart3, color: "bg-indigo-100 text-indigo-600" },
+  ECMT: { icon: BarChart3, color: "bg-raised text-text-body" },
 
   // General/Administrative
-  ARSC: { icon: GraduationCap, color: "bg-gray-100 text-gray-600" },
-  HONR: { icon: Star, color: "bg-yellow-100 text-yellow-600" },
-  UGST: { icon: BookOpen, color: "bg-blue-100 text-blue-600" },
-  FYEX: { icon: Star, color: "bg-green-100 text-green-600" },
-  SYEX: { icon: TrendingUp, color: "bg-purple-100 text-purple-600" },
-  ASCC: { icon: GraduationCap, color: "bg-cyan-100 text-cyan-600" },
-  INST: { icon: BookOpen, color: "bg-amber-100 text-amber-600" },
-  SABR: { icon: Globe, color: "bg-emerald-100 text-emerald-600" },
-  NSEB: { icon: Handshake, color: "bg-orange-100 text-orange-600" },
+  ARSC: { icon: GraduationCap, color: "bg-raised text-text-muted" },
+  HONR: { icon: Star, color: "bg-raised text-text-body" },
+  UGST: { icon: BookOpen, color: "bg-raised text-text-body" },
+  FYEX: { icon: Star, color: "bg-raised text-text-body" },
+  SYEX: { icon: TrendingUp, color: "bg-raised text-text-body" },
+  ASCC: { icon: GraduationCap, color: "bg-raised text-text-body" },
+  INST: { icon: BookOpen, color: "bg-raised text-text-body" },
+  SABR: { icon: Globe, color: "bg-raised text-text-body" },
+  NSEB: { icon: Handshake, color: "bg-raised text-text-body" },
   TAMU: { icon: Building, color: "bg-maroon-100 text-maroon-600" },
 };
 
 export default function DepartmentsPage() {
+  return (
+    <React.Suspense>
+      <DepartmentsPageContent />
+    </React.Suspense>
+  );
+}
+
+function DepartmentsPageContent() {
+  const query = useSearchParams().get("search") ?? "";
   const shouldReduceMotion = useReducedMotion();
   const [hasMounted, setHasMounted] = React.useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(query);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(query);
   const [selectedCategory] = useState("all"); // Fixed: removed setSelectedCategory since categories are commented out
   const [sortBy, setSortBy] = useState("name");
   const [currentPage, setCurrentPage] = useState(1);
@@ -618,6 +594,11 @@ export default function DepartmentsPage() {
   const [error, setError] = useState<string | null>(null);
   const itemsPerPage = 30;
   const serverSearchMode = debouncedSearchTerm.trim().length > 0;
+
+  useEffect(() => {
+    setSearchTerm(query);
+    setDebouncedSearchTerm(query);
+  }, [query]);
 
   // Debounce search input for API-backed searching
   useEffect(() => {
@@ -874,14 +855,14 @@ export default function DepartmentsPage() {
   const DepartmentBadge = ({ code, name }: { code: string; name: string }) => {
     const badgeColor =
       departmentIcons[code as keyof typeof departmentIcons]?.color ||
-      "bg-slate-700 dark:bg-slate-600 text-white";
+      "bg-raised text-text-body";
     return (
       <Badge
         variant="outline"
         title={name}
-        className={`max-w-full truncate border-transparent px-2 py-0.5 text-[11px] ${badgeColor}`}
+        className="max-w-full truncate border-transparent bg-transparent px-0 py-0 text-sm font-normal text-on-maroon-muted"
       >
-        {name}
+        {name.replace(/^[A-Z]{3,4}\s*-\s*/, "")}
       </Badge>
     );
   };
@@ -910,67 +891,37 @@ export default function DepartmentsPage() {
           background: "var(--app-bg-gradient)",
         }}
       >
-        {/* Ambient background */}
-        <motion.div
-          aria-hidden
-          className="pointer-events-none absolute inset-0"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8 }}
-          style={{
-            background: "var(--app-bg-ambient)",
-          }}
-        />
 
         <Navigation variant="glass" />
 
         {/* Hero Section */}
-        <section className="pt-20 pb-4 relative z-10">
+        <PageBanner
+          title="Departments"
+          subtitle={<>Course counts, average GPA and professor ratings for every Texas A&amp;M department</>}
+        >
+          <div className="relative">
+            <Search strokeWidth={1.5} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted w-[18px] h-[18px]" />
+            {(searchTerm !== debouncedSearchTerm || loading) && (
+              <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-text-muted" />
+            )}
+            <Input
+              type="text"
+              placeholder="Search by code or name"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="h-12 rounded-xl border border-transparent bg-card shadow-lg pl-12 pr-10 text-base text-text-heading transition-colors placeholder:text-text-muted focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
+            />
+          </div>
+        </PageBanner>
+
+        <section className="pt-10 pb-4 relative z-10">
           <div className="max-w-7xl mx-auto px-6">
-            {/* Breadcrumbs */}
-            <div className="flex items-center justify-center gap-2 text-xs text-text-body mb-8 dark:text-white/70">
-              <span>Home</span>
-              <ChevronRight className="w-4 h-4 text-text-body/75 dark:text-white/65" />
-              <span className="text-text-heading dark:text-white/90">
-                Departments
-              </span>
-            </div>
-
-            <motion.div
-              className="text-center mb-12"
-              initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <h1 className="text-text-heading dark:text-white text-[28px] sm:text-[34px] md:text-[42px] leading-tight font-semibold tracking-tight mb-4">
-                Explore Academic Departments
-              </h1>
-              <p className="text-text-body dark:text-white/80 text-[13px] sm:text-[14px] md:text-[15px] max-w-2xl mx-auto mb-8 leading-relaxed">
-                Discover comprehensive data on all Texas A&M departments.
-                Compare courses, professors, and academic performance across
-                every field of study.
-              </p>
-
-              {/* Search Bar */}
-              <div className="relative max-w-lg mx-auto">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-body w-5 h-5 dark:text-white/60" />
-                {(searchTerm !== debouncedSearchTerm || loading) && (
-                  <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-accent" />
-                )}
-                <Input
-                  type="text"
-                  placeholder="Search departments..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="h-12 rounded-full border-2 border-[#500000]/25 bg-canvas pl-12 pr-10 text-[14px] text-text-body shadow-sm transition-colors placeholder:text-text-body/75 hover:border-[#500000]/40 focus-visible:border-[#500000]/60 focus-visible:ring-2 focus-visible:ring-[#500000]/15 focus-visible:ring-offset-0 dark:border-white/25 dark:bg-black/45 dark:text-white dark:placeholder:text-white/65 dark:backdrop-blur-sm dark:hover:border-[#FFCF3F]/40 dark:focus-visible:border-[#FFCF3F]/60 dark:focus-visible:ring-[#FFCF3F]/20 sm:h-14 sm:text-[15px]"
-                />
-              </div>
-            </motion.div>
 
             {/* Loading State */}
             {loading && (
-              <Card className="p-8 mb-12 bg-card border-border dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm">
-                <div className="text-center text-text-body dark:text-white/70">
-                  Loading departments...
+              <Card className="p-8 mb-12 bg-card border-border">
+                <div className="text-center text-text-body">
+                  Loading departments
                 </div>
               </Card>
             )}
@@ -980,8 +931,8 @@ export default function DepartmentsPage() {
               <Card className="p-8 mb-12 bg-red-50 border-red-200">
                 <div className="text-center">
                   <div className="text-red-700 mb-4">
-                    <div className="text-lg font-semibold mb-2">
-                      Unable to Load Departments
+                    <div className="text-lg font-medium mb-2">
+                      Couldn&apos;t load departments
                     </div>
                     <div className="text-sm">{error}</div>
                   </div>
@@ -997,14 +948,14 @@ export default function DepartmentsPage() {
                     onClick={() => window.location.reload()}
                     className="bg-red-600 hover:bg-red-700 text-white"
                   >
-                    Try Again
+                    Try again
                   </Button>
                 </div>
               </Card>
             )}
 
             {/* Statistics Overview */}
-            {!loading && !error && departmentsInfo && (
+            {!serverSearchMode && !loading && !error && departmentsInfo && (
               <motion.div
                 className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-12"
                 initial={shouldReduceMotion ? false : "hidden"}
@@ -1027,25 +978,24 @@ export default function DepartmentsPage() {
                     icon: Building,
                   },
                   {
-                    label: "Total Courses",
+                    label: "Courses with recent grade data",
                     value: departmentsInfo.summary.total_courses,
                     decimals: 0,
                     icon: BookOpen,
                   },
                   {
-                    label: "Total Professors",
+                    label: "Recent professor counts",
                     value: departmentsInfo.summary.total_professors,
                     decimals: 0,
                     icon: Users,
                   },
                   {
-                    label: "Avg Rating",
+                    label: "Average rating",
                     value: Number(departmentsInfo.summary.overall_avg_rating),
                     decimals: 1,
                     icon: Star,
                   },
                 ].map((s) => {
-                  const StatIcon = s.icon;
                   return (
                     <motion.div
                       key={s.label}
@@ -1053,24 +1003,11 @@ export default function DepartmentsPage() {
                         hidden: { opacity: 0, y: 10 },
                         visible: { opacity: 1, y: 0 },
                       }}
-                      whileHover={shouldReduceMotion ? undefined : { y: -2 }}
-                      className="rounded-2xl border border-border bg-card px-4 py-4 dark:border-white/10 dark:bg-black/45 dark:backdrop-blur-sm"
+                      className="rounded-xl border border-border bg-card p-5"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-canvas border border-border flex items-center justify-center text-accent dark:bg-white/10 dark:border-white/10">
-                          <StatIcon className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <div className="text-accent text-xl sm:text-2xl font-semibold tracking-tight">
-                            <CountUpNumber
-                              value={s.value}
-                              decimals={s.decimals}
-                            />
-                          </div>
-                          <div className="text-text-body text-xs sm:text-sm dark:text-white/80">
-                            {s.label}
-                          </div>
-                        </div>
+                      <div className="text-sm text-text-body">{s.label}</div>
+                      <div className="mt-3 font-mono text-[28px] font-medium leading-none text-accent">
+                        <CountUpNumber value={s.value} decimals={s.decimals} />
                       </div>
                     </motion.div>
                   );
@@ -1079,7 +1016,8 @@ export default function DepartmentsPage() {
             )}
 
             {/* Top Departments by Courses */}
-            {!loading &&
+            {!serverSearchMode &&
+              !loading &&
               !error &&
               departmentsInfo &&
               departmentsInfo.top_departments_by_courses && (
@@ -1091,8 +1029,8 @@ export default function DepartmentsPage() {
                   className="mb-8"
                 >
                   <div className="mb-4">
-                    <h3 className="text-text-heading dark:text-white text-base sm:text-lg font-semibold tracking-tight">
-                      Top Departments by Courses
+                    <h3 className="text-text-heading text-base font-medium">
+                      Largest departments by course count
                     </h3>
                   </div>
                   <div className="flex gap-3 overflow-x-auto pb-2 sm:pb-0 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 sm:gap-4 sm:overflow-visible">
@@ -1106,69 +1044,49 @@ export default function DepartmentsPage() {
                           whileInView={{ opacity: 1, y: 0 }}
                           viewport={{ once: true, amount: 0.2 }}
                           transition={{ duration: 0.4, delay: index * 0.03 }}
-                          whileHover={
-                            shouldReduceMotion
-                              ? undefined
-                              : { y: -2, scale: 1.01 }
-                          }
-                          whileTap={
-                            shouldReduceMotion ? undefined : { scale: 0.99 }
-                          }
                           className="group flex-shrink-0 w-[160px] sm:w-auto"
                         >
                           <Link href={`/departments?search=${dept.code}`}>
-                            <Card className="p-3 gap-2.5 bg-card border-border hover:border-border transition-all duration-normal cursor-pointer dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm dark:hover:border-white/20">
-                              <div className="flex items-center justify-between gap-2">
-                                <h4
-                                  className="font-semibold text-text-heading dark:text-white"
-                                  style={{ fontSize: "34px" }}
-                                >
+                            <Card className="p-4 gap-2 bg-card border-border shadow-none transition-colors duration-150 cursor-pointer hover:border-border-strong hover:bg-raised/40">
+                              <div className="flex items-baseline justify-between gap-2">
+                                <h4 className="font-mono text-2xl font-medium text-text-heading">
                                   {dept.code}
                                 </h4>
-                                <div className="flex items-center justify-start gap-0.5">
-                                  <Star
-                                    className="w-3 h-3 text-accent fill-current"
-                                    style={{ display: "flex" }}
-                                  />
-                                  <span className="text-xs text-text-body dark:text-white/70">
-                                    {dept.rating.toFixed(1)}
-                                  </span>
-                                </div>
+                                <span className="font-mono text-xs text-text-body">
+                                  {dept.rating.toFixed(1)}/5
+                                </span>
                               </div>
-                              <p className="text-xs text-text-body line-clamp-1 dark:text-white/60">
+                              <p className="text-xs text-text-body line-clamp-1 dark:text-text-muted">
                                 {dept.name.replace(`${dept.code} - `, "")}
                               </p>
-                              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border dark:border-white/10">
+                              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border">
                                 <div className="text-center">
-                                  <div className="flex items-center justify-center gap-0.5 mb-0.5">
-                                    <BookOpen className="w-3 h-3 text-accent" />
-                                    <span className="text-sm font-semibold text-text-heading dark:text-white">
+                                  <div className="mb-0.5">
+                                    <span className="font-mono text-sm text-text-heading">
                                       {dept.courses}
                                     </span>
                                   </div>
-                                  <div className="text-[10px] text-text-body dark:text-white/60">
+                                  <div className="text-xs text-text-body dark:text-text-muted">
                                     Courses
                                   </div>
                                 </div>
                                 <div className="text-center">
-                                  <div className="flex items-center justify-center gap-0.5 mb-0.5">
-                                    <Users className="w-3 h-3 text-accent" />
-                                    <span className="text-sm font-semibold text-text-heading dark:text-white">
+                                  <div className="mb-0.5">
+                                    <span className="font-mono text-sm text-text-heading">
                                       {dept.professors}
                                     </span>
                                   </div>
-                                  <div className="text-[10px] text-text-body dark:text-white/60">
+                                  <div className="text-xs text-text-body dark:text-text-muted">
                                     Profs
                                   </div>
                                 </div>
                                 <div className="text-center">
-                                  <div className="flex items-center justify-center gap-0.5 mb-0.5">
-                                    <TrendingUp className="w-3 h-3 text-accent" />
-                                    <span className="text-sm font-semibold text-text-heading dark:text-white">
+                                  <div className="mb-0.5">
+                                    <span className="font-mono text-sm text-text-heading">
                                       {dept.avgGpa.toFixed(2)}
                                     </span>
                                   </div>
-                                  <div className="text-[10px] text-text-body dark:text-white/60">
+                                  <div className="text-xs text-text-body dark:text-text-muted">
                                     GPA
                                   </div>
                                 </div>
@@ -1206,7 +1124,7 @@ export default function DepartmentsPage() {
                       selectedCategory === category.id
                         ? `${category.color} ${category.hoverColor} text-white border-transparent`
                         : "border-border hover:bg-button-hover"
-                    } transition-all duration-normal`}
+                    } transition-colors duration-normal`}
                   >
                     <CategoryIcon category={category} />
                     {category.name}
@@ -1220,15 +1138,16 @@ export default function DepartmentsPage() {
 
               {/* Sort Dropdown */}
               <div className="flex items-center gap-3">
-                <Filter className="w-5 h-5 text-text-body dark:text-white/60" />
+                <label htmlFor="dept-sort" className="text-sm text-text-body">Sort</label>
                 <select
+                  id="dept-sort"
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="bg-canvas border border-border rounded-xl px-4 py-2 text-text-body dark:bg-black/45 dark:border-white/15 dark:text-white/90 dark:backdrop-blur-sm"
+                  className="h-10 bg-card border border-border rounded-lg px-3 text-sm text-text-heading"
                 >
                   {sortOptions.map((option) => (
                     <option key={option.value} value={option.value}>
-                      Sort by {option.label}
+                      {option.label}
                     </option>
                   ))}
                 </select>
@@ -1262,59 +1181,23 @@ export default function DepartmentsPage() {
                       hidden: { opacity: 0, y: 20 },
                       visible: { opacity: 1, y: 0 },
                     }}
-                    transition={
-                      shouldReduceMotion
-                        ? undefined
-                        : { type: "spring", stiffness: 520, damping: 38 }
-                    }
-                    whileHover={
-                      shouldReduceMotion
-                        ? undefined
-                        : {
-                            y: -2,
-                            scale: 1.01,
-                            transition: { duration: 0.18 },
-                          }
-                    }
-                    whileTap={shouldReduceMotion ? undefined : { scale: 0.99 }}
+                    transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                   >
-                    <Card className="group relative gap-0 overflow-hidden border-border bg-card p-4 transition-all duration-normal hover:border-[#500000]/25 hover:shadow-md dark:border-white/10 dark:bg-black/45 dark:backdrop-blur-sm dark:hover:border-[#FFCF3F]/25">
-                      {/* subtle corner highlight */}
-                      <motion.div
-                        aria-hidden
-                        className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-[#FFCF3F]/10 blur-2xl"
-                        initial={false}
-                        animate={
-                          shouldReduceMotion
-                            ? undefined
-                            : { scale: [1, 1.06, 1], opacity: [0.7, 1, 0.8] }
-                        }
-                        transition={{
-                          duration: 6,
-                          repeat: Infinity,
-                          ease: "easeInOut",
-                        }}
-                      />
-
-                      <div className="relative mb-3 flex items-start gap-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-canvas text-accent dark:border-white/10 dark:bg-white/10 [&_svg]:h-5 [&_svg]:w-5">
-                          <IconComponent code={department.code} />
-                        </div>
+                    <Card className="group relative h-full gap-0 overflow-hidden border-border bg-card p-5 shadow-none transition-colors duration-150 hover:border-maroon-edge">
+                      <div className="bg-maroon-band relative -mx-5 -mt-5 mb-5 flex items-start gap-3 px-5 py-4">
                         <div className="min-w-0 flex-1">
                           <div className="mb-1 flex items-center justify-between gap-2">
-                            <h3 className="text-xl font-semibold tracking-tight text-text-heading dark:text-white">
+                            <h3 className="font-mono text-lg font-medium text-on-maroon">
                               {department.code}
                             </h3>
                             {department.rating != null && department.rating > 0 && (
-                            <div
-                              className="flex shrink-0 items-center gap-1 rounded-full border border-border/70 bg-canvas/60 px-2 py-0.5 dark:border-white/10 dark:bg-white/5"
+                            <span
+                              className="shrink-0 font-mono text-base text-accent-gold"
                               title="Average RateMyProfessor rating of this department's professors"
                             >
-                              <Star className="h-3.5 w-3.5 fill-current text-accent" />
-                              <span className="text-xs font-semibold text-text-heading dark:text-white">
-                                {department.rating}
-                              </span>
-                            </div>
+                              {department.rating}
+                              <span className="text-xs text-on-maroon-muted">/5</span>
+                            </span>
                             )}
                           </div>
                           <div className="min-w-0">
@@ -1332,12 +1215,14 @@ export default function DepartmentsPage() {
                                 department.name.toLowerCase() ||
                               desc.toLowerCase() ===
                                 `${department.code} - ${department.name}`.toLowerCase() ||
-                              desc.startsWith(codePrefix);
+                              desc.startsWith(codePrefix) ||
+                              desc.toLowerCase() ===
+                                department.name.replace(/^[A-Z]{3,4}\s*-\s*/, "").toLowerCase();
 
                             if (isRedundant) return null;
 
                             return (
-                              <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-text-body dark:text-white/60">
+                              <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-on-maroon-muted">
                                 {desc}
                               </p>
                             );
@@ -1345,65 +1230,49 @@ export default function DepartmentsPage() {
                         </div>
                       </div>
 
-                      <div className="mb-3 grid grid-cols-3 divide-x divide-border/70 rounded-xl border border-border/70 bg-canvas/60 py-2.5 dark:divide-white/10 dark:border-white/10 dark:bg-white/5">
-                        <div className="flex items-center justify-center gap-1.5 px-2">
-                            <BookOpen className="h-3.5 w-3.5 text-accent" />
-                            <span className="text-sm font-semibold text-text-heading dark:text-white">
-                              {department.courses}
-                            </span>
-                            <span className="text-[11px] text-text-body dark:text-white/70">courses</span>
+                      <dl className="mb-4 grid grid-cols-3 gap-3">
+                        <div>
+                          <dt className="text-xs text-text-muted">Courses</dt>
+                          <dd className="mt-1 font-mono text-base text-text-heading">{department.courses}</dd>
                         </div>
-                        <div className="flex items-center justify-center gap-1.5 px-2">
-                            <Users className="h-3.5 w-3.5 text-accent" />
-                            <span className="text-sm font-semibold text-text-heading dark:text-white">
-                              {department.professors}
-                            </span>
-                            <span className="text-[11px] text-text-body dark:text-white/70">profs</span>
+                        <div>
+                          <dt className="text-xs text-text-muted">Professors</dt>
+                          <dd className="mt-1 font-mono text-base text-text-heading">{department.professors}</dd>
                         </div>
-                        <div className="flex items-center justify-center gap-1.5 px-2">
-                            <TrendingUp className="h-3.5 w-3.5 text-accent" />
-                            <span className="text-sm font-semibold text-text-heading dark:text-white">
-                              {department.avgGpa != null && department.avgGpa > 0
-                                ? department.avgGpa.toFixed(2)
-                                : "—"}
-                            </span>
-                            <span className="text-[11px] text-text-body dark:text-white/70">avg GPA</span>
+                        <div>
+                          <dt className="text-xs text-text-muted">Avg GPA</dt>
+                          <dd className="mt-1 font-mono text-base text-text-heading">
+                            {department.avgGpa != null && department.avgGpa > 0
+                              ? department.avgGpa.toFixed(2)
+                              : "—"}
+                          </dd>
                         </div>
-                      </div>
+                      </dl>
 
                       {department.topCourses.length > 0 && (
-                      <div className="mb-3 flex flex-wrap gap-1">
+                      <div className="mb-4 flex flex-wrap gap-1">
                           {department.topCourses.slice(0, 3).map((course, index) => (
-                                <Badge
-                                  key={`course-${index}`}
-                                  variant="outline"
-                                  className="border-border bg-canvas font-mono text-[11px] text-text-body dark:border-white/15 dark:bg-black/20 dark:text-white/70"
-                                >
+                                <span key={`course-${index}`} className="code-tag">
                                   {course}
-                                </Badge>
+                                </span>
                           ))}
                       </div>
                       )}
 
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="flex items-center gap-4 border-t border-border pt-3">
                         <Link
                           href={`/courses?department=${encodeURIComponent(department.name)}`}
+                          className="inline-flex items-center gap-1 text-sm text-text-heading transition-colors duration-150 hover:text-accent"
                         >
-                          <Button className="h-10 w-full rounded-full bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966]">
-                            All courses
-                            <ChevronRight className="w-4 h-4 ml-1" />
-                          </Button>
+                          All courses
+                          <ChevronRight strokeWidth={1.5} className="w-4 h-4" />
                         </Link>
                         <Link
                           href={`/discover/dept?dept=${encodeURIComponent(department.code)}`}
+                          className="inline-flex items-center gap-1 text-sm text-text-body transition-colors duration-150 hover:text-text-heading"
                         >
-                          <Button
-                            variant="outline"
-                            className="h-10 w-full rounded-full border-border dark:border-white/20"
-                          >
-                            Easiest
-                            <ChevronRight className="w-4 h-4 ml-1" />
-                          </Button>
+                          Easiest courses
+                          <ChevronRight strokeWidth={1.5} className="w-4 h-4" />
                         </Link>
                       </div>
                     </Card>
@@ -1414,11 +1283,11 @@ export default function DepartmentsPage() {
 
             {!loading && !error && filteredDepartments.length === 0 && (
               <div className="text-center py-16">
-                <div className="text-6xl mb-4">🔍</div>
-                <h3 className="text-2xl font-semibold text-text-heading dark:text-white mb-2">
+                <Search strokeWidth={1.5} className="w-6 h-6 text-text-muted mx-auto mb-3" />
+                <h3 className="text-lg font-medium text-text-heading mb-1">
                   No departments found
                 </h3>
-                <p className="text-text-body dark:text-white/70">
+                <p className="text-text-body">
                   Try adjusting your search or filter criteria
                 </p>
               </div>
@@ -1438,7 +1307,7 @@ export default function DepartmentsPage() {
                     setCurrentPage((prev) => Math.max(prev - 1, 1))
                   }
                   disabled={currentPage === 1}
-                  className="border-border bg-canvas text-text-body hover:bg-button-hover dark:border-white/15 dark:bg-black/30 dark:text-white/80 dark:hover:bg-black/45"
+                  className="border-border bg-canvas text-text-body hover:bg-button-hover dark:bg-card dark:hover:bg-raised"
                 >
                   <ChevronLeft className="w-4 h-4" />
                   <span className="hidden sm:inline">Previous</span>
@@ -1470,7 +1339,7 @@ export default function DepartmentsPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => setCurrentPage(1)}
-                          className="border-border bg-canvas text-text-body hover:bg-button-hover dark:border-white/15 dark:bg-black/30 dark:text-white/80 dark:hover:bg-black/45"
+                          className="border-border bg-canvas text-text-body hover:bg-button-hover dark:bg-card dark:hover:bg-raised"
                         >
                           1
                         </Button>
@@ -1494,8 +1363,8 @@ export default function DepartmentsPage() {
                           onClick={() => setCurrentPage(i)}
                           className={
                             currentPage === i
-                              ? "bg-[#FFCF3F] text-[#0f0f0f]"
-                              : "border-border bg-canvas text-text-body hover:bg-button-hover dark:border-white/15 dark:bg-black/30 dark:text-white/80 dark:hover:bg-black/45"
+                              ? "bg-maroon-band text-on-maroon"
+                              : "border-border bg-canvas text-text-body hover:bg-button-hover dark:bg-card dark:hover:bg-raised"
                           }
                         >
                           {i}
@@ -1518,7 +1387,7 @@ export default function DepartmentsPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => setCurrentPage(totalPages)}
-                          className="border-border bg-canvas text-text-body hover:bg-button-hover dark:border-white/15 dark:bg-black/30 dark:text-white/80 dark:hover:bg-black/45"
+                          className="border-border bg-canvas text-text-body hover:bg-button-hover dark:bg-card dark:hover:bg-raised"
                         >
                           {totalPages}
                         </Button>
@@ -1536,7 +1405,7 @@ export default function DepartmentsPage() {
                     setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                   }
                   disabled={currentPage === totalPages}
-                  className="border-border bg-canvas text-text-body hover:bg-button-hover dark:border-white/15 dark:bg-black/30 dark:text-white/80 dark:hover:bg-black/45"
+                  className="border-border bg-canvas text-text-body hover:bg-button-hover dark:bg-card dark:hover:bg-raised"
                 >
                   <span className="hidden sm:inline">Next</span>
                   <ChevronRight className="w-4 h-4" />

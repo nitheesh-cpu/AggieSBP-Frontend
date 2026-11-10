@@ -1,14 +1,26 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { motion, MotionConfig, useReducedMotion } from "motion/react";
 import { Navigation } from "@/components/navigation";
+import { PageBanner } from "@/components/page-banner";
 import { EasinessBadge, EasinessLegend } from "@/components/easiness";
 import { pickDefaultTerm, sortTermsForMenu } from "@/lib/terms";
 import type { Term as ApiTerm } from "@/lib/api";
 import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -19,12 +31,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Search,
   Loader2,
   BookOpen,
   GraduationCap,
   Star,
   ChevronDown,
   ArrowUpDown,
+  Filter,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -79,7 +93,27 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: "rating", label: "Prof Rating" },
 ];
 
+type SeatFilter = "any" | "open" | "full";
+
+const DEFAULT_SEAT_FILTER: SeatFilter = "open";
+
+interface FilterOptions {
+  campuses: string[];
+  sectionTypes: string[];
+}
+
+const CAMPUS_SELECT_ANY = "__ucc_campus_any__";
+
 export default function UCCDiscoveryPage() {
+  return (
+    <React.Suspense>
+      <UCCDiscoveryContent />
+    </React.Suspense>
+  );
+}
+
+function UCCDiscoveryContent() {
+  const group = useSearchParams().get("group")?.toUpperCase();
   const shouldReduceMotion = useReducedMotion();
   const [hasMounted, setHasMounted] = useState(false);
   const [terms, setTerms] = useState<Term[]>([]);
@@ -89,10 +123,35 @@ export default function UCCDiscoveryPage() {
   const [fetchingTerms, setFetchingTerms] = useState<boolean>(true);
   const [expandedState, setExpandedState] = useState<ExpandedState>({});
   const [sortKey, setSortKey] = useState<SortKey>("easiness");
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>({
+    campuses: [],
+    sectionTypes: [],
+  });
+  const [campus, setCampus] = useState("");
+  const [seatFilter, setSeatFilter] = useState<SeatFilter>(DEFAULT_SEAT_FILTER);
+  const [sectionTypes, setSectionTypes] = useState<string[]>([]);
+  const [sectionTypeSearch, setSectionTypeSearch] = useState("");
+  const visibleCategories = uccData.filter(
+    ({ category, courses }) =>
+      courses.length > 0 && (!group || category.endsWith(`(${group})`)),
+  );
 
   useEffect(() => {
     setHasMounted(true);
   }, []);
+
+  const filteredSectionTypeOptions = useMemo(() => {
+    const q = sectionTypeSearch.trim().toLowerCase();
+    if (!q) return filterOptions.sectionTypes;
+    return filterOptions.sectionTypes.filter((t) => t.toLowerCase().includes(q));
+  }, [filterOptions.sectionTypes, sectionTypeSearch]);
+
+  // Anything narrowing results (drives the empty-state hint)
+  const hasActiveFilters =
+    campus !== "" || seatFilter !== "any" || sectionTypes.length > 0;
+  // Anything changed from the defaults (drives the reset button)
+  const filtersChanged =
+    campus !== "" || seatFilter !== DEFAULT_SEAT_FILTER || sectionTypes.length > 0;
 
   // Fetch terms on mount
   useEffect(() => {
@@ -104,7 +163,7 @@ export default function UCCDiscoveryPage() {
         setTerms(data);
         // Open on the term students are registering for, not an empty page.
         const initial = pickDefaultTerm(data as ApiTerm[]);
-        if (initial) void handleTermChange(initial);
+        if (initial) handleTermChange(initial);
       } catch (error) {
         console.error("Error fetching terms:", error);
       } finally {
@@ -115,30 +174,79 @@ export default function UCCDiscoveryPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Fetch UCC data when term is selected
-  const handleTermChange = async (termCode: string) => {
+  // Campus and section-type options depend on the term; seat filter carries over.
+  const handleTermChange = (termCode: string) => {
     setSelectedTerm(termCode);
+    setCampus("");
+    setSectionTypes([]);
+    setSectionTypeSearch("");
+  };
+
+  // Fetch filter options when term changes
+  useEffect(() => {
+    if (!selectedTerm) return;
+    const controller = new AbortController();
+    setFilterOptions({ campuses: [], sectionTypes: [] });
+    fetch(`${API_BASE_URL}/discover/${selectedTerm}/ucc-filter-options`, {
+      signal: controller.signal,
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch UCC filter options");
+        return res.json();
+      })
+      .then((data: Partial<FilterOptions> | null) =>
+        // An older backend answers with something else (or []); treat that as "no options".
+        setFilterOptions({
+          campuses: Array.isArray(data?.campuses) ? data.campuses : [],
+          sectionTypes: Array.isArray(data?.sectionTypes) ? data.sectionTypes : [],
+        }),
+      )
+      .catch((error) => {
+        if (!controller.signal.aborted) {
+          console.error("Error fetching UCC filter options:", error);
+        }
+      });
+    return () => controller.abort();
+  }, [selectedTerm]);
+
+  // Fetch UCC data when term or filters change
+  useEffect(() => {
+    if (!selectedTerm) return;
+    const controller = new AbortController();
+    const params = new URLSearchParams();
+    if (campus) params.set("campus", campus);
+    if (seatFilter !== "any") params.set("seats", seatFilter);
+    sectionTypes.forEach((t) => params.append("section_type", t));
+    const query = params.toString();
+
     setLoading(true);
     setUccData([]);
     setExpandedState({});
 
-    try {
-      const res = await fetch(`${API_BASE_URL}/discover/${termCode}/ucc`);
-      if (!res.ok) throw new Error("Failed to fetch UCC data");
-      const data = await res.json();
-      setUccData(data);
-      // Initialize expanded state for each category
-      const initialExpanded: ExpandedState = {};
-      data.forEach((cat: UCCCategory) => {
-        initialExpanded[cat.category] = INITIAL_COURSES_SHOWN;
+    fetch(`${API_BASE_URL}/discover/${selectedTerm}/ucc${query ? `?${query}` : ""}`, {
+      signal: controller.signal,
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch UCC data");
+        return res.json();
+      })
+      .then((data: UCCCategory[]) => {
+        setUccData(data);
+        // Initialize expanded state for each category
+        const initialExpanded: ExpandedState = {};
+        data.forEach((cat) => {
+          initialExpanded[cat.category] = INITIAL_COURSES_SHOWN;
+        });
+        setExpandedState(initialExpanded);
+        setLoading(false);
+      })
+      .catch((error) => {
+        if (controller.signal.aborted) return;
+        console.error("Error fetching UCC data:", error);
+        setLoading(false);
       });
-      setExpandedState(initialExpanded);
-    } catch (error) {
-      console.error("Error fetching UCC data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    return () => controller.abort();
+  }, [selectedTerm, campus, seatFilter, sectionTypes]);
 
   const handleViewMore = (category: string, totalCourses: number) => {
     setExpandedState((prev) => ({
@@ -176,33 +284,30 @@ export default function UCCDiscoveryPage() {
 
         <Navigation variant="glass" />
 
-        <main className="relative pt-24 pb-20">
+        <PageBanner
+          title="University core curriculum"
+          subtitle="The easiest professor-and-course options for each core curriculum (UCC) requirement, for the term you pick"
+        />
+
+        <main className="relative pt-10 pb-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
             {/* Header Section */}
             <div className="mb-5 flex flex-col md:flex-row md:items-end justify-between gap-6">
-              <div className="space-y-3">
-                <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-text-heading dark:text-white">
-                  University Core Curriculum
-                </h1>
-                <p className="text-text-body dark:text-white/80 text-lg max-w-2xl">
-                  The easiest professor-and-course options for each core curriculum (UCC)
-                  requirement, for the term you pick.
-                </p>
-              </div>
+              <div />
 
               <div className="flex w-full flex-col gap-3 sm:flex-row md:w-auto">
                 <Select onValueChange={handleTermChange} value={selectedTerm}>
-                  <SelectTrigger className="h-12 w-full bg-card/80 backdrop-blur-md border-border dark:border-white/15 dark:bg-black/50 dark:text-white rounded-full px-5 shadow-sm transition-all sm:w-72">
+                  <SelectTrigger className="h-12 w-full bg-card/80 backdrop-blur-md border-border dark:bg-card dark:text-text-heading rounded-full px-5 shadow-sm transition-colors sm:w-72">
                     <SelectValue placeholder={fetchingTerms ? "Loading terms..." : "Select a Term"} />
                   </SelectTrigger>
-                  <SelectContent className="bg-card/80 backdrop-blur-md border-border dark:border-white/15 dark:bg-black/50 dark:text-white rounded-full px-5 shadow-sm transition-all">
+                  <SelectContent className="bg-card/80 backdrop-blur-md border-border dark:bg-card dark:text-text-heading rounded-full px-5 shadow-sm transition-colors">
                     <SelectGroup>
                       <SelectLabel>Available Terms</SelectLabel>
                       {(() => {
                         const { main, other } = sortTermsForMenu(terms as ApiTerm[]);
                         return [...main, ...other];
                       })().map((term) => (
-                        <SelectItem key={term.termCode} value={term.termCode} className="hover:bg-card hover:dark:bg-black/70">
+                        <SelectItem key={term.termCode} value={term.termCode} className="hover:bg-card hover:dark:bg-card">
                           {term.termDesc}
                         </SelectItem>
                       ))}
@@ -214,11 +319,11 @@ export default function UCCDiscoveryPage() {
                   onValueChange={(value) => setSortKey(value as SortKey)}
                   value={sortKey}
                 >
-                  <SelectTrigger className="h-12 w-full bg-card/80 backdrop-blur-md border-border dark:border-white/15 dark:bg-black/50 dark:text-white rounded-full px-5 shadow-sm transition-all sm:w-48">
-                    <ArrowUpDown className="mr-1 h-4 w-4 shrink-0 text-text-body/75 dark:text-white/65" />
+                  <SelectTrigger className="h-12 w-full bg-card/80 backdrop-blur-md border-border dark:bg-card dark:text-text-heading rounded-full px-5 shadow-sm transition-colors sm:w-48">
+                    <ArrowUpDown className="mr-1 h-4 w-4 shrink-0 text-text-muted" />
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="dark:bg-black/90 dark:border-white/15 dark:text-white">
+                  <SelectContent className="dark:bg-card dark:border-border dark:text-text-heading">
                     <SelectGroup>
                       <SelectLabel>Sort by</SelectLabel>
                       {SORT_OPTIONS.map((option) => (
@@ -241,20 +346,19 @@ export default function UCCDiscoveryPage() {
               {/* Reveille Avatar */}
               <motion.div
                 className="relative group cursor-help shrink-0 z-20"
-                whileHover={{ scale: 1.05 }}
                 transition={{ duration: 0.3 }}
               >
                 <img
                   src="/pixel-reveille.png"
                   alt="Reveille - The First Lady of Aggieland"
-                  className="w-60 h-60 md:w-60 md:h-60 object-contain drop-shadow-xl"
+                  className="w-60 h-60 md:w-60 md:h-60 object-contain"
                   style={{ imageRendering: "pixelated" }}
                 />
               </motion.div>
 
               {/* Speech Bubble - Consistent styling for all states */}
               <div className="relative w-full md:max-w-xl md:flex-1 lg:mt-8">
-                <div className="bg-popover border-2 border-primary rounded-2xl p-4 md:p-5 relative shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.9)]">
+                <div className="bg-card border border-border-strong rounded-2xl p-5 relative">
                   {/* Speech bubble pointer - mobile (top, pointing up to Reveille) */}
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-5 h-5 bg-popover border-t-2 border-l-2 border-primary transform rotate-45 md:hidden" />
                   {/* Speech bubble pointer - desktop (left side, pointing to Reveille) */}
@@ -265,10 +369,10 @@ export default function UCCDiscoveryPage() {
                     <div className="flex items-center gap-4">
                       <Loader2 className="w-6 h-6 animate-spin text-primary shrink-0" />
                       <div>
-                        <h3 className="font-bold text-lg leading-relaxed text-primary mb-1">
+                        <h3 className="font-medium text-lg leading-relaxed text-primary mb-1">
                           *sniff sniff*
                         </h3>
-                        <p className="text-sm text-text-body dark:text-white/90">
+                        <p className="text-sm text-text-body dark:text-text-heading">
                           Fetching the <strong className="text-emerald-500">easiest</strong> courses for you...
                         </p>
                       </div>
@@ -276,17 +380,17 @@ export default function UCCDiscoveryPage() {
                   ) : !selectedTerm ? (
                     // Intro State
                     <>
-                      <h3 className="font-bold text-lg leading-relaxed text-primary mb-3">
-                        Howdy! Woof!
+                      <h3 className="font-medium text-lg leading-relaxed text-primary mb-3">
+                        Howdy
                       </h3>
-                      <p className="text-sm text-text-body dark:text-white/90">
-                        I&apos;m <strong>Reveille</strong>! Pick a term above, and I&apos;ll fetch the <strong className="text-emerald-500 font-bold bg-emerald-500/10 px-1 rounded">EASIEST</strong> core curriculum courses for you.
+                      <p className="text-sm text-text-body dark:text-text-heading">
+                        I&apos;m <strong>Reveille</strong>! Pick a term above, and I&apos;ll fetch the <strong className="text-emerald-500 font-medium bg-emerald-500/10 px-1 rounded">EASIEST</strong> core curriculum courses for you.
                       </p>
                     </>
                   ) : (
                     // Metrics Legend (Active State)
                     <>
-                      <h3 className="font-bold text-lg lg:text-xl leading-relaxed text-primary mb-4">
+                      <h3 className="font-medium text-lg lg:text-xl leading-relaxed text-primary mb-4">
                         Here&apos;s what the numbers mean
                       </h3>
                       <EasinessLegend showAbRate />
@@ -296,11 +400,163 @@ export default function UCCDiscoveryPage() {
               </div>
             </motion.div>
 
+            {/* Section Filters */}
+            {selectedTerm && (
+              <Card className="mb-10 bg-white/55 dark:bg-card backdrop-blur-md border-border">
+                <CardContent className="pt-4">
+                  <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-end">
+                    <div className="flex items-center gap-2 text-text-heading lg:self-center">
+                      <Filter strokeWidth={1.5} className="w-5 h-5 shrink-0 text-text-muted" />
+                      <span className="text-sm font-medium">Refine by section</span>
+                    </div>
+                    {filterOptions.campuses.length > 1 && (
+                      <div className="flex flex-col gap-1.5 min-w-[200px]">
+                        <Label className="text-xs text-text-body">
+                          Campus
+                        </Label>
+                        <Select
+                          value={campus || CAMPUS_SELECT_ANY}
+                          onValueChange={(v) => setCampus(v === CAMPUS_SELECT_ANY ? "" : v)}
+                        >
+                          <SelectTrigger className="h-9 w-full sm:w-[220px]">
+                            <SelectValue placeholder="Any campus" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={CAMPUS_SELECT_ANY}>Any campus</SelectItem>
+                            {filterOptions.campuses.map((c) => (
+                              <SelectItem key={c} value={c}>
+                                {c}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                    <div className="flex flex-col gap-1.5 min-w-[200px]">
+                      <Label className="text-xs text-text-body">
+                        Seats
+                      </Label>
+                      <Select
+                        value={seatFilter}
+                        onValueChange={(v) => setSeatFilter(v as SeatFilter)}
+                      >
+                        <SelectTrigger className="h-9 w-full sm:w-[240px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="open">Open seats only</SelectItem>
+                          <SelectItem value="any">Include full sections</SelectItem>
+                          <SelectItem value="full">Full sections only</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex flex-col gap-1.5 min-w-[220px]">
+                      <Label className="text-xs text-text-body">
+                        Section type (honors, online, …)
+                      </Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="h-9 w-full sm:w-[260px] justify-between font-normal"
+                            type="button"
+                          >
+                            <span className="truncate text-left">
+                              {sectionTypes.length === 0
+                                ? "Any type"
+                                : `${sectionTypes.length} selected`}
+                            </span>
+                            <ChevronDown className="w-4 h-4 shrink-0 opacity-60" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[min(100vw-2rem,380px)] p-0" align="start">
+                          <div className="p-2 border-b border-border">
+                            <Input
+                              placeholder="Search section types…"
+                              value={sectionTypeSearch}
+                              onChange={(e) => setSectionTypeSearch(e.target.value)}
+                              className="h-8 text-sm"
+                            />
+                          </div>
+                          <ScrollArea className="h-[min(50vh,280px)]">
+                            <div className="p-2 space-y-1">
+                              {filterOptions.sectionTypes.length === 0 && (
+                                <p className="text-xs text-text-body dark:text-text-muted px-1 py-2">
+                                  No section types listed for this term.
+                                </p>
+                              )}
+                              {filteredSectionTypeOptions.map((type) => (
+                                <label
+                                  key={type}
+                                  className="flex items-start gap-2 rounded-md px-2 py-1.5 hover:bg-black/5 dark:hover:bg-raised cursor-pointer"
+                                >
+                                  <Checkbox
+                                    checked={sectionTypes.includes(type)}
+                                    onCheckedChange={() => {
+                                      setSectionTypes((prev) =>
+                                        prev.includes(type)
+                                          ? prev.filter((x) => x !== type)
+                                          : [...prev, type],
+                                      );
+                                    }}
+                                    className="mt-0.5"
+                                  />
+                                  <span className="text-xs leading-snug text-text-body">
+                                    {type}
+                                  </span>
+                                </label>
+                              ))}
+                            </div>
+                          </ScrollArea>
+                          {sectionTypes.length > 0 && (
+                            <div className="p-2 border-t border-border">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-full text-xs"
+                                onClick={() => setSectionTypes([])}
+                              >
+                                Clear section types
+                              </Button>
+                            </div>
+                          )}
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    {filtersChanged && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-9 text-xs"
+                        onClick={() => {
+                          setCampus("");
+                          setSeatFilter(DEFAULT_SEAT_FILTER);
+                          setSectionTypes([]);
+                        }}
+                      >
+                        Reset filters
+                      </Button>
+                    )}
+                  </div>
+                  <p className="mt-3 text-xs text-text-body">
+                    A professor is listed if at least one of their sections matches. Picking
+                    several section types shows sections that have any of them.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Results */}
-            {!loading && uccData.length > 0 && (
+            {group && (
+              <Link href="/discover/ucc" className="mb-6 inline-block text-sm text-accent underline underline-offset-4">
+                Show all core curriculum groups
+              </Link>
+            )}
+            {!loading && visibleCategories.length > 0 && (
               <div className="space-y-16">
-                {uccData.map((category) => {
-                  if (category.courses.length === 0) return null;
+                {visibleCategories.map((category) => {
                   const shownCount = expandedState[category.category] || INITIAL_COURSES_SHOWN;
                   const sortedCourses = sortCourses(category.courses);
                   const visibleCourses = sortedCourses.slice(0, shownCount);
@@ -308,10 +564,10 @@ export default function UCCDiscoveryPage() {
 
                   return (
                     <section key={category.category} className="space-y-6">
-                      <div className="flex items-center gap-3 pb-3 border-b border-border dark:border-white/10">
-                        <BookOpen className="w-5 h-5 text-accent" />
-                        <h2 className="text-xl font-semibold text-text-heading dark:text-white">{category.category}</h2>
-                        <Badge className="bg-[#FFCF3F]/25 text-[#5c4400] border-transparent dark:bg-[#FFCF3F]/20 dark:text-[#FFCF3F]">
+                      <div className="flex items-center gap-3 pb-3 border-b border-border">
+                        <BookOpen strokeWidth={1.5} className="w-5 h-5 text-text-muted" />
+                        <h2 className="text-xl font-medium text-text-heading">{category.category}</h2>
+                        <Badge className="border-border bg-transparent font-mono font-normal text-text-body">
                           {category.courses.length} courses
                         </Badge>
                       </div>
@@ -340,45 +596,20 @@ export default function UCCDiscoveryPage() {
                             transition={
                               shouldReduceMotion
                                 ? undefined
-                                : { type: "spring", stiffness: 420, damping: 34 }
+                                : { duration: 0.3, ease: [0.22, 1, 0.36, 1] }
                             }
-                            whileHover={
-                              shouldReduceMotion
-                                ? undefined
-                                : {
-                                  y: -2,
-                                  scale: 1.01,
-                                  transition: { duration: 0.18 },
-                                }
-                            }
-                            whileTap={shouldReduceMotion ? undefined : { scale: 0.99 }}
                           >
-                            <Card className="bg-card border-border hover:border-border transition-all duration-200 relative overflow-hidden group dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm dark:hover:border-white/20">
+                            <Card className="bg-card border-border hover:border-border transition-colors duration-150 relative overflow-hidden group dark:hover:border-border-strong">
                               {/* Subtle corner highlight */}
-                              <motion.div
-                                aria-hidden
-                                className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-[#FFCF3F]/10 blur-2xl"
-                                initial={false}
-                                animate={
-                                  shouldReduceMotion
-                                    ? undefined
-                                    : { scale: [1, 1.06, 1], opacity: [0.7, 1, 0.8] }
-                                }
-                                transition={{
-                                  duration: 6,
-                                  repeat: Infinity,
-                                  ease: "easeInOut",
-                                }}
-                              />
 
                               <CardContent className="relative pt-2">
                                 {/* Header: Course info + Easiness Score */}
                                 <div className="flex items-start justify-between gap-4 mb-4">
                                   <div className="flex-1 min-w-0">
-                                    <h3 className="text-lg font-bold text-text-heading dark:text-white">
+                                    <h3 className="text-lg font-medium text-text-heading">
                                       {course.dept} {course.courseNumber}
                                     </h3>
-                                    <p className="text-sm text-text-body/80 dark:text-white/60 line-clamp-1">
+                                    <p className="text-sm text-text-muted line-clamp-1">
                                       {course.courseTitle}
                                     </p>
                                   </div>
@@ -392,31 +623,31 @@ export default function UCCDiscoveryPage() {
                                 {/* Professor + Stats Row */}
                                 <div className="flex items-center justify-between mb-3">
                                   <div className="flex items-center gap-2 min-w-0 flex-1">
-                                    <GraduationCap className="w-4 h-4 text-accent shrink-0" />
-                                    <span className="text-md font-medium text-text-heading dark:text-white truncate">
+                                    <GraduationCap strokeWidth={1.5} className="w-5 h-5 text-text-muted shrink-0" />
+                                    <span className="text-md font-medium text-text-heading truncate">
                                       {course.professor
                                         ? `${course.professor.firstName} ${course.professor.lastName}`
                                         : "TBA"}
                                     </span>
                                   </div>
                                 </div>
-                                <div className="py-3 px-3 rounded-lg bg-black/5 dark:bg-white/5 mb-3">
+                                <div className="py-3 px-3 rounded-lg bg-black/5 dark:bg-raised mb-3">
                                   <div className="grid grid-cols-3 gap-2 text-sm w-full justify-items-center">
                                     {course.professor?.avgRating && course.professor.avgRating > 0 && (
                                       <div className="flex items-center gap-1">
-                                        <Star className="w-3.5 h-3.5 text-accent fill-current" />
-                                        <span className="font-medium text-text-heading dark:text-white">
+                                        <Star className="w-3.5 h-3.5 text-text-muted" />
+                                        <span className="font-medium text-text-heading">
                                           {course.professor.avgRating.toFixed(1)}
                                         </span>
                                       </div>
                                     )}
                                     {course.professor?.avgGpa && (
-                                      <div className="text-text-body/80 dark:text-white/60">
-                                        <span className="font-medium text-text-heading dark:text-white">{course.professor.avgGpa.toFixed(2)}</span> GPA
+                                      <div className="text-text-muted">
+                                        <span className="font-medium text-text-heading">{course.professor.avgGpa.toFixed(2)}</span> GPA
                                       </div>
                                     )}
                                     {course.professor?.percentAB && (
-                                      <div className="text-text-body/80 dark:text-white/60">
+                                      <div className="text-text-muted">
                                         <span className="font-medium text-emerald-500">{course.professor.percentAB.toFixed(0)}%</span> A/B
                                       </div>
                                     )}
@@ -429,13 +660,13 @@ export default function UCCDiscoveryPage() {
                                     {course.professor.tags.slice(0, 2).map((tag, tagIdx) => (
                                       <span
                                         key={tagIdx}
-                                        className="text-xs px-2 py-0.5 rounded-full bg-white/5 text-text-body/70 dark:text-white/65"
+                                        className="text-xs px-2 py-0.5 rounded-full bg-white/5 text-text-muted"
                                       >
                                         {tag}
                                       </span>
                                     ))}
                                     {course.professor.tags.length > 2 && (
-                                      <span className="text-xs text-text-body/75 dark:text-white/65">
+                                      <span className="text-xs text-text-muted">
                                         +{course.professor.tags.length - 2}
                                       </span>
                                     )}
@@ -453,11 +684,11 @@ export default function UCCDiscoveryPage() {
                           <Button
                             variant="outline"
                             onClick={() => handleViewMore(category.category, category.courses.length)}
-                            className="border-border bg-canvas text-text-body hover:bg-button-hover dark:border-white/15 dark:bg-black/30 dark:text-white/80 dark:hover:bg-black/45 rounded-full px-6"
+                            className="border-border bg-canvas text-text-body hover:bg-button-hover dark:bg-card dark:hover:bg-raised rounded-full px-6"
                           >
                             View More
                             <ChevronDown className="w-4 h-4 ml-2" />
-                            <span className="ml-1 text-xs text-text-body/70 dark:text-white/60">
+                            <span className="ml-1 text-xs text-text-muted">
                               ({category.courses.length - shownCount} remaining)
                             </span>
                           </Button>
@@ -470,14 +701,18 @@ export default function UCCDiscoveryPage() {
             )}
 
             {/* Empty State */}
-            {!loading && selectedTerm && uccData.length === 0 && (
-              <div className="text-center py-20 bg-card rounded-2xl border border-dashed border-border dark:border-white/10 dark:bg-black/30">
-                <div className="text-6xl mb-4">🔍</div>
-                <h3 className="text-2xl font-semibold text-text-heading dark:text-white mb-2">
+            {!loading && selectedTerm && visibleCategories.length === 0 && (
+              <div className="text-center py-20 bg-card rounded-2xl border border-dashed border-border">
+                <Search strokeWidth={1.5} className="w-6 h-6 text-text-muted mx-auto mb-3" aria-hidden />
+                <h3 className="text-2xl font-medium text-text-heading mb-2">
                   No courses found
                 </h3>
-                <p className="text-text-body dark:text-white/70">
-                  No UCC courses found for this term.
+                <p className="text-text-body">
+                  {group
+                    ? "No courses in this core curriculum group match the selected term and filters."
+                    : hasActiveFilters
+                    ? "No UCC courses match these filters. Try loosening them."
+                    : "No UCC courses found for this term."}
                 </p>
               </div>
             )}

@@ -11,7 +11,7 @@ export function ThemeDemo() {
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8">
       <div className="text-center space-y-4">
-        <h2 className="text-3xl font-semibold text-heading">Theme Demo</h2>
+        <h2 className="text-3xl font-medium text-heading">Theme Demo</h2>
         <p className="text-body">
           This section showcases how different UI elements adapt to theme
           changes.
@@ -25,19 +25,19 @@ export function ThemeDemo() {
       </div>
 
       {/* Simple dark mode test */}
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border">
-        <h3 className="text-black dark:text-white mb-4">Dark Mode Test</h3>
-        <p className="text-gray-600 dark:text-gray-300 mb-4">
+      <div className="bg-white dark:bg-raised p-6 rounded-lg border">
+        <h3 className="text-black dark:text-text-heading mb-4">Dark Mode Test</h3>
+        <p className="text-text-muted dark:text-text-body mb-4">
           This text should change color based on the theme.
         </p>
         <div className="flex gap-2">
-          <Badge className="bg-blue-600 dark:bg-blue-500 text-white">
+          <Badge className="bg-raised text-text-body">
             Blue Badge
           </Badge>
-          <Badge className="bg-green-600 dark:bg-green-500 text-white">
+          <Badge className="bg-raised text-text-body">
             Green Badge
           </Badge>
-          <Badge className="bg-red-600 dark:bg-red-500 text-white">
+          <Badge className="bg-raised text-text-body">
             Red Badge
           </Badge>
         </div>
@@ -46,7 +46,7 @@ export function ThemeDemo() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Card 1 */}
         <Card className="p-6 bg-card border-border">
-          <h3 className="text-lg font-semibold text-heading mb-3">
+          <h3 className="text-lg font-medium text-heading mb-3">
             Course Info
           </h3>
           <p className="text-body mb-4">
@@ -67,7 +67,7 @@ export function ThemeDemo() {
 
         {/* Card 2 */}
         <Card className="p-6 bg-card border-border">
-          <h3 className="text-lg font-semibold text-heading mb-3">
+          <h3 className="text-lg font-medium text-heading mb-3">
             Professor Rating
           </h3>
           <div className="space-y-3">
@@ -88,7 +88,7 @@ export function ThemeDemo() {
 
         {/* Card 3 */}
         <Card className="p-6 bg-card border-border">
-          <h3 className="text-lg font-semibold text-heading mb-3">
+          <h3 className="text-lg font-medium text-heading mb-3">
             Grade Distribution
           </h3>
           <div className="space-y-2">

@@ -12,7 +12,7 @@ export const MissionSection = () => {
           <div className="grid grid-cols-1 lg:grid-cols-5 min-h-[400px]">
             {/* Left Column - Copy (40%) */}
             <div className="lg:col-span-2 p-12 flex flex-col justify-center">
-              <h2 className="text-text-heading text-2xl font-semibold mb-6 leading-tight">
+              <h2 className="text-text-heading text-2xl font-medium mb-6 leading-tight">
                 Our mission
               </h2>
               <p className="text-text-body text-lg mb-8 leading-relaxed max-w-sm">

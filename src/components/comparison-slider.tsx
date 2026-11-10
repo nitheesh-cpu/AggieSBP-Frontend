@@ -61,7 +61,7 @@ export const ComparisonSlider = () => {
     <section className="w-full py-20">
       <div className="max-w-5xl mx-auto px-6">
         <div className="text-center mb-12">
-          <h2 className="text-[32px] font-semibold text-white leading-tight mb-4">
+          <h2 className="text-[32px] font-medium text-white leading-tight mb-4">
             Teaching & research at a glance
           </h2>
           <p className="text-lg text-[#e6e6e6] max-w-2xl mx-auto">
@@ -96,7 +96,7 @@ export const ComparisonSlider = () => {
 
             {/* Left Gradient Section */}
             <div
-              className="absolute left-0 top-0 h-full transition-all duration-200"
+              className="absolute left-0 top-0 h-full transition-colors duration-200"
               style={{ width: `${sliderValue}%` }}
             >
               <div
@@ -110,7 +110,7 @@ export const ComparisonSlider = () => {
 
             {/* Right Gradient Section */}
             <div
-              className="absolute right-0 top-0 h-full transition-all duration-200"
+              className="absolute right-0 top-0 h-full transition-colors duration-200"
               style={{ width: `${100 - sliderValue}%` }}
             >
               <div
@@ -124,7 +124,7 @@ export const ComparisonSlider = () => {
 
             {/* Draggable Handle */}
             <div
-              className="absolute top-1/2 transform -translate-y-1/2 -translate-x-1/2 w-12 h-12 bg-white rounded-full shadow-lg cursor-grab active:cursor-grabbing transition-all duration-220 hover:scale-110 z-10"
+              className="absolute top-1/2 transform -translate-y-1/2 -translate-x-1/2 w-12 h-12 bg-white rounded-full shadow-lg cursor-grab active:cursor-grabbing transition-colors duration-220 z-10"
               style={{ left: `${sliderValue}%` }}
               onMouseDown={handleMouseDown}
               onTouchStart={handleMouseDown}
@@ -136,12 +136,12 @@ export const ComparisonSlider = () => {
 
             {/* Section Labels */}
             <div className="absolute top-6 left-6">
-              <div className="text-xs font-medium text-white uppercase tracking-wider opacity-80">
+              <div className="text-xs font-medium text-white opacity-80">
                 Teaching
               </div>
             </div>
             <div className="absolute top-6 right-6">
-              <div className="text-xs font-medium text-white uppercase tracking-wider opacity-80">
+              <div className="text-xs font-medium text-white opacity-80">
                 Research
               </div>
             </div>
@@ -150,7 +150,7 @@ export const ComparisonSlider = () => {
           {/* Description Text */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8 max-w-[900px] mx-auto">
             <div>
-              <h3 className="text-sm font-medium text-white uppercase tracking-wider mb-3 opacity-80">
+              <h3 className="text-sm font-medium text-white mb-3 opacity-80">
                 Teaching
               </h3>
               <p className="text-[#e6e6e6] leading-relaxed">
@@ -158,7 +158,7 @@ export const ComparisonSlider = () => {
               </p>
             </div>
             <div>
-              <h3 className="text-sm font-medium text-white uppercase tracking-wider mb-3 opacity-80">
+              <h3 className="text-sm font-medium text-white mb-3 opacity-80">
                 Research
               </h3>
               <p className="text-[#e6e6e6] leading-relaxed">

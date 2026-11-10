@@ -4,8 +4,8 @@
   "description": "The fastest way to choose the right Texas A&M courses. Compare course difficulty, workload, and professor quality in one elegant dashboard.",
   "start_url": "/alerts?source=pwa",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  "background_color": "#500000",
+  "theme_color": "#500000",
   "icons": [
     {
       "src": "/icon-192x192.png",

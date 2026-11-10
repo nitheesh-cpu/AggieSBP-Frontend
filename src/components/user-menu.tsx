@@ -30,7 +30,8 @@ export const UserMenu = () => {
             <Button
                 onClick={() => redirectToAuth()}
                 variant="ghost"
-                className="text-heading hover:text-heading dark:text-white/90 dark:hover:text-white"
+                size="sm"
+                className="text-current opacity-85 hover:opacity-100 hover:bg-current/10 hover:text-current transition-[opacity,background-color] duration-150"
             >
                 Log in
             </Button>
@@ -69,15 +70,16 @@ export const UserMenu = () => {
             <DropdownMenuTrigger asChild>
                 <Button
                     variant="ghost"
-                    className="relative h-8 w-8 rounded-full bg-gray-100 dark:bg-zinc-800"
+                size="sm"
+                    className="relative h-8 w-8 rounded-full bg-raised"
                 >
-                    <User className="h-4 w-4 text-heading dark:text-white" />
+                    <User className="h-4 w-4 text-text-heading" />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">My Account</p>
+                        <p className="text-sm font-medium leading-none">My account</p>
                         <p className="text-xs leading-none text-muted-foreground">
                             {session.userId}
                         </p>

@@ -31,6 +31,7 @@ import {
   Loader2,
   AlertCircle,
   Calendar,
+  MessageSquareText,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -122,7 +123,7 @@ export default function ProfessorReviewsPage({
         <main className="pt-24 pb-20">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-[#500000]" />
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-text-muted" />
               <div className="text-text-body">Loading professor reviews...</div>
             </div>
           </div>
@@ -148,7 +149,7 @@ export default function ProfessorReviewsPage({
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center py-12">
               <AlertCircle className="h-8 w-8 mx-auto mb-4 text-red-500" />
-              <h3 className="text-xl font-semibold text-text-heading mb-2">
+              <h3 className="text-xl font-medium text-text-heading mb-2">
                 Failed to Load Reviews
               </h3>
               <p className="text-text-body mb-4">
@@ -199,8 +200,8 @@ export default function ProfessorReviewsPage({
           {/* Professor Header - Compact */}
           <div className="mb-6">
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-14 h-14 bg-gradient-to-br from-[#500000] to-[#700000] rounded-full flex items-center justify-center shrink-0">
-                <span className="text-white text-lg font-bold">
+              <div className="w-14 h-14 bg-raised rounded-full flex items-center justify-center shrink-0">
+                <span className="text-white text-lg font-medium">
                   {(
                     professor.name
                       ?.split(" ")
@@ -210,18 +211,18 @@ export default function ProfessorReviewsPage({
                 </span>
               </div>
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-text-heading dark:text-white">
+                <h1 className="text-2xl md:text-3xl font-medium text-text-heading">
                   {professor.name}
                 </h1>
                 <div className="flex items-center gap-3 mt-1">
                   <div className="flex items-center gap-1.5 text-yellow-600 dark:text-yellow-400">
                     <Star className="w-4 h-4 fill-current" />
-                    <span className="font-semibold">
+                    <span className="font-medium">
                       {reviewsData.summary.avg_overall.toFixed(1)}
                     </span>
                   </div>
-                  <span className="text-text-body/30 dark:text-white/20">•</span>
-                  <span className="text-text-body dark:text-white/70">
+                  <span className="text-text-body/30 dark:text-text-muted">•</span>
+                  <span className="text-text-body">
                     {reviewsData.summary.total_reviews} reviews
                   </span>
                 </div>
@@ -230,18 +231,18 @@ export default function ProfessorReviewsPage({
           </div>
 
           {/* Filters - Compact inline */}
-          <div className="flex flex-wrap items-center gap-3 mb-6 pb-6 border-b border-border dark:border-white/10">
-            <Filter className="w-4 h-4 text-text-body/75 dark:text-white/65" />
+          <div className="flex flex-wrap items-center gap-3 mb-6 pb-6 border-b border-border">
+            <Filter className="w-4 h-4 text-text-muted" />
             <Select
               value={courseFilter || "all"}
               onValueChange={(value) =>
                 setCourseFilter(value === "all" ? "" : value)
               }
             >
-              <SelectTrigger className="w-[140px] h-9 bg-canvas border-border text-sm dark:bg-white/5 dark:border-white/10">
+              <SelectTrigger className="w-[140px] h-9 bg-canvas border-border text-sm dark:bg-raised">
                 <SelectValue placeholder="All Courses" />
               </SelectTrigger>
-              <SelectContent className="bg-canvas border-border dark:bg-black dark:border-white/10">
+              <SelectContent className="bg-canvas border-border">
                 <SelectItem value="all">All Courses</SelectItem>
                 {availableCourses.map((course) => (
                   <SelectItem key={course} value={course}>
@@ -257,10 +258,10 @@ export default function ProfessorReviewsPage({
                 setSortBy(value)
               }
             >
-              <SelectTrigger className="w-[140px] h-9 bg-canvas border-border text-sm dark:bg-white/5 dark:border-white/10">
+              <SelectTrigger className="w-[140px] h-9 bg-canvas border-border text-sm dark:bg-raised">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-canvas border-border dark:bg-black dark:border-white/10">
+              <SelectContent className="bg-canvas border-border">
                 <SelectItem value="date">Newest</SelectItem>
                 <SelectItem value="rating">Highest Rated</SelectItem>
                 <SelectItem value="course">By Course</SelectItem>
@@ -273,10 +274,10 @@ export default function ProfessorReviewsPage({
                 setMinRating(value === "none" ? undefined : Number(value))
               }
             >
-              <SelectTrigger className="w-[120px] h-9 bg-canvas border-border text-sm dark:bg-white/5 dark:border-white/10">
+              <SelectTrigger className="w-[120px] h-9 bg-canvas border-border text-sm dark:bg-raised">
                 <SelectValue placeholder="Any Rating" />
               </SelectTrigger>
-              <SelectContent className="bg-canvas border-border dark:bg-black dark:border-white/10">
+              <SelectContent className="bg-canvas border-border">
                 <SelectItem value="none">Any Rating</SelectItem>
                 <SelectItem value="4">4+ Stars</SelectItem>
                 <SelectItem value="3">3+ Stars</SelectItem>
@@ -293,7 +294,7 @@ export default function ProfessorReviewsPage({
                   setSortBy("date");
                   setMinRating(undefined);
                 }}
-                className="text-text-body/70 hover:text-text-heading dark:text-white/60 dark:hover:text-white h-9"
+                className="text-text-muted hover:text-text-heading h-9"
               >
                 Clear
               </Button>
@@ -302,11 +303,11 @@ export default function ProfessorReviewsPage({
 
           {/* Reviews Section Header */}
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-text-heading dark:text-white flex items-center gap-2">
+            <h2 className="text-lg font-medium text-text-heading flex items-center gap-2">
               <MessageSquare className="w-5 h-5" />
-              Student Reviews
+              Student reviews
             </h2>
-            <span className="text-sm text-text-body/75 dark:text-white/65">
+            <span className="text-sm text-text-muted">
               {reviewsData.reviews.length} shown
             </span>
           </div>
@@ -316,7 +317,7 @@ export default function ProfessorReviewsPage({
             {reviewsData.reviews.map((review) => (
               <Card
                 key={review.id}
-                className="bg-card border-border hover:border-[#500000]/50 transition-all duration-300 hover:shadow-lg dark:bg-black/45 dark:border-white/10"
+                className="bg-card border-border hover:border-border-strong transition-colors duration-150"
               >
                 <CardContent className="p-5">
                   {/* Header Row: Rating, Course, Grade, Date */}
@@ -325,30 +326,27 @@ export default function ProfessorReviewsPage({
                       {/* Overall Rating - Larger and more prominent */}
                       {review.overall_rating != null && (
                         <div
-                          className="flex items-center gap-1.5 bg-yellow-500 text-black px-3 py-1.5 rounded-lg shadow-sm font-bold"
+                          className="flex items-center gap-1 border border-border bg-raised px-2 h-7 rounded-md"
                           title="This student's quality rating (1-5)"
                         >
-                          <Star className="w-4 h-4 fill-current" />
-                          <span className="text-base">
+                          <span className="font-mono text-sm text-text-heading">
                             {review.overall_rating.toFixed(1)}
                           </span>
                         </div>
                       )}
                       {/* Course Code */}
-                      <Badge className="bg-[#500000] text-white border-transparent px-2.5 py-0.5 text-xs font-semibold">
-                        {review.course.code}
-                      </Badge>
+                      <span className="code-tag">{review.course.code}</span>
                       {/* Grade */}
-                      <Badge className="bg-emerald-600 dark:bg-emerald-500 text-white border-transparent px-2.5 py-0.5 text-xs font-semibold">
-                        {review.grade}
+                      <Badge variant="outline" className="border-border font-mono font-normal text-text-body">
+                        Grade {review.grade}
                       </Badge>
                       {/* Would Take Again */}
-                      <Badge className={`${review.would_take_again ? 'bg-blue-600 dark:bg-blue-500' : 'bg-gray-500 dark:bg-gray-600'} text-white border-transparent px-2.5 py-0.5 text-xs font-semibold`}>
-                        {review.would_take_again ? "Would retake ✓" : "Wouldn't retake"}
+                      <Badge variant="outline" className={`border-border font-normal ${review.would_take_again ? "text-positive" : "text-text-muted"}`}>
+                        {review.would_take_again ? "Would retake" : "Wouldn't retake"}
                       </Badge>
                     </div>
                     {/* Date */}
-                    <div className="flex items-center gap-1.5 text-text-body/70 dark:text-white/60 text-xs">
+                    <div className="flex items-center gap-1.5 text-text-muted text-xs">
                       <Calendar className="w-3.5 h-3.5" />
                       <span>{formatDate(review.review_date)}</span>
                     </div>
@@ -356,24 +354,24 @@ export default function ProfessorReviewsPage({
 
                   {/* Compact Metrics Row */}
                   <div className="flex flex-wrap items-center gap-3 mb-4 text-sm">
-                    <div className="flex items-center gap-1.5 text-text-body dark:text-white/80">
-                      <span className="text-blue-600 dark:text-blue-400 font-semibold">{review.clarity_rating.toFixed(1)}</span>
-                      <span className="text-text-body/75 dark:text-white/65">clarity</span>
+                    <div className="flex items-center gap-1.5 text-text-body">
+                      <span className="font-mono text-text-heading">{review.clarity_rating.toFixed(1)}</span>
+                      <span className="text-text-muted">clarity</span>
                     </div>
-                    <span className="text-text-body/30 dark:text-white/20">•</span>
-                    <div className="flex items-center gap-1.5 text-text-body dark:text-white/80">
-                      <span className="text-red-600 dark:text-red-400 font-semibold">{review.difficulty_rating.toFixed(1)}</span>
-                      <span className="text-text-body/75 dark:text-white/65">difficulty</span>
+                    <span className="text-text-body/30 dark:text-text-muted">•</span>
+                    <div className="flex items-center gap-1.5 text-text-body">
+                      <span className="font-mono text-text-heading">{review.difficulty_rating.toFixed(1)}</span>
+                      <span className="text-text-muted">difficulty</span>
                     </div>
-                    <span className="text-text-body/30 dark:text-white/20">•</span>
-                    <div className="flex items-center gap-1.5 text-text-body dark:text-white/80">
-                      <span className="text-green-600 dark:text-green-400 font-semibold">{review.helpful_rating.toFixed(1)}</span>
-                      <span className="text-text-body/75 dark:text-white/65">helpful</span>
+                    <span className="text-text-body/30 dark:text-text-muted">•</span>
+                    <div className="flex items-center gap-1.5 text-text-body">
+                      <span className="font-mono text-text-heading">{review.helpful_rating.toFixed(1)}</span>
+                      <span className="text-text-muted">helpful</span>
                     </div>
                   </div>
 
                   {/* Review Text */}
-                  <p className="text-text-body dark:text-white/90 mb-4 leading-relaxed">
+                  <p className="text-text-body dark:text-text-heading mb-4 leading-relaxed">
                     {review.review_text}
                   </p>
 
@@ -385,7 +383,7 @@ export default function ProfessorReviewsPage({
                         <Badge
                           key={index}
                           variant="outline"
-                          className="bg-canvas dark:bg-white/5 text-text-body dark:text-white/70 border-border dark:border-white/10 px-2 py-0.5 text-xs font-medium"
+                          className="bg-canvas dark:bg-raised text-text-body border-border px-2 py-0.5 text-xs font-medium"
                         >
                           {tag}
                         </Badge>
@@ -394,11 +392,11 @@ export default function ProfessorReviewsPage({
 
                     {/* Votes */}
                     <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1 text-text-body/75 dark:text-white/65 text-xs">
+                      <div className="flex items-center gap-1 text-text-muted text-xs">
                         <ThumbsUp className="w-3.5 h-3.5" />
                         <span>{review.thumbs_up}</span>
                       </div>
-                      <div className="flex items-center gap-1 text-text-body/75 dark:text-white/65 text-xs">
+                      <div className="flex items-center gap-1 text-text-muted text-xs">
                         <ThumbsDown className="w-3.5 h-3.5" />
                         <span>{review.thumbs_down}</span>
                       </div>
@@ -413,11 +411,10 @@ export default function ProfessorReviewsPage({
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-3">
               <Button
-                variant="default"
                 size="lg"
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className="bg-[#500000] hover:bg-[#600000] text-white hover:scale-105 transition-all duration-200"
+                variant="outline"
               >
                 <ChevronLeft className="w-4 h-4" />
                 Previous
@@ -436,8 +433,8 @@ export default function ProfessorReviewsPage({
                       onClick={() => setCurrentPage(page)}
                       className={
                         currentPage === page
-                          ? "bg-[#500000] text-white hover:bg-[#600000] hover:scale-105 transition-all duration-200"
-                          : "border-border hover:border-[#500000] hover:scale-105 transition-all duration-200"
+                          ? "bg-maroon-band text-on-maroon hover:bg-maroon-band"
+                          : ""
                       }
                     >
                       {page}
@@ -447,13 +444,12 @@ export default function ProfessorReviewsPage({
               </div>
 
               <Button
-                variant="default"
                 size="lg"
                 onClick={() =>
                   setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                 }
                 disabled={currentPage === totalPages}
-                className="bg-[#500000] hover:bg-[#600000] text-white hover:scale-105 transition-all duration-200"
+                variant="outline"
               >
                 Next
                 <ChevronRight className="w-4 h-4" />
@@ -462,9 +458,9 @@ export default function ProfessorReviewsPage({
           )}
 
           {reviewsData.reviews.length === 0 && (
-            <Card className="text-center py-16 bg-gradient-to-br from-card to-card/50 border-border">
-              <div className="text-8xl mb-6">📝</div>
-              <h3 className="text-3xl font-bold text-text-heading mb-4">
+            <Card className="text-center py-16 bg-card border-border">
+              <MessageSquareText strokeWidth={1.5} className="w-6 h-6 text-text-muted mx-auto mb-3" aria-hidden />
+              <h3 className="text-3xl font-medium text-text-heading mb-4">
                 No reviews found
               </h3>
               <p className="text-lg text-text-body">

@@ -36,8 +36,8 @@ export function ComparisonWidget() {
     <>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <BarChart3 className="w-5 h-5 text-accent" />
-          <span className="font-semibold text-text-heading">
+          <BarChart3 strokeWidth={1.5} className="w-5 h-5 text-text-muted" />
+          <span className="font-medium text-text-heading">
             Compare Courses ({selectedCourses.length}/4)
           </span>
         </div>
@@ -78,7 +78,7 @@ export function ComparisonWidget() {
         <Button
           onClick={handleCompare}
           disabled={selectedCourses.length < 2}
-          className="w-full bg-[#500000] hover:bg-[#600000] text-white"
+          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
         >
           Compare Selected
           <ArrowRight className="w-4 h-4 ml-2" />
@@ -109,7 +109,7 @@ export function ComparisonWidget() {
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetTrigger asChild>
           <Button
-            className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-[#500000] hover:bg-[#600000] text-white shadow-2xl"
+            className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] right-6 z-50 w-14 h-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-2xl"
             size="lg"
           >
             <div className="flex flex-col items-center">
@@ -136,7 +136,7 @@ export function ComparisonWidget() {
 
   // Desktop: Use Card as before
   return (
-    <div className="fixed bottom-6 right-6 z-50 max-w-sm">
+    <div className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] right-6 z-50 max-w-sm">
       <Card className="bg-card border-border shadow-2xl p-4">
         <ComparisonContent />
       </Card>

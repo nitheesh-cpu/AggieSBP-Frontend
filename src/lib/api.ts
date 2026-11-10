@@ -919,6 +919,8 @@ export interface DiscoverFitSection {
   instructor?: string | null;
   /** e.g. "MWF 09:10 AM-10:00 AM"; several meetings joined with "; ". */
   meetings?: string | null;
+  /** This section's own title; special topics ("SPTP: COMPUTER VISION") differ by section. */
+  title?: string | null;
 }
 
 export type DiscoverFitSeatFilter = "any" | "open" | "full";
@@ -1184,4 +1186,169 @@ export async function subscribeToSectionPush(
     }),
   });
   return handleResponse<void>(response);
+}
+
+// ---------------------------------------------------------------------------
+// Degree planner
+// ---------------------------------------------------------------------------
+
+/** One course from GET /courses/prereqs. Trees: see lib/planner/prereqs.ts. */
+export interface CoursePrereqs {
+  code: string;
+  name: string | null;
+  credits: number | null;
+  prereqText: string | null;
+  coreqText: string | null;
+  prereqTree: import("./planner/prereqs").PrereqNode | null;
+  coreqTree: import("./planner/prereqs").PrereqNode | null;
+  /** "high" | "low" | null (not parsed). Low means "verify in the catalog". */
+  confidence: string | null;
+  crossListings: string[];
+}
+
+export interface PrereqGraph {
+  courses: Record<string, CoursePrereqs>;
+  missing: string[];
+  truncated: boolean;
+}
+
+/**
+ * Prereq trees for up to 100 courses (more are fetched in chunks). With
+ * depth > 0 also returns the courses those trees reference, recursively.
+ */
+export async function getCoursePrereqs(codes: string[], depth = 0): Promise<PrereqGraph> {
+  const unique = [...new Set(codes)];
+  const merged: PrereqGraph = { courses: {}, missing: [], truncated: false };
+  for (let i = 0; i < unique.length; i += 100) {
+    const params = new URLSearchParams({
+      codes: unique.slice(i, i + 100).join(","),
+      depth: String(depth),
+    });
+    const response = await fetch(`${API_BASE_URL}/courses/prereqs?${params}`);
+    const part = await handleResponse<PrereqGraph>(response);
+    Object.assign(merged.courses, part.courses);
+    merged.missing.push(...part.missing);
+    merged.truncated ||= part.truncated;
+  }
+  return merged;
+}
+
+export interface PlannerState {
+  record: import("./planner/record").AcademicRecord | null;
+  record_rev: number;
+  plan: Record<string, unknown> | null;
+  plan_rev: number;
+}
+
+/** A save lost a race with another device; `value`/`rev` are the server's copy. */
+export class PlannerConflictError<T> extends Error {
+  constructor(
+    public readonly value: T,
+    public readonly rev: number,
+  ) {
+    super("Changed on another device");
+  }
+}
+
+export async function getPlannerState(): Promise<PlannerState> {
+  const response = await fetch(`${API_BASE_URL}/users/me/planner`, {
+    headers: await authHeaders(),
+  });
+  return handleResponse<PlannerState>(response);
+}
+
+/** Save the record or plan if the server is still on `baseRev`; returns the new rev. */
+export async function savePlannerDoc<T>(
+  doc: "record" | "plan",
+  value: T,
+  baseRev: number,
+): Promise<number> {
+  const response = await fetch(`${API_BASE_URL}/users/me/planner/${doc}`, {
+    method: "PUT",
+    headers: await authHeaders(),
+    body: JSON.stringify({ [doc]: value, base_rev: baseRev }),
+  });
+  if (response.status === 409) {
+    const body = await response.json();
+    throw new PlannerConflictError<T>(body.detail.value as T, body.detail.rev as number);
+  }
+  const saved = await handleResponse<{ rev: number }>(response);
+  return saved.rev;
+}
+
+// Discover lists for the degree planner's Find Courses view
+export interface TermDepartment {
+  code: string;
+  name: string;
+}
+
+export async function getTermDepartments(termCode: string): Promise<TermDepartment[]> {
+  const response = await fetch(`${API_BASE_URL}/discover/${encodeURIComponent(termCode)}/departments`);
+  return handleResponse<TermDepartment[]>(response);
+}
+
+/** Rows are one per course and professor, with an easiness score (0-100). */
+export async function getDiscoverDeptCourses(
+  termCode: string,
+  dept: string,
+  opts: { campus?: string; includeGraduate?: boolean } = {},
+): Promise<import("./planner/find").DiscoverRow[]> {
+  const params = new URLSearchParams();
+  if (opts.campus) params.set("campus", opts.campus);
+  params.set("include_graduate", String(opts.includeGraduate ?? false));
+  const response = await fetch(
+    `${API_BASE_URL}/discover/${encodeURIComponent(termCode)}/${encodeURIComponent(dept)}?${params}`,
+  );
+  return handleResponse(response);
+}
+
+/**
+ * GPA boosters: undergraduate courses from any department offered in a term
+ * whose recent average GPA is high. Same row shape as a department's list.
+ */
+export async function getDiscoverGpaBoosters(
+  termCode: string,
+  opts: { campus?: string } = {},
+): Promise<import("./planner/find").DiscoverRow[]> {
+  const params = new URLSearchParams();
+  if (opts.campus) params.set("campus", opts.campus);
+  const response = await fetch(
+    `${API_BASE_URL}/discover/${encodeURIComponent(termCode)}/gpa-boosters${params.size ? `?${params}` : ""}`,
+  );
+  return handleResponse(response);
+}
+
+/**
+ * Every professor teaching these courses in a term, one row per course and
+ * professor with that professor's easiness. Keys are "DEPT-NUMBER".
+ */
+export async function getDiscoverCourseProfessors(
+  termCode: string,
+  courseKeys: string[],
+  opts: { campus?: string } = {},
+): Promise<import("./planner/find").DiscoverRow[]> {
+  const response = await fetch(
+    `${API_BASE_URL}/discover/${encodeURIComponent(termCode)}/course-professors`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        course_keys: courseKeys,
+        ...(opts.campus ? { campus: opts.campus } : {}),
+      }),
+    },
+  );
+  return handleResponse(response);
+}
+
+export async function getDiscoverUccCourses(
+  termCode: string,
+  opts: { campus?: string } = {},
+): Promise<{ category: string; courses: import("./planner/find").DiscoverRow[] }[]> {
+  const params = new URLSearchParams();
+  if (opts.campus) params.set("campus", opts.campus);
+  const response = await fetch(
+    `${API_BASE_URL}/discover/${encodeURIComponent(termCode)}/ucc${params.size ? `?${params}` : ""}`,
+  );
+  return handleResponse(response);
 }

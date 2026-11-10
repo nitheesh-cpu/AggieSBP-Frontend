@@ -7,11 +7,13 @@ import { AnimatePresence, motion } from "motion/react";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
 import {
+  GraduationCap,
   Bell,
   BookOpenCheck,
   Building2,
+  CalendarClock,
   ChevronDown,
-  Sparkles,
+  Gauge,
 } from "lucide-react";
 import { UserMenu } from "@/components/user-menu";
 import { MOBILE_APP_QUICK_LINKS } from "@/lib/nav-quick-links";
@@ -28,7 +30,6 @@ export const Navigation = ({
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [isDiscoverOpen, setIsDiscoverOpen] = React.useState(false);
-  const isOverlay = variant === "transparent" || variant === "glass";
 
   // IMPORTANT: Don't compute theme-dependent inline styles here.
   // When using next-themes, JS theme resolution can shift during hydration,
@@ -36,18 +37,11 @@ export const Navigation = ({
   // classes so the correct theme is applied immediately from <html class="dark">.
   const headerClassName =
     variant === "transparent"
-      ? "bg-transparent border-b-0"
-      : variant === "glass"
-        ? "bg-white/80 dark:bg-black/80 border-b border-[#500000]/25 dark:border-[#FFCF3F]/50 backdrop-blur-md"
-        : "bg-white dark:bg-black border-b-2 border-[#500000] dark:border-[#FFCF3F]";
+      ? "bg-transparent border-b-0 text-white"
+      : "bg-maroon-nav border-b border-black/20 text-white shadow-[0_1px_0_rgba(255,207,63,0.18)]";
 
-  const linkClassName = isOverlay
-    ? "relative text-heading hover:text-heading dark:text-white/90 dark:hover:text-white text-sm font-medium transition-all duration-normal ease-in-out group"
-    : "relative text-body text-sm font-medium transition-all duration-normal ease-in-out hover:text-heading group";
-
-  const underlineClassName = isOverlay
-    ? "absolute -bottom-1 left-0 w-0 h-px bg-heading dark:bg-white transition-all duration-normal ease-in-out group-hover:w-full"
-    : "absolute -bottom-1 left-0 w-0 h-px bg-heading transition-all duration-normal ease-in-out group-hover:w-full";
+  const linkClassName =
+    "relative flex h-8 items-center rounded-md px-3 text-sm text-white/80 transition-colors duration-150 hover:bg-white/10 hover:text-white";
 
   // Close the mobile menu on route change.
   React.useEffect(() => {
@@ -73,23 +67,28 @@ export const Navigation = ({
 
   const discoverItems = [
     {
-      name: "Fit My Schedule",
-      description: "Find sections that work with your availability",
-      href: "/discover/fit",
-      icon: Sparkles,
+      name: "Schedule builder",
+      description: "Find electives you can take and schedules that fit",
+      href: "/planner",
+      icon: GraduationCap,
     },
     {
-      name: "Core Curriculum",
+      name: "Fit my schedule",
+      description: "Find sections that work with your availability",
+      href: "/discover/fit",
+      icon: CalendarClock,
+    },
+    {
+      name: "Core curriculum",
       description: "Compare options for every UCC requirement",
       href: "/discover/ucc",
       icon: BookOpenCheck,
     },
     {
-      name: "Explore Easy Courses",
-      description:
-        "Find the highest-GPA, lowest-difficulty courses in each department",
+      name: "Easiest courses",
+      description: "Highest GPA, lowest difficulty in each department",
       href: "/discover/dept",
-      icon: Building2,
+      icon: Gauge,
     },
     {
       name: "Departments",
@@ -102,40 +101,28 @@ export const Navigation = ({
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 ${headerClassName} ${className}`}
+        className={`fixed top-0 left-0 right-0 z-50 pt-[env(safe-area-inset-top)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] ${headerClassName} ${className}`}
         data-oid="ilaa0s3"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6" data-oid="6.rinbi">
           <div
-            className="flex items-center justify-between h-14 sm:h-16"
+            className="flex items-center justify-between h-14"
             data-oid="l4-iau1"
           >
             {/* Logo */}
             <Link href="/" prefetch={false} className="flex items-center" data-oid="h31:j-4">
-              <div className="flex items-center space-x-2 sm:space-x-3" data-oid="p5rzkzk">
-                <img
-                  src="/favicon.ico"
-                  alt="AggieRMP Logo"
-                  className="w-6 h-6 sm:w-8 sm:h-8"
-                  data-oid="bybc6ok"
-                />
-
-                <span
-                  className={`text-lg sm:text-xl font-semibold tracking-tight ${isOverlay
-                    ? "text-heading dark:text-white"
-                    : "text-heading dark:text-white"
-                    }`}
-                  data-oid="riswfct"
-                >
-                  AggieSB+
-                </span>
-              </div>
+              <span
+                className="text-[17px] font-medium leading-none text-white"
+                data-oid="riswfct"
+              >
+                AggieSB<span className="text-accent-gold">+</span>
+              </span>
             </Link>
 
             {/* Desktop Navigation Items */}
             <nav
               aria-label="Primary navigation"
-              className="hidden lg:flex items-center gap-7 ml-10"
+              className="hidden lg:flex items-center gap-1 ml-8 mr-auto"
               data-oid="sjsqv.s"
             >
               {navItems.map((item) => {
@@ -146,16 +133,13 @@ export const Navigation = ({
                     key={item.name}
                     href={item.href}
                     prefetch={false}
+                    aria-current={isActive ? "page" : undefined}
                     className={`${linkClassName} ${
-                      isActive ? "text-heading dark:text-white" : ""
+                      isActive ? "bg-white/15 text-white" : ""
                     }`}
                     data-oid="hxkolsn"
                   >
                     {item.name}
-                    <span className={underlineClassName} data-oid="m-f3_qo" />
-                    {isActive && (
-                      <span className="absolute -bottom-2 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-[#500000] dark:bg-[#FFCF3F]" />
-                    )}
                   </Link>
                 );
               })}
@@ -170,31 +154,30 @@ export const Navigation = ({
                   type="button"
                   aria-expanded={isDiscoverOpen}
                   aria-haspopup="menu"
-                  className={`${linkClassName} flex items-center gap-1.5 ${
-                    pathname.startsWith("/discover")
-                      ? "text-heading dark:text-white"
+                  className={`${linkClassName} gap-1 ${
+                    pathname.startsWith("/discover") ||
+                    pathname.startsWith("/planner") ||
+                    pathname.startsWith("/departments")
+                      ? "bg-white/15 text-white"
                       : ""
                   }`}
                   onClick={() => setIsDiscoverOpen(!isDiscoverOpen)}
                 >
                   Discover
-                  <ChevronDown className={`w-4 h-4 transition-transform ${isDiscoverOpen ? "rotate-180" : ""}`} />
+                  <ChevronDown strokeWidth={1.5} className={`w-4 h-4 text-white/60 transition-transform duration-150 ${isDiscoverOpen ? "rotate-180" : ""}`} />
                 </button>
 
                 <AnimatePresence>
                   {isDiscoverOpen && (
                     <motion.div
                       role="menu"
-                      initial={{ opacity: 0, y: -5 }}
+                      initial={{ opacity: 0, y: -4 }}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -5 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute left-1/2 top-full w-80 -translate-x-1/2 pt-3"
+                      exit={{ opacity: 0, y: -4 }}
+                      transition={{ duration: 0.16 }}
+                      className="absolute left-0 top-full w-80 pt-2"
                     >
-                      <div className="rounded-2xl border border-[#500000]/25 bg-white/95 p-2 shadow-xl backdrop-blur-xl dark:border-[#FFCF3F]/35 dark:bg-black/95">
-                        <p className="px-3 pb-2 pt-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-text-body dark:text-white/65">
-                          Discover
-                        </p>
+                      <div className="rounded-2xl border border-border bg-popover p-2 shadow-xl">
                         {discoverItems.map((item) => {
                           const Icon = item.icon;
                           return (
@@ -204,16 +187,14 @@ export const Navigation = ({
                               href={item.href}
                               prefetch={false}
                               onClick={() => setIsDiscoverOpen(false)}
-                              className="flex items-start gap-3 rounded-xl px-3 py-3 transition-colors hover:bg-[#500000]/5 dark:hover:bg-white/10"
+                              className="flex items-start gap-3 rounded-lg px-3 py-2 transition-colors duration-150 hover:bg-raised"
                             >
-                              <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#500000]/10 text-[#500000] dark:bg-[#FFCF3F]/15 dark:text-[#FFCF3F]">
-                                <Icon className="h-4 w-4" aria-hidden />
-                              </span>
+                              <Icon strokeWidth={1.5} className="mt-0.5 h-4 w-4 shrink-0 text-text-muted" aria-hidden />
                               <span>
-                                <span className="block text-sm font-semibold text-heading dark:text-white">
+                                <span className="block text-sm font-medium text-text-heading">
                                   {item.name}
                                 </span>
-                                <span className="mt-0.5 block text-xs leading-relaxed text-body dark:text-white/65">
+                                <span className="mt-0.5 block text-xs leading-4 text-text-body">
                                   {item.description}
                                 </span>
                               </span>
@@ -229,14 +210,14 @@ export const Navigation = ({
 
             {/* Desktop CTA */}
             <div
-              className="hidden lg:flex items-center gap-3"
+              className="hidden lg:flex items-center gap-2"
               data-oid="llrkwuz"
             >
               <ThemeToggle />
               <UserMenu />
               <Link href="/alerts" prefetch={false}>
-                <Button className="bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966] rounded-full px-5 font-semibold">
-                  Seat Alerts
+                <Button size="sm" className="ml-1 bg-accent-gold text-[#1d1305] hover:bg-accent-gold/90 dark:bg-accent-gold dark:text-[#1d1305]">
+                  Seat alerts
                 </Button>
               </Link>
             </div>
@@ -249,15 +230,12 @@ export const Navigation = ({
                 aria-expanded={isMobileMenuOpen}
                 aria-controls="mobile-menu"
                 onClick={() => setIsMobileMenuOpen((v) => !v)}
-                className={`${isOverlay
-                  ? "text-text-heading hover:text-text-heading dark:text-white/90 dark:hover:text-white"
-                  : "text-text-heading hover:text-text-heading dark:text-white/90 dark:hover:text-white"
-                  } transition-colors duration-normal p-2`}
+                className="-mr-2 grid h-10 w-10 place-items-center rounded-lg text-white transition-colors duration-150 hover:bg-white/10"
                 data-oid="u5.szs3"
               >
                 <svg
-                  width="24"
-                  height="24"
+                  width="20"
+                  height="20"
                   viewBox="0 0 24 24"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
@@ -267,7 +245,7 @@ export const Navigation = ({
                     <path
                       d="M18 6L6 18M6 6l12 12"
                       stroke="currentColor"
-                      strokeWidth="2"
+                      strokeWidth="1.5"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     />
@@ -275,7 +253,7 @@ export const Navigation = ({
                     <path
                       d="M4 6H20M4 12H20M4 18H20"
                       stroke="currentColor"
-                      strokeWidth="2"
+                      strokeWidth="1.5"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       data-oid="wfi87ae"
@@ -307,14 +285,14 @@ export const Navigation = ({
             {/* Panel */}
             <motion.div
               id="mobile-menu"
-              className="absolute top-14 sm:top-16 left-0 right-0 border-b border-border bg-white/90 dark:border-white/10 dark:bg-black/85 backdrop-blur-md"
-              initial={{ y: -10, opacity: 0 }}
+              className="absolute top-[calc(3.5rem+env(safe-area-inset-top))] left-0 right-0 border-b border-border bg-canvas text-text-heading"
+              initial={{ y: -6, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -10, opacity: 0 }}
+              exit={{ y: -6, opacity: 0 }}
               transition={{ duration: 0.2 }}
             >
-              <div className="px-4 py-4 max-h-[min(70vh,calc(100dvh-5.5rem))] overflow-y-auto">
-                <p className="text-xs font-medium text-text-body dark:text-white/60 mb-3 px-1">
+              <div className="px-4 py-4 max-h-[min(70vh,calc(100dvh-5.5rem-env(safe-area-inset-top)))] overflow-y-auto">
+                <p className="text-xs text-text-muted mb-2 px-1">
                   Navigation
                 </p>
                 <div className="grid grid-cols-2 gap-2">
@@ -326,13 +304,13 @@ export const Navigation = ({
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={
                         item.emphasis
-                          ? "col-span-2 flex items-center justify-center gap-2 min-h-[52px] rounded-xl px-4 py-3 text-sm font-semibold text-center transition-colors bg-[#500000] text-white border border-[#500000] hover:bg-[#3d0000] dark:bg-[#FFCF3F] dark:text-black dark:border-[#FFCF3F] dark:hover:bg-[#FFD966]"
-                          : "flex items-center justify-center min-h-[48px] rounded-xl px-2 py-2.5 text-sm font-medium text-center transition-colors border bg-white/90 text-heading border-[#500000]/20 hover:bg-[#500000]/5 dark:bg-black/50 dark:text-white/90 dark:border-[#FFCF3F]/25 dark:hover:bg-white/10"
+                          ? "col-span-2 flex items-center justify-center gap-2 h-11 rounded-lg px-4 text-sm font-medium text-center transition-colors bg-primary text-primary-foreground hover:bg-primary/90"
+                          : "flex items-center justify-center h-11 rounded-lg px-2 text-sm text-center transition-colors border border-border bg-card text-text-heading hover:bg-raised"
                       }
                     >
                       {item.emphasis ? (
                         <>
-                          <Bell className="w-4 h-4 shrink-0" aria-hidden />
+                          <Bell strokeWidth={1.5} className="w-4 h-4 shrink-0" aria-hidden />
                           {item.name}
                         </>
                       ) : (
@@ -342,13 +320,13 @@ export const Navigation = ({
                   ))}
                 </div>
 
-                <div className="mt-5 pt-4 border-t border-border/20 dark:border-white/10 space-y-3">
+                <div className="mt-4 pt-4 border-t border-border space-y-3">
                   <div className="flex items-center justify-between gap-3">
-                    <span className="text-sm text-body dark:text-white/70">Account</span>
+                    <span className="text-sm text-text-body">Account</span>
                     <UserMenu />
                   </div>
                   <div className="flex items-center justify-between gap-3">
-                    <span className="text-sm text-body dark:text-white/70">Theme</span>
+                    <span className="text-sm text-text-body">Theme</span>
                     <ThemeToggle />
                   </div>
                 </div>

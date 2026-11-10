@@ -1,204 +1,182 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
+import { getImageProps } from "next/image";
 import Link from "next/link";
-import {
-  motion,
-  useReducedMotion,
-  useTransform,
-  useScroll,
-} from "motion/react";
-import { Puzzle } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { AnimatePresence, MotionConfig, motion } from "motion/react";
 
-import { Button } from "@/components/ui/button";
 import { GlobalOmnibar } from "@/components/home/global-omnibar";
+import { ExtensionButton } from "@/components/home/home-features";
+import {
+  gradedProfessors,
+  useExampleCourse,
+  useExtensionLink,
+} from "@/components/home/home-shared";
+
+const EXAMPLE_CODE = "CSCE 120";
+const EXAMPLE_PATH = "/course/CSCE120";
+const GRADES = ["A", "B", "C", "D", "F"] as const;
+const ROTATE_MS = 4000;
+
+const imageProps = {
+  alt: "",
+  fill: true,
+  sizes: "100vw",
+  loading: "eager" as const,
+  fetchPriority: "high" as const,
+};
+const { props: desktopImage } = getImageProps({
+  ...imageProps,
+  src: "/academic-plaza-desktop.jpeg",
+});
+const { props: portraitImage } = getImageProps({
+  ...imageProps,
+  src: "/academic-plaza-mobile.jpeg",
+});
 
 export function HomeHeroScroll() {
-  const shouldReduceMotion = useReducedMotion();
-  const [isPortrait, setIsPortrait] = React.useState(false);
-  const [extensionUrl, setExtensionUrl] = React.useState(
-    "https://chromewebstore.google.com/detail/aggiesb+-registration-ass/glckdcnecomhlmlegmjdceblibmaljpm",
-  );
-  const [extensionLabel, setExtensionLabel] =
-    React.useState("Chrome extension");
+  const extension = useExtensionLink();
+  const course = useExampleCourse();
+  const [index, setIndex] = React.useState(0);
+  const [paused, setPaused] = React.useState(false);
 
-  const targetRef = React.useRef<HTMLDivElement | null>(null);
-  const { scrollYProgress } = useScroll({
-    target: targetRef,
-    offset: ["start start", "end start"],
-  });
+  // Rotate through every CSCE 120 professor with grade data.
+  const professors = React.useMemo(() => gradedProfessors(course), [course]);
+  const professor = professors.length
+    ? professors[index % professors.length]
+    : undefined;
+  const distribution = professor?.gradeDistribution;
+  const rating = professor?.overallRating;
 
-  // Detect portrait orientation (vertical screens)
+  // Advance to the next professor every few seconds; hold while the card is
+  // hovered or focused so it doesn't change under the reader.
   React.useEffect(() => {
-    const checkOrientation = () => {
-      // Check if screen height is greater than width (portrait)
-      setIsPortrait(window.innerHeight > window.innerWidth);
-    };
-
-    // Check on mount
-    checkOrientation();
-    if (/Firefox|FxiOS/i.test(navigator.userAgent)) {
-      setExtensionUrl(
-        "https://addons.mozilla.org/en-US/firefox/addon/aggie-schedule-builder-plus/",
-      );
-      setExtensionLabel("Mozilla add-on");
-    }
-
-    // Listen for orientation changes and window resize
-    window.addEventListener("resize", checkOrientation);
-    window.addEventListener("orientationchange", checkOrientation);
-
-    return () => {
-      window.removeEventListener("resize", checkOrientation);
-      window.removeEventListener("orientationchange", checkOrientation);
-    };
-  }, []);
-
-  // At the top (progress ~0) the user should only see the image.
-  // As they scroll, content slides up and fades into place.
-  // Hooks must not be called conditionally — always create motion values,
-  // and choose constants at render time if reduced motion is enabled.
-  const contentOpacityMv = useTransform(scrollYProgress, [0.02, 0.42], [0, 1]);
-  const contentYMv = useTransform(scrollYProgress, [0.0, 0.42], [84, 0]);
-  const backdropOpacityMv = useTransform(scrollYProgress, [0.0, 0.22], [0, 1]);
-  const imageScaleMv = useTransform(scrollYProgress, [0, 1], [1, 1.06]);
-  // Scroll indicator fades out quickly as user starts scrolling
-  const scrollIndicatorOpacity = useTransform(scrollYProgress, [0, 0.05], [1, 0]);
-  const searchOpacity = useTransform(scrollYProgress, [0, 0.16], [1, 0]);
-  const searchY = useTransform(scrollYProgress, [0, 0.16], [0, -36]);
-  const searchPointerEvents = useTransform(scrollYProgress, (progress) =>
-    progress < 0.16 ? "auto" : "none",
-  );
+    if (professors.length < 2 || paused) return;
+    const id = window.setInterval(
+      () => setIndex((i) => (i + 1) % professors.length),
+      ROTATE_MS,
+    );
+    return () => window.clearInterval(id);
+  }, [professors.length, paused]);
 
   return (
-    <section className="relative isolate">
-      {/* Scroll area that controls the sticky hero */}
-      <div ref={targetRef} className="relative h-[150dvh] min-h-[150svh]">
-        <div className="sticky top-0 h-[100dvh] min-h-[100svh] w-full overflow-hidden relative z-20">
-          <motion.div
-            className="absolute inset-0"
-            style={{ scale: shouldReduceMotion ? 1 : imageScaleMv }}
-          >
-            <Image
-              src={isPortrait ? "/academic-plaza-mobile.jpeg" : "/academic-plaza-desktop.jpeg"}
-              alt="Academic Plaza"
-              fill
-              priority
-              className="object-cover"
-            />
-          </motion.div>
-
-          {/* Backdrop only appears once the user starts scrolling */}
-          <motion.div
-            aria-hidden
-            className="absolute inset-0"
-            style={{
-              opacity: shouldReduceMotion ? 1 : backdropOpacityMv,
-              background: "var(--hero-backdrop-gradient)",
-            }}
-          />
-
-          {/* Immediate homepage action, visible before the scroll reveal begins. */}
-          <motion.div
-            className="absolute inset-0 z-40 flex items-center justify-center"
-            style={{
-              opacity: shouldReduceMotion ? 1 : searchOpacity,
-              y: shouldReduceMotion ? 0 : searchY,
-              pointerEvents: shouldReduceMotion ? "auto" : searchPointerEvents,
-            }}
-          >
-            <div className="flex w-full flex-col items-center gap-4">
-              <GlobalOmnibar />
-              <Button
-                asChild
-                className="rounded-full bg-[#FFCF3F] px-6 font-semibold text-[#0f0f0f] shadow-lg hover:bg-[#FFD966]"
-              >
-                <a
-                  href={extensionUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`Install the AggieSB+ ${extensionLabel}`}
-                >
-                  <Puzzle className="h-4 w-4" aria-hidden />
-                  Install {extensionLabel}
-                </a>
-              </Button>
-            </div>
-          </motion.div>
-
-          {/* Scroll indicator - fades out on scroll */}
-          <motion.div
-            className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 z-30"
-            style={{
-              opacity: shouldReduceMotion ? 0 : scrollIndicatorOpacity,
-            }}
-          >
-            <span className="text-white text-sm font-semibold tracking-widest uppercase drop-shadow-[0_1.4px_1.4px_rgba(0,0,0,1)]">
-              Scroll to explore
-            </span>
-            <motion.div
-              animate={{ y: [0, 10, 0] }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-              className="w-8 h-14 rounded-full border-2 border-white/70 flex items-start justify-center p-2 backdrop-blur-sm bg-black/20"
-            >
-              <motion.div
-                className="w-2 h-4 bg-white rounded-full"
-                animate={{ y: [0, 16, 0] }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-              />
-            </motion.div>
-          </motion.div>
-
-          {/* Content reveals on scroll */}
-          <motion.div
-            className="absolute inset-x-0 bottom-0 px-6 sm:px-10 pb-10 pt-10"
-            style={{
-              opacity: shouldReduceMotion ? 1 : contentOpacityMv,
-              y: shouldReduceMotion ? 0 : contentYMv,
-            }}
-          >
-            <div className="max-w-4xl mx-auto text-center space-y-5">
-              <h1 className="text-text-heading dark:text-white text-[22px] sm:text-[28px] md:text-[34px] leading-tight font-semibold tracking-tight">
-                The fastest way to choose the learning environment for you.
-              </h1>
-
-              <p className="text-text-body text-[12px] sm:text-[13px] md:text-[14px] tracking-wide px-6 py-3 rounded-full bg-card border border-border inline-block dark:text-white/90 dark:bg-black/60 dark:border-white/10">
-                Compare teaching quality, research impact, and course workload
-                in one elegant dashboard.
-              </p>
-
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-1">
-                <Link href="/alerts" className="w-full sm:w-auto">
-                  <Button className="w-full sm:w-auto bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966] rounded-full px-7">
-                    Get seat alerts
-                  </Button>
-                </Link>
-
-                <Link href="/courses" className="w-full sm:w-auto">
-                  <Button
-                    variant="outline"
-                    className="w-full sm:w-auto rounded-full border-border text-text-heading hover:bg-button-hover dark:border-white/60 dark:text-white dark:hover:bg-white/10 dark:hover:text-white"
-                  >
-                    Browse courses
-                  </Button>
-                </Link>
-              </div>
-
-              <div className="pt-1 text-text-body text-[11px] sm:text-[12px] tracking-wide dark:text-white/80">
-                Search by course · View grade distributions · Student insights
-              </div>
-            </div>
-          </motion.div>
+    <section className="relative isolate min-h-svh bg-canvas">
+      <picture className="pointer-events-none absolute inset-0 -z-20">
+        <source
+          media="(orientation: portrait)"
+          srcSet={portraitImage.srcSet}
+          sizes={portraitImage.sizes}
+        />
+        <img
+          {...desktopImage}
+          className="object-cover object-[50%_34%] lg:object-[60%_35%]"
+        />
+      </picture>
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(to_bottom,var(--color-canvas)_150px,color-mix(in_srgb,var(--color-canvas)_90%,transparent)_250px,transparent_420px,transparent_calc(100%_-_140px),var(--color-canvas)_100%)] sm:bg-[linear-gradient(to_bottom,var(--color-canvas)_300px,color-mix(in_srgb,var(--color-canvas)_90%,transparent)_420px,transparent_600px,transparent_calc(100%_-_140px),var(--color-canvas)_100%)] lg:bg-[linear-gradient(to_right,var(--color-canvas)_0%,color-mix(in_srgb,var(--color-canvas)_95%,transparent)_30%,color-mix(in_srgb,var(--color-canvas)_76%,transparent)_47%,transparent_75%)]"
+      />
+      <div className="mx-auto grid min-h-svh max-w-7xl content-start gap-6 px-4 pb-14 pt-24 sm:px-6 sm:pt-28 lg:grid-cols-[minmax(0,1fr)_minmax(320px,420px)] lg:content-center lg:items-center lg:gap-12 lg:pb-20 lg:pt-28 xl:gap-24">
+        <div className="min-w-0">
+          <h1 className="max-w-[14ch] text-[clamp(2rem,5vw,3.5rem)] font-medium leading-[1.06] tracking-[-0.03em] text-text-heading">
+            Course search for Texas A&amp;M
+          </h1>
+          <p className="mt-4 max-w-[31rem] text-base leading-6 text-text-body sm:text-lg sm:leading-7">
+            Compare official grade distributions and professor ratings. Get
+            alerts when a seat opens.
+          </p>
+          <div className="relative z-10 mt-5 max-w-[35rem] sm:mt-7">
+            <GlobalOmnibar />
+          </div>
+          {/* Extensions only install on desktop browsers, so touch devices skip this */}
+          <div className="mt-5 hidden flex-wrap items-center gap-x-4 gap-y-2 pointer-fine:flex">
+            <ExtensionButton link={extension} />
+            <p className="text-sm text-text-body">
+              Ratings and grades inside College Scheduler
+            </p>
+          </div>
         </div>
+
+        <Link
+          href={EXAMPLE_PATH}
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+          onFocus={() => setPaused(true)}
+          onBlur={() => setPaused(false)}
+          className="group hidden min-w-0 max-w-[35rem] rounded-2xl lg:block border border-border-strong bg-card p-4 transition-[transform,border-color] hover:-translate-y-0.5 hover:border-accent focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent active:translate-y-0 motion-reduce:transform-none sm:p-6 lg:max-w-none"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <span className="code-tag">{EXAMPLE_CODE}</span>
+            <ArrowRight className="h-5 w-5 shrink-0 text-accent" aria-hidden />
+          </div>
+          <h2 className="mt-2 text-lg font-medium leading-tight text-text-heading">
+            {course?.name || "Program Design and Concepts"}
+          </h2>
+          <div className="mt-3 min-h-20">
+            {distribution && professor ? (
+              <MotionConfig reducedMotion="user">
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.div
+                    key={professor.name}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                  >
+                    <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-sm text-text-body">
+                      <span>{professor.name}</span>
+                      {rating != null && (
+                        <span className="font-medium text-text-heading">
+                          {rating.toFixed(1)}/5 professor rating
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-3 flex justify-between gap-3 text-xs text-text-muted">
+                      <span>Grade distribution</span>
+                      {professors.length > 1 && (
+                        <span className="font-mono" aria-hidden>
+                          {(index % professors.length) + 1}/{professors.length}{" "}
+                          profs
+                        </span>
+                      )}
+                    </p>
+                    <ul
+                      aria-label="Grade percentages"
+                      className="mt-2 grid grid-cols-5 gap-2"
+                    >
+                      {GRADES.map((grade) => (
+                        <li key={grade} className="min-w-0">
+                          <div
+                            className="h-1.5 overflow-hidden rounded-full bg-raised"
+                            aria-hidden
+                          >
+                            <div
+                              className="h-full rounded-full bg-accent"
+                              style={{ width: `${distribution[grade]}%` }}
+                            />
+                          </div>
+                          <div className="mt-1 flex flex-wrap items-baseline gap-x-1 text-xs">
+                            <span className="text-text-body">{grade}</span>
+                            <span className="font-mono text-text-heading">
+                              {distribution[grade]}%
+                            </span>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </motion.div>
+                </AnimatePresence>
+              </MotionConfig>
+            ) : (
+              <p className="text-sm text-text-body">
+                {course === undefined
+                  ? "Loading grade data…"
+                  : "View grade data and professors"}
+              </p>
+            )}
+          </div>
+        </Link>
       </div>
     </section>
   );

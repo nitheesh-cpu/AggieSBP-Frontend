@@ -3,30 +3,74 @@
 /* Configure dark mode for Tailwind CSS v4 */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/*
+ * Aggieland palette. Light is cream paper with maroon; dark is maroon-black
+ * with gold. Maroon carries the frame (nav, banners, card headers, footer),
+ * gold marks the one thing that matters, and the plaza art and pixel Reveille
+ * carry the mood.
+ */
 @theme {
-  /* Light mode colors (default) */
-  --color-canvas: #ffffff;
-  --color-card: #f8f9fa;
-  --color-border: #e5e7eb;
-  --color-text-body: #374151;
-  --color-text-heading: #111827;
-  --color-button-primary: #500000;
-  --color-button-primary-text: #ffffff;
-  --color-button-hover: rgba(80, 0, 0, 0.08);
-  --color-accent-green: #10b981;
-  --color-accent-blue: #3b82f6;
-  --color-accent-yellow: #f59e0b;
-  --color-accent-magenta: #ec4899;
+  /* Surfaces (light) */
+  --color-canvas: #f7f2ea;
+  --color-card: #fffdf9;
+  --color-raised: #f1e9dd;
+  --color-border: rgba(80, 30, 20, 0.11);
+  --color-border-strong: rgba(80, 30, 20, 0.2);
+
+  /* Text roles (light) */
+  --color-text-heading: #231815;
+  --color-text-body: #5c4f4a;
+  --color-text-muted: #7f706b;
+
+  /* Brand */
   --color-accent-maroon: #500000;
-  /* Primary accent (light = maroon, dark = gold) */
-  --color-accent-primary: #500000;
+  --color-accent-gold: #ffcf3f;
   --color-maroon-light: #722f37;
   --color-maroon-dark: #330000;
+  /* Maroon as a content surface (course card headers, selected filters) */
+  --color-maroon-band: #500000;
+  --color-maroon-edge: rgba(80, 0, 0, 0.4);
+  --color-maroon-nav: #500000;
+  --color-maroon-deep: #2e0006;
+  --color-on-maroon: #ffffff;
+  --color-on-maroon-muted: rgba(255, 255, 255, 0.7);
+  /* Accent: maroon on light, gold on dark */
+  --color-accent-primary: #500000;
+  --color-accent: #500000;
+  --color-accent-foreground: #ffffff;
 
-  --color-popover: #ffffff;
-  --color-popover-foreground: #111827;
+  /* Legacy names used across pages, mapped onto the ramp */
+  --color-button-primary: #500000;
+  --color-button-primary-text: #ffffff;
+  --color-button-hover: #f1e9dd;
+  --color-accent-green: #16a34a;
+  --color-accent-blue: #3b82f6;
+  --color-accent-yellow: #b45309;
+  --color-accent-magenta: #be185d;
 
-  --font-sans: Inter, system-ui, sans-serif;
+  /* Semantic */
+  --color-positive: #16a34a;
+  --color-negative: #dc2626;
+  --color-caution: #b45309;
+
+  /* shadcn primitives, on the same ramp */
+  --color-background: #f7f2ea;
+  --color-foreground: #231815;
+  --color-primary: #500000;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #f1e9dd;
+  --color-secondary-foreground: #231815;
+  --color-muted: #f1e9dd;
+  --color-muted-foreground: #7f706b;
+  --color-input: rgba(80, 30, 20, 0.18);
+  --color-ring: rgba(80, 0, 0, 0.45);
+  --color-destructive: #dc2626;
+  --color-popover: #fffdf9;
+  --color-popover-foreground: #231815;
+  --color-card-foreground: #231815;
+
+  --font-sans: var(--font-plex-sans), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
 
   --text-xs: 12px;
   --text-sm: 14px;
@@ -39,6 +83,10 @@
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
+  /* Hierarchy comes from size and color, so heavy weights cap at 600 */
+  --font-weight-bold: 600;
+  --font-weight-extrabold: 600;
+  --font-weight-black: 600;
 
   --leading-tight: 1.25;
   --leading-normal: 1.5;
@@ -63,19 +111,23 @@
   --radius-lg: 8px;
   --radius-xl: 12px;
   --radius-2xl: 16px;
-  --radius-full: 20px;
 
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 8px 24px 32px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 1px 2px rgba(60, 20, 10, 0.06);
+  --shadow-md: 0 4px 12px rgba(60, 20, 10, 0.07);
+  --shadow-lg: 0 8px 24px rgba(60, 20, 10, 0.08);
+  --shadow-xl: 0 12px 32px rgba(0, 0, 0, 0.08);
+  --shadow-2xl: 0 16px 40px rgba(0, 0, 0, 0.1);
 
-  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  /* One easing curve for the whole interface */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in: cubic-bezier(0.4, 0, 1, 1);
-  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --default-transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  --default-transition-duration: 150ms;
 
   --animate-duration-fast: 150ms;
-  --animate-duration-normal: 220ms;
+  --animate-duration-normal: 180ms;
   --animate-duration-slow: 300ms;
 
   --breakpoint-sm: 640px;
@@ -94,61 +146,84 @@
   --aspect-video: 16 / 9;
   --aspect-portrait: 3 / 4;
 
-  /* App backgrounds (light defaults) */
-  --app-bg-gradient: linear-gradient(to bottom,
-      #ffffff 0%,
-      #fff7f5 38%,
-      #ffecec 64%,
-      #ffffff 100%);
-  --app-bg-ambient: radial-gradient(900px 520px at 18% 12%,
-      rgba(80, 0, 0, 0.08),
-      transparent 62%),
-    radial-gradient(740px 460px at 85% 22%,
-      rgba(255, 207, 63, 0.16),
-      transparent 62%);
+  /* Page background: a flat surface, no washes */
+  --app-bg-gradient: var(--color-canvas);
+  --app-bg-ambient: none;
 
-  /* Hero overlays */
-  --hero-backdrop-gradient: linear-gradient(to top,
-      rgba(255, 255, 255, 0.92) 0%,
-      rgba(255, 255, 255, 0.78) 32%,
-      rgba(255, 255, 255, 0) 70%);
+  /* Hero scrim over the plaza illustration */
+  --hero-backdrop-gradient: linear-gradient(to bottom,
+      rgba(250, 250, 250, 0.82) 0%,
+      rgba(250, 250, 250, 0.55) 34%,
+      rgba(250, 250, 250, 0) 62%);
 }
 
-/* Dark mode override */
+/*
+ * Dark mode: neutral charcoal so maroon and gold have something to stand out
+ * against. Maroon is lifted (#7a1a2b) because #500000 on near-black reads as
+ * brown; surfaces step up clearly so cards separate from the page.
+ */
 .dark {
-  --color-canvas: #0f0f0f;
-  --color-card: #111111;
-  --color-border: #333333; /* light enough to see against #0f0f0f */
-  --color-text-body: #e6e6e6;
-  --color-text-heading: #ffffff;
-  --color-button-hover: rgba(80, 0, 0, 0.08);
+  --color-canvas: #111113;
+  --color-card: #1b1b1f;
+  --color-raised: #26262c;
+  --color-border: rgba(255, 255, 255, 0.09);
+  --color-border-strong: rgba(255, 255, 255, 0.16);
+
+  --color-text-heading: #f4f4f5;
+  --color-text-body: #c9c9d0;
+  --color-text-muted: #9b9ba5;
+
   --color-accent-primary: #ffcf3f;
-  --color-popover: #111111;
-  --color-popover-foreground: #ffffff;
-  --shadow-lg: 0 8px 24px 32px rgba(0, 0, 0, 0.6);
+  --color-accent: #ffcf3f;
+  --color-accent-foreground: #1d1305;
 
-  /* App backgrounds (dark) */
-  --app-bg-gradient: linear-gradient(to bottom,
-      #0f0f0f 0%,
-      #140000 38%,
-      #220000 64%,
-      #330000 100%);
-  --app-bg-ambient: radial-gradient(900px 520px at 18% 12%,
-      rgba(80, 0, 0, 0.14),
-      transparent 62%),
-    radial-gradient(740px 460px at 85% 22%,
-      rgba(255, 207, 63, 0.08),
-      transparent 62%);
+  --color-maroon-band: #7a1a2b;
+  --color-maroon-edge: #9a3446;
+  --color-maroon-nav: #5c0f1e;
+  --color-maroon-deep: #2b0a12;
 
-  --hero-backdrop-gradient: linear-gradient(to top,
-      rgba(0, 0, 0, 0.7) 0%,
-      rgba(0, 0, 0, 0.55) 32%,
-      rgba(0, 0, 0, 0) 70%);
+  --color-button-primary: #ffcf3f;
+  --color-button-primary-text: #1d1305;
+  --color-button-hover: #26262c;
+  --color-accent-green: #4cc38a;
+  --color-accent-yellow: #ffcf3f;
+  --color-accent-magenta: #f472b6;
+
+  --color-positive: #4cc38a;
+  --color-negative: #e5484d;
+  --color-caution: #e8a54b;
+
+  --color-background: #111113;
+  --color-foreground: #f4f4f5;
+  --color-primary: #ffcf3f;
+  --color-primary-foreground: #1d1305;
+  --color-secondary: #26262c;
+  --color-secondary-foreground: #f4f4f5;
+  --color-muted: #26262c;
+  --color-muted-foreground: #9b9ba5;
+  --color-input: rgba(255, 255, 255, 0.14);
+  --color-ring: rgba(255, 207, 63, 0.5);
+  --color-destructive: #e5484d;
+  --color-popover: #1b1b1f;
+  --color-popover-foreground: #f4f4f5;
+  --color-card-foreground: #f4f4f5;
+
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-xl: 0 12px 32px rgba(0, 0, 0, 0.4);
+  --shadow-2xl: 0 16px 40px rgba(0, 0, 0, 0.45);
+
+  --hero-backdrop-gradient: linear-gradient(to bottom,
+      rgba(20, 20, 21, 0.78) 0%,
+      rgba(20, 20, 21, 0.5) 34%,
+      rgba(20, 20, 21, 0) 62%);
 }
 
 @layer base {
-  * {
+  *,
+  ::before,
+  ::after {
     box-sizing: border-box;
+    border-color: var(--color-border);
   }
 
   html {
@@ -167,9 +242,24 @@
     line-height: var(--leading-normal);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    transition:
-      background-color var(--animate-duration-normal) ease-in-out,
-      color var(--animate-duration-normal) ease-in-out;
+    /* Home-screen web app (viewport-fit=cover): keep content clear of the
+       status bar / notch. The fixed nav adds the same inset to its own height,
+       so in-flow content shifts down by exactly that amount. */
+    padding-top: env(safe-area-inset-top);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Figures line up wherever they appear */
+  .font-mono,
+  table,
+  [data-figure] {
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
   }
 
   h1,
@@ -180,23 +270,23 @@
   h6 {
     margin: 0;
     color: var(--color-text-heading);
-    font-weight: var(--font-weight-semibold);
+    font-weight: var(--font-weight-medium);
     line-height: var(--leading-tight);
   }
 
   h1 {
     font-size: var(--text-3xl);
-    line-height: 1.25;
+    line-height: 1.1;
   }
 
   h2 {
     font-size: var(--text-2xl);
-    line-height: 1.375;
+    line-height: 1.2;
   }
 
   h3 {
     font-size: var(--text-xl);
-    line-height: 1.333;
+    line-height: 1.3;
   }
 
   p {
@@ -235,6 +325,16 @@
     border-collapse: collapse;
     border-spacing: 0;
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 }
 
 @layer utilities {
@@ -244,6 +344,10 @@
 
   .bg-card {
     background-color: var(--color-card);
+  }
+
+  .bg-raised {
+    background-color: var(--color-raised);
   }
 
   .bg-border {
@@ -326,6 +430,10 @@
     color: var(--color-text-heading);
   }
 
+  .text-text-muted {
+    color: var(--color-text-muted);
+  }
+
   .duration-normal {
     transition-duration: var(--animate-duration-normal);
   }
@@ -336,5 +444,35 @@
 
   .duration-slow {
     transition-duration: var(--animate-duration-slow);
+  }
+
+  /* Aggie maroon band with a small tone shift inside the one hue */
+  .bg-maroon-band {
+    background-color: var(--color-maroon-band);
+    background-image: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.06),
+      rgba(0, 0, 0, 0.12)
+    );
+  }
+
+  /* Signature: course and department codes as small mono keycaps */
+  .code-tag {
+    display: inline-flex;
+    align-items: center;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 4px;
+    border: 1px solid var(--color-border-strong);
+    background-color: var(--color-raised);
+    box-shadow: inset 0 -1px 0 var(--color-border-strong);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 0;
+    color: var(--color-text-heading);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
   }
 }

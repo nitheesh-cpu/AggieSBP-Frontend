@@ -8,7 +8,6 @@ import {
   BellRing,
   CheckCircle2,
   Chrome,
-  ExternalLink,
   MousePointerClick,
   Search,
   Share2,
@@ -25,25 +24,25 @@ const CHROME_EXTENSION_URL =
 
 const steps = [
   {
-    number: "01",
+    number: "1",
     icon: Search,
     title: "Find the section you need",
     description:
-      "Browse your registration results and identify the closed section, professor, and time that fit your schedule.",
+      "Browse your registration results and identify the closed section, professor, and time that fit your schedule",
   },
   {
-    number: "02",
+    number: "2",
     icon: MousePointerClick,
     title: "Add a seat alert",
     description:
-      "Use the AggieSB+ extension to scan visible sections or enter the subject, course, section, and CRN manually.",
+      "Use the AggieSB+ extension to scan visible sections or enter the subject, course, section and CRN yourself",
   },
   {
-    number: "03",
+    number: "3",
     icon: BellRing,
     title: "We watch it for you",
     description:
-      "Enable notifications once. AggieSB+ monitors your watched sections and alerts you when a seat becomes available.",
+      "Enable notifications once. AggieSB+ monitors your watched sections and alerts you when a seat opens",
   },
 ];
 
@@ -91,253 +90,175 @@ export default function SeatAlertsPage() {
   };
 
   return (
-    <div
-      className="min-h-screen overflow-hidden"
-      style={{ background: "var(--app-bg-gradient)" }}
-    >
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0"
-        style={{ background: "var(--app-bg-ambient)" }}
-      />
+    <div className="min-h-screen overflow-hidden bg-canvas">
       <Navigation variant="glass" />
 
-      <main className="relative z-10">
-        <section className="px-6 pb-20 pt-28 sm:pt-32">
-          <div className="mx-auto grid max-w-6xl items-center gap-14 lg:grid-cols-[1.08fr_0.92fr]">
+      <main>
+        <section className="px-4 pb-20 pt-28 sm:px-6 sm:pt-32">
+          <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
             <motion.div
-              initial={{ opacity: 0, y: 18 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
             >
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#500000]/15 bg-white/65 px-3 py-1.5 text-xs font-semibold text-[#500000] backdrop-blur dark:border-[#FFCF3F]/25 dark:bg-black/45 dark:text-[#FFCF3F]">
-                <BellRing className="h-3.5 w-3.5" />
-                Never miss an open seat
-              </div>
-              <h1 className="max-w-3xl text-4xl font-semibold leading-[1.08] tracking-tight text-heading dark:text-white sm:text-5xl lg:text-6xl">
-                Stop refreshing registration.
-                <span className="block text-[#500000] dark:text-[#FFCF3F]">
-                  We&apos;ll watch the section.
-                </span>
+              <h1 className="max-w-2xl text-[36px] font-medium leading-[1.06] tracking-[-0.02em] text-text-heading sm:text-[48px] lg:text-[56px] lg:tracking-[-0.03em]">
+                Stop refreshing registration. We&apos;ll watch the section
               </h1>
-              <p className="mt-6 max-w-2xl text-base leading-7 text-body dark:text-white/65 sm:text-lg">
-                Pick the exact class section you want and AggieSB+ will notify
-                you when a seat opens. See how it works before you sign in.
+              <p className="mt-6 max-w-xl text-lg leading-7 text-text-body">
+                Pick the exact section you want and AggieSB+ notifies you when a
+                seat opens. See how it works before you sign in.
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Button
-                  onClick={beginSetup}
-                  className="h-12 w-full rounded-full bg-[#FFCF3F] px-7 font-semibold text-[#0f0f0f] hover:bg-[#FFD966] sm:w-auto"
-                >
-                    {isIos && !isStandalone
-                      ? "Install on iPhone"
-                      : "Set up seat alerts"}
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                <Button onClick={beginSetup} size="lg" className="w-full sm:w-auto">
+                  {isIos && !isStandalone ? "Install on iPhone" : "Set up seat alerts"}
+                  <ArrowRight strokeWidth={1.5} className="h-4 w-4" />
                 </Button>
                 {!isIos && (
-                  <a
-                    href={CHROME_EXTENSION_URL}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <Button
-                      variant="outline"
-                      className="h-12 w-full rounded-full border-[#500000]/25 bg-white/50 px-6 text-heading hover:bg-white/80 dark:border-white/20 dark:bg-black/30 dark:text-white dark:hover:bg-white/10 sm:w-auto"
-                    >
-                      <Chrome className="mr-2 h-4 w-4" />
+                  <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
+                    <a href={CHROME_EXTENSION_URL} target="_blank" rel="noreferrer">
+                      <Chrome strokeWidth={1.5} className="h-4 w-4" />
                       Get the extension
-                      <ExternalLink className="ml-2 h-3.5 w-3.5 opacity-60" />
-                    </Button>
-                  </a>
+                    </a>
+                  </Button>
                 )}
               </div>
 
-              <div className="mt-5 flex items-center gap-2 text-xs text-body dark:text-white/65">
-                <ShieldCheck className="h-4 w-4" />
-                Sign in only when you&apos;re ready to save an alert.
-              </div>
+              <p className="mt-5 flex items-center gap-2 text-sm text-text-muted">
+                <ShieldCheck strokeWidth={1.5} className="h-4 w-4" />
+                Sign in only when you&apos;re ready to save an alert
+              </p>
             </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.55, delay: 0.12 }}
-              className="relative mx-auto w-full max-w-md"
-            >
-              <div className="absolute -inset-10 rounded-full bg-[#FFCF3F]/15 blur-3xl" />
-              <div className="relative rounded-[2rem] border border-[#500000]/15 bg-white/75 p-5 shadow-2xl backdrop-blur-xl dark:border-[#FFCF3F]/20 dark:bg-black/65">
-                <div className="mb-5 flex items-center justify-between border-b border-[#500000]/10 pb-4 dark:border-white/10">
+            {/* Product preview: the alert list as it looks in the app */}
+            <div className="relative mx-auto w-full max-w-md">
+              <div className="rounded-2xl border border-border-strong bg-card p-5 shadow-xl">
+                <div className="mb-4 flex items-center justify-between border-b border-border pb-4">
                   <div className="flex items-center gap-3">
-                    <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#500000] text-white dark:bg-[#FFCF3F] dark:text-black">
-                      <BellRing className="h-5 w-5" />
-                    </span>
+                    <BellRing strokeWidth={1.5} className="h-[18px] w-[18px] text-text-muted" />
                     <div>
-                      <p className="text-sm font-semibold text-heading dark:text-white">
-                        Seat Alerts
-                      </p>
-                      <p className="text-xs text-body dark:text-white/65">
-                        2 sections watched
-                      </p>
+                      <p className="text-sm font-medium text-text-heading">Seat alerts</p>
+                      <p className="text-xs text-text-muted">3 sections watched</p>
                     </div>
                   </div>
-                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.12)]" />
+                  <span className="flex items-center gap-2 font-mono text-xs text-text-muted">
+                    <span className="h-2 w-2 rounded-full bg-positive" />
+                    Checking
+                  </span>
                 </div>
 
-                <div className="space-y-3">
-                  <div className="rounded-2xl border border-emerald-500/30 bg-emerald-50 p-4 dark:bg-emerald-500/10">
+                <div className="space-y-2">
+                  <div className="rounded-xl border border-positive/30 bg-positive/10 p-4">
                     <div className="flex items-start gap-3">
-                      <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                      <CheckCircle2 strokeWidth={1.5} className="mt-0.5 h-[18px] w-[18px] shrink-0 text-positive" />
                       <div>
-                        <p className="text-sm font-semibold text-emerald-950 dark:text-emerald-100">
-                          A seat just opened
+                        <p className="text-sm font-medium text-text-heading">A seat just opened</p>
+                        <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-text-body">
+                          <span className="code-tag">STAT 211</span>
+                          Section 503 · CRN 48213
                         </p>
-                        <p className="mt-1 text-sm text-emerald-800/75 dark:text-emerald-100/65">
-                          STAT 414 · Section 501 · CRN 12345
-                        </p>
-                        <p className="mt-2 text-xs font-medium text-emerald-700 dark:text-emerald-300">
-                          Open registration to enroll →
+                        <p className="mt-3 text-sm text-text-heading">
+                          Open registration to enroll
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  {["CSCE 313 · Section 502", "MATH 251 · Section 201"].map(
-                    (section) => (
-                      <div
-                        key={section}
-                        className="flex items-center justify-between rounded-2xl border border-[#500000]/10 bg-white/60 px-4 py-3 dark:border-white/10 dark:bg-white/5"
-                      >
-                        <div>
-                          <p className="text-sm font-medium text-heading dark:text-white">
-                            {section}
-                          </p>
-                          <p className="mt-0.5 text-xs text-body dark:text-white/65">
-                            Watching for an opening
-                          </p>
-                        </div>
-                        <span className="relative flex h-2.5 w-2.5">
-                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#FFCF3F] opacity-60" />
-                          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#FFCF3F]" />
-                        </span>
+                  {[
+                    { code: "CSCE 313", section: "Section 502" },
+                    { code: "MATH 251", section: "Section 201" },
+                  ].map((row) => (
+                    <div
+                      key={row.code}
+                      className="flex items-center justify-between rounded-xl border border-border bg-canvas px-4 py-3"
+                    >
+                      <div className="flex items-center gap-2 text-sm text-text-body">
+                        <span className="code-tag">{row.code}</span>
+                        {row.section}
                       </div>
-                    ),
-                  )}
+                      <span className="text-xs text-text-muted">Watching</span>
+                    </div>
+                  ))}
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
 
           {isIos && !isStandalone && showInstallGuide && (
             <motion.div
               id="iphone-install-guide"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mx-auto mt-12 max-w-3xl rounded-3xl border border-[#FFCF3F]/35 bg-black/75 p-5 text-white shadow-2xl backdrop-blur-xl sm:p-7"
+              className="mx-auto mt-12 max-w-3xl rounded-2xl border border-border-strong bg-card p-6 sm:p-8"
             >
-              <div className="flex items-start gap-4">
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#FFCF3F] text-black">
-                  <Smartphone className="h-5 w-5" />
-                </span>
+              <div className="flex items-start gap-3">
+                <Smartphone strokeWidth={1.5} className="mt-1 h-[18px] w-[18px] shrink-0 text-text-muted" />
                 <div>
-                  <h2 className="text-lg font-semibold">
+                  <h2 className="text-lg font-medium text-text-heading">
                     Add AggieSB+ to your Home Screen
                   </h2>
-                  <p className="mt-1 text-sm leading-6 text-white/60">
-                    Apple requires you to complete this from the browser menu.
-                    Once installed, open AggieSB+ from its new icon and we&apos;ll
-                    take you directly through sign-in and notification setup.
+                  <p className="mt-1 text-sm leading-6 text-text-body">
+                    Apple requires you to do this from the browser menu. Once
+                    installed, open AggieSB+ from its new icon and we&apos;ll take
+                    you through sign-in and notification setup.
                   </p>
                 </div>
               </div>
               <ol className="mt-6 grid gap-3 sm:grid-cols-3">
-                <li className="rounded-2xl bg-white/[0.07] p-4 text-sm">
-                  <span className="mb-3 grid h-7 w-7 place-items-center rounded-full bg-white/10 text-xs font-semibold">
-                    1
-                  </span>
-                  Tap <Share2 className="mx-1 inline h-4 w-4 text-[#FFCF3F]" />
-                  <strong> Share</strong> in Safari.
-                </li>
-                <li className="rounded-2xl bg-white/[0.07] p-4 text-sm">
-                  <span className="mb-3 grid h-7 w-7 place-items-center rounded-full bg-white/10 text-xs font-semibold">
-                    2
-                  </span>
-                  Scroll down and choose <strong>Add to Home Screen</strong>.
-                </li>
-                <li className="rounded-2xl bg-white/[0.07] p-4 text-sm">
-                  <span className="mb-3 grid h-7 w-7 place-items-center rounded-full bg-white/10 text-xs font-semibold">
-                    3
-                  </span>
-                  Tap <strong>Add</strong>, then open the AggieSB+ icon.
-                </li>
+                {[
+                  <>Tap <Share2 strokeWidth={1.5} className="mx-1 inline h-4 w-4 text-text-muted" /> Share in Safari</>,
+                  <>Scroll down and choose Add to Home Screen</>,
+                  <>Tap Add, then open the AggieSB+ icon</>,
+                ].map((content, i) => (
+                  <li key={i} className="rounded-xl border border-border bg-canvas p-4 text-sm text-text-body">
+                    <span className="mb-3 block font-mono text-xs text-text-muted">{i + 1}</span>
+                    {content}
+                  </li>
+                ))}
               </ol>
-              <p className="mt-4 text-xs text-white/45">
-                Keep “Open as Web App” enabled if your iPhone displays that option.
+              <p className="mt-4 text-xs text-text-muted">
+                Keep &ldquo;Open as Web App&rdquo; on if your iPhone shows that option
               </p>
             </motion.div>
           )}
         </section>
 
-        <section className="border-y border-[#500000]/10 bg-white/35 px-6 py-20 backdrop-blur-sm dark:border-white/10 dark:bg-black/20">
+        <section className="border-y border-border bg-card px-4 py-20 sm:px-6">
           <div className="mx-auto max-w-6xl">
-            <div className="mb-12 max-w-2xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#500000] dark:text-[#FFCF3F]">
-                How it works
-              </p>
-              <h2 className="mt-3 text-3xl font-semibold tracking-tight text-heading dark:text-white sm:text-4xl">
-                From closed section to open seat in three steps.
-              </h2>
-            </div>
+            <h2 className="max-w-2xl text-[28px] font-medium leading-9 text-text-heading sm:text-[32px] sm:leading-10">
+              From closed section to open seat in three steps
+            </h2>
 
-            <div className="grid gap-5 md:grid-cols-3">
-              {steps.map((step, index) => {
+            <ol className="mt-10 grid gap-4 md:grid-cols-3">
+              {steps.map((step) => {
                 const Icon = step.icon;
                 return (
-                  <motion.article
-                    key={step.number}
-                    initial={{ opacity: 0, y: 18 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, amount: 0.3 }}
-                    transition={{ duration: 0.4, delay: index * 0.08 }}
-                    className="rounded-3xl border border-[#500000]/10 bg-white/65 p-6 shadow-sm dark:border-white/10 dark:bg-black/40"
-                  >
+                  <li key={step.number} className="rounded-xl border border-border bg-canvas p-6">
                     <div className="flex items-center justify-between">
-                      <span className="grid h-11 w-11 place-items-center rounded-xl bg-[#500000]/10 text-[#500000] dark:bg-[#FFCF3F]/15 dark:text-[#FFCF3F]">
-                        <Icon className="h-5 w-5" />
-                      </span>
-                      <span className="text-xs font-semibold tracking-[0.16em] text-body/50 dark:text-white/65">
-                        {step.number}
-                      </span>
+                      <Icon strokeWidth={1.5} className="h-[18px] w-[18px] text-text-muted" />
+                      <span className="font-mono text-xs text-text-muted">{step.number}</span>
                     </div>
-                    <h3 className="mt-6 text-lg font-semibold text-heading dark:text-white">
-                      {step.title}
-                    </h3>
-                    <p className="mt-2 text-sm leading-6 text-body dark:text-white/65">
-                      {step.description}
-                    </p>
-                  </motion.article>
+                    <h3 className="mt-6 text-base font-medium text-text-heading">{step.title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-text-body">{step.description}</p>
+                  </li>
                 );
               })}
-            </div>
+            </ol>
           </div>
         </section>
 
-        <section className="px-6 py-20">
-          <div className="mx-auto max-w-4xl rounded-[2rem] border border-[#500000]/15 bg-[#500000] px-6 py-12 text-center text-white shadow-xl dark:border-[#FFCF3F]/25 dark:bg-[#120f08] sm:px-12">
-            <Smartphone className="mx-auto h-8 w-8 text-[#FFCF3F]" />
-            <h2 className="mt-5 text-3xl font-semibold tracking-tight">
-              Ready to stop refreshing?
-            </h2>
-            <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-white/65 sm:text-base">
-              Sign in, enable notifications on this device, and manage every
-              section you&apos;re watching from one place.
-            </p>
-            <Button
-              onClick={beginSetup}
-              className="mt-7 h-12 rounded-full bg-[#FFCF3F] px-7 font-semibold text-black hover:bg-[#FFD966]"
-            >
-                Continue to alert setup
-                <ArrowRight className="ml-2 h-4 w-4" />
+        <section className="px-4 py-20 sm:px-6">
+          <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+            <div>
+              <h2 className="text-2xl font-medium text-text-heading">Ready to stop refreshing</h2>
+              <p className="mt-2 max-w-xl text-base leading-6 text-text-body">
+                Sign in, turn on notifications on this device and manage every
+                section you&apos;re watching from one place
+              </p>
+            </div>
+            <Button onClick={beginSetup} size="lg">
+              Continue to alert setup
+              <ArrowRight strokeWidth={1.5} className="h-4 w-4" />
             </Button>
           </div>
         </section>

@@ -151,17 +151,6 @@ export default function AboutPage() {
           background: "var(--app-bg-gradient)",
         }}
       >
-        {/* Ambient background */}
-        <motion.div
-          aria-hidden
-          className="pointer-events-none absolute inset-0"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8 }}
-          style={{
-            background: "var(--app-bg-ambient)",
-          }}
-        />
 
         <Navigation variant="glass" />
 
@@ -173,37 +162,30 @@ export default function AboutPage() {
                 <div className="lg:col-span-3">
                   <Badge
                     variant="outline"
-                    className="mb-5 border-border bg-card text-text-heading dark:border-white/20 dark:bg-black/25 dark:text-white/90"
+                    className="mb-5 border-border bg-card text-text-heading dark:border-border-strong"
                   >
                     About AggieSB+
                   </Badge>
 
-                  <h1 className="text-[22px] sm:text-[26px] md:text-[30px] leading-relaxed text-text-heading dark:text-white mb-6">
-                    Pick better classes with real outcomes — GPA data, reviews,
-                    and comparisons in one place.
+                  <h1 className="text-[32px] sm:text-[40px] leading-[1.1] tracking-[-0.02em] font-medium text-text-heading mb-6">
+                    Pick classes by real outcomes: GPA data, reviews and
+                    comparisons in one place
                   </h1>
 
-                  <div className="flex gap-4 mb-8">
-                    <div className="w-[2px] rounded-full bg-[#FFCF3F]" />
-                    <p className="text-[11px] sm:text-[12px] md:text-[13px] leading-relaxed text-text-body max-w-2xl dark:text-white/80">
-                      AggieSB+ helps Texas A&M students choose courses and
-                      professors with confidence: grade distributions, course
-                      rigor signals, and authentic student feedback — designed
-                      to be fast, clean, and decision-first.
-                    </p>
-                  </div>
+                  <p className="mb-8 max-w-2xl text-base leading-7 text-text-body">
+                    AggieSB+ helps Texas A&amp;M students choose courses and
+                    professors with grade distributions, course difficulty and
+                    student reviews, all on one page per course and professor.
+                  </p>
 
                   <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                     <Link href="/courses">
-                      <Button className="bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966] rounded-full px-6">
+                      <Button size="lg">
                         Explore courses
                       </Button>
                     </Link>
                     <Link href="/professors">
-                      <Button
-                        variant="outline"
-                        className="rounded-full border-border bg-card text-text-heading hover:bg-button-hover dark:border-white/25 dark:bg-black/20 dark:text-white dark:hover:bg-black/35 dark:hover:text-white"
-                      >
+                      <Button variant="outline" size="lg">
                         Browse professors
                       </Button>
                     </Link>
@@ -217,7 +199,7 @@ export default function AboutPage() {
                       alt="Reveille"
                       fill
                       sizes="(min-width: 1024px) 512px, (min-width: 640px) 544px, 100vw"
-                      className="object-contain drop-shadow-[0_18px_38px_rgba(0,0,0,0.55)]"
+                      className="object-contain"
                       priority
                     />
                   </div>
@@ -227,7 +209,7 @@ export default function AboutPage() {
 
             {/* How It Works */}
             <AnimatedSection delay={0.06} className="mb-16">
-              <h2 className="text-text-heading dark:text-white text-center mb-8 text-[18px] sm:text-[20px] md:text-[22px] leading-relaxed">
+              <h2 className="text-text-heading text-center mb-8 text-2xl font-medium leading-tight">
                 How it works
               </h2>
 
@@ -237,28 +219,28 @@ export default function AboutPage() {
                 className="w-full"
               >
                 <div className="flex justify-center mb-8">
-                  <TabsList className="grid w-full max-w-2xl grid-cols-4 bg-card border border-border dark:bg-black/35 dark:border-white/10">
+                  <TabsList className="grid w-full max-w-2xl grid-cols-4 bg-card border border-border">
                     <TabsTrigger
                       value="search"
-                      className="data-[state=active]:bg-[#FFCF3F] data-[state=active]:text-[#0f0f0f] data-[state=active]:shadow-sm transition-all duration-200"
+                      className="data-[state=active]:bg-raised data-[state=active]:text-text-heading data-[state=active]:shadow-none transition-colors duration-150"
                     >
                       Search
                     </TabsTrigger>
                     <TabsTrigger
                       value="details"
-                      className="data-[state=active]:bg-[#FFCF3F] data-[state=active]:text-[#0f0f0f] data-[state=active]:shadow-sm transition-all duration-200"
+                      className="data-[state=active]:bg-raised data-[state=active]:text-text-heading data-[state=active]:shadow-none transition-colors duration-150"
                     >
                       Details
                     </TabsTrigger>
                     <TabsTrigger
                       value="compare"
-                      className="data-[state=active]:bg-[#FFCF3F] data-[state=active]:text-[#0f0f0f] data-[state=active]:shadow-sm transition-all duration-200"
+                      className="data-[state=active]:bg-raised data-[state=active]:text-text-heading data-[state=active]:shadow-none transition-colors duration-150"
                     >
                       Compare
                     </TabsTrigger>
                     <TabsTrigger
                       value="reviews"
-                      className="data-[state=active]:bg-[#FFCF3F] data-[state=active]:text-[#0f0f0f] data-[state=active]:shadow-sm transition-all duration-200"
+                      className="data-[state=active]:bg-raised data-[state=active]:text-text-heading data-[state=active]:shadow-none transition-colors duration-150"
                     >
                       Reviews
                     </TabsTrigger>
@@ -267,23 +249,23 @@ export default function AboutPage() {
 
                 <TabsContent value="search" className="space-y-6">
                   <div className="text-center mb-8">
-                    <h3 className="text-2xl font-semibold text-text-heading dark:text-white mb-4">
+                    <h3 className="text-2xl font-medium text-text-heading mb-4">
                       1. Search for Courses & Professors
                     </h3>
-                    <p className="text-text-body max-w-2xl mx-auto dark:text-white/75">
+                    <p className="text-text-body max-w-2xl mx-auto">
                       Use our powerful search to find courses by code, name, or
                       department.
                     </p>
                   </div>
 
-                  <Card className="p-6 bg-card border-border max-w-2xl mx-auto dark:bg-black/35 dark:border-white/10">
+                  <Card className="p-6 bg-card border-border max-w-2xl mx-auto">
                     <div className="relative mb-4">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-body dark:text-white/60" />
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-body dark:text-text-muted" />
                       <Input
                         placeholder="Search courses (try 'CSCE' or 'calculus')"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10 bg-canvas border-border text-text-body placeholder:text-text-body/75 dark:bg-black/35 dark:border-white/10 dark:text-white dark:placeholder:text-white/65"
+                        className="pl-10 bg-canvas border-border text-text-body placeholder:text-text-muted dark:bg-card dark:text-text-heading dark:placeholder:text-white/65"
                       />
                     </div>
                     <div className="space-y-2">
@@ -305,28 +287,28 @@ export default function AboutPage() {
                           >
                             <div className="flex items-center justify-between">
                               <div>
-                                <div className="font-medium text-text-heading dark:text-white">
+                                <div className="font-medium text-text-heading">
                                   {course.code}
                                 </div>
-                                <div className="text-sm text-text-body dark:text-white/75">
+                                <div className="text-sm text-text-body">
                                   {course.name}
                                 </div>
                                 <div className="flex items-center gap-2 mt-1">
                                   <Badge
                                     variant="outline"
-                                    className="border-border text-text-body dark:border-white/15 dark:text-white/80"
+                                    className="border-border text-text-body"
                                   >
                                     GPA: {course.avgGPA}
                                   </Badge>
                                   <Badge
                                     variant="outline"
-                                    className="border-border text-text-body dark:border-white/15 dark:text-white/80"
+                                    className="border-border text-text-body"
                                   >
                                     {course.difficulty}
                                   </Badge>
                                   <div className="flex items-center gap-1">
                                     <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                                    <span className="text-xs text-text-body dark:text-white/85">
+                                    <span className="text-xs text-text-body">
                                       {course.rating}
                                     </span>
                                   </div>
@@ -344,29 +326,29 @@ export default function AboutPage() {
 
                 <TabsContent value="details" className="space-y-6">
                   <div className="text-center mb-8">
-                    <h3 className="text-2xl font-semibold text-text-heading dark:text-white mb-4">
+                    <h3 className="text-2xl font-medium text-text-heading mb-4">
                       2. View Detailed Information
                     </h3>
-                    <p className="text-text-body max-w-2xl mx-auto dark:text-white/75">
+                    <p className="text-text-body max-w-2xl mx-auto">
                       Get comprehensive details about courses including GPA data
                       and professor information.
                     </p>
                   </div>
 
-                  <Card className="p-6 bg-card border-border max-w-4xl mx-auto dark:bg-black/35 dark:border-white/10">
+                  <Card className="p-6 bg-card border-border max-w-4xl mx-auto">
                     <div className="flex items-start justify-between mb-6">
                       <div>
-                        <h3 className="text-2xl font-bold text-text-heading dark:text-white mb-2">
+                        <h3 className="text-2xl font-medium text-text-heading mb-2">
                           {sampleCourses[0].code}
                         </h3>
-                        <p className="text-text-body mb-4 dark:text-white/75">
+                        <p className="text-text-body mb-4">
                           {sampleCourses[0].name}
                         </p>
                       </div>
                       <Button
                         onClick={() => addToComparison(sampleCourses[0].id)}
                         disabled={selectedCourses.includes(sampleCourses[0].id)}
-                        className="bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966]"
+                        className="bg-primary text-primary-foreground hover:bg-primary/90"
                       >
                         <Plus className="w-4 h-4 mr-2" />
                         Add to Compare
@@ -374,38 +356,38 @@ export default function AboutPage() {
                     </div>
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="text-center p-3 bg-canvas rounded border border-border dark:bg-black/30 dark:border-white/10">
-                        <div className="text-lg font-bold text-text-heading dark:text-white">
+                      <div className="text-center p-3 bg-canvas rounded border border-border dark:bg-card">
+                        <div className="text-lg font-medium text-text-heading">
                           {sampleCourses[0].avgGPA}
                         </div>
-                        <div className="text-sm text-text-body/80 dark:text-white/65">
+                        <div className="text-sm text-text-muted">
                           Avg GPA
                         </div>
                       </div>
-                      <div className="text-center p-3 bg-canvas rounded border border-border dark:bg-black/30 dark:border-white/10">
-                        <div className="text-lg font-bold text-text-heading dark:text-white">
+                      <div className="text-center p-3 bg-canvas rounded border border-border dark:bg-card">
+                        <div className="text-lg font-medium text-text-heading">
                           {sampleCourses[0].credits}
                         </div>
-                        <div className="text-sm text-text-body/80 dark:text-white/65">
+                        <div className="text-sm text-text-muted">
                           Credits
                         </div>
                       </div>
-                      <div className="text-center p-3 bg-canvas rounded border border-border dark:bg-black/30 dark:border-white/10">
-                        <div className="text-lg font-bold text-text-heading dark:text-white">
+                      <div className="text-center p-3 bg-canvas rounded border border-border dark:bg-card">
+                        <div className="text-lg font-medium text-text-heading">
                           {sampleCourses[0].difficulty}
                         </div>
-                        <div className="text-sm text-text-body/80 dark:text-white/65">
+                        <div className="text-sm text-text-muted">
                           Difficulty
                         </div>
                       </div>
-                      <div className="text-center p-3 bg-canvas rounded border border-border dark:bg-black/30 dark:border-white/10">
+                      <div className="text-center p-3 bg-canvas rounded border border-border dark:bg-card">
                         <div className="flex items-center justify-center gap-1">
                           <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                          <span className="text-lg font-bold text-text-heading dark:text-white">
+                          <span className="text-lg font-medium text-text-heading">
                             {sampleCourses[0].rating}
                           </span>
                         </div>
-                        <div className="text-sm text-text-body/80 dark:text-white/65">
+                        <div className="text-sm text-text-muted">
                           Rating
                         </div>
                       </div>
@@ -415,17 +397,17 @@ export default function AboutPage() {
 
                 <TabsContent value="compare" className="space-y-6">
                   <div className="text-center mb-8">
-                    <h3 className="text-2xl font-semibold text-text-heading dark:text-white mb-4">
+                    <h3 className="text-2xl font-medium text-text-heading mb-4">
                       3. Compare Side by Side
                     </h3>
-                    <p className="text-text-body max-w-2xl mx-auto dark:text-white/75">
+                    <p className="text-text-body max-w-2xl mx-auto">
                       Compare up to 4 courses at once to make the best choice.
                     </p>
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <Card className="p-6 bg-card border-border dark:bg-black/35 dark:border-white/10">
-                      <h4 className="text-lg font-semibold text-text-heading dark:text-white mb-4">
+                    <Card className="p-6 gap-0 bg-card border-border shadow-none">
+                      <h4 className="text-lg font-medium text-text-heading mb-4">
                         Add to Comparison
                       </h4>
                       <div className="space-y-2">
@@ -436,10 +418,10 @@ export default function AboutPage() {
                           >
                             <div className="flex items-center justify-between">
                               <div>
-                                <div className="font-medium text-text-heading dark:text-white">
+                                <div className="font-medium text-text-heading">
                                   {course.code}
                                 </div>
-                                <div className="text-sm text-text-body dark:text-white/75">
+                                <div className="text-sm text-text-body">
                                   {course.name}
                                 </div>
                               </div>
@@ -459,21 +441,21 @@ export default function AboutPage() {
 
                     <div className="lg:col-span-2">
                       {selectedCourses.length === 0 ? (
-                        <Card className="p-12 bg-card border-border dark:bg-black/35 dark:border-white/10">
+                        <Card className="p-12 bg-card border-border">
                           <div className="text-center">
-                            <BookOpen className="w-16 h-16 text-text-body/75 mx-auto mb-4 dark:text-white/60" />
-                            <h3 className="text-xl font-semibold text-text-heading dark:text-white mb-2">
+                            <BookOpen className="w-16 h-16 text-text-muted mx-auto mb-4" />
+                            <h3 className="text-xl font-medium text-text-heading mb-2">
                               No courses selected
                             </h3>
-                            <p className="text-text-body dark:text-white/75">
+                            <p className="text-text-body">
                               Add courses from the left to start comparing.
                             </p>
                           </div>
                         </Card>
                       ) : (
                         <div className="space-y-4">
-                          <Card className="p-4 bg-card border-border dark:bg-black/35 dark:border-white/10">
-                            <h4 className="text-lg font-semibold text-text-heading dark:text-white">
+                          <Card className="p-4 bg-card border-border">
+                            <h4 className="text-lg font-medium text-text-heading">
                               Comparing {selectedCourses.length} Course
                               {selectedCourses.length > 1 ? "s" : ""}
                             </h4>
@@ -489,14 +471,14 @@ export default function AboutPage() {
                               return (
                                 <Card
                                   key={courseId}
-                                  className="p-4 bg-card border-border dark:bg-black/35 dark:border-white/10"
+                                  className="p-4 bg-card border-border"
                                 >
                                   <div className="flex items-start justify-between mb-3">
                                     <div>
-                                      <h3 className="font-semibold text-text-heading dark:text-white">
+                                      <h3 className="font-medium text-text-heading">
                                         {course.code}
                                       </h3>
-                                      <p className="text-sm text-text-body dark:text-white/75">
+                                      <p className="text-sm text-text-body">
                                         {course.name}
                                       </p>
                                     </div>
@@ -514,28 +496,28 @@ export default function AboutPage() {
 
                                   <div className="space-y-2">
                                     <div className="flex items-center justify-between">
-                                      <span className="text-sm text-text-body/80 dark:text-white/65">
+                                      <span className="text-sm text-text-muted">
                                         GPA
                                       </span>
-                                      <span className="font-medium text-text-heading dark:text-white">
+                                      <span className="font-medium text-text-heading">
                                         {course.avgGPA}
                                       </span>
                                     </div>
                                     <div className="flex items-center justify-between">
-                                      <span className="text-sm text-text-body/80 dark:text-white/65">
+                                      <span className="text-sm text-text-muted">
                                         Credits
                                       </span>
-                                      <span className="font-medium text-text-heading dark:text-white">
+                                      <span className="font-medium text-text-heading">
                                         {course.credits}
                                       </span>
                                     </div>
                                     <div className="flex items-center justify-between">
-                                      <span className="text-sm text-text-body/80 dark:text-white/65">
+                                      <span className="text-sm text-text-muted">
                                         Difficulty
                                       </span>
                                       <Badge
                                         variant="outline"
-                                        className="border-border text-text-body dark:border-white/15 dark:text-white/80"
+                                        className="border-border text-text-body"
                                       >
                                         {course.difficulty}
                                       </Badge>
@@ -553,38 +535,38 @@ export default function AboutPage() {
 
                 <TabsContent value="reviews" className="space-y-6">
                   <div className="text-center mb-8">
-                    <h3 className="text-2xl font-semibold text-text-heading dark:text-white mb-4">
+                    <h3 className="text-2xl font-medium text-text-heading mb-4">
                       4. Read Real Student Reviews
                     </h3>
-                    <p className="text-text-body max-w-2xl mx-auto dark:text-white/75">
+                    <p className="text-text-body max-w-2xl mx-auto">
                       Get insights from real students who have taken the
                       courses.
                     </p>
                   </div>
 
-                  <Card className="p-6 bg-card border-border max-w-4xl mx-auto dark:bg-black/35 dark:border-white/10">
+                  <Card className="p-6 bg-card border-border max-w-4xl mx-auto">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-1 bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-2 py-1 rounded-full">
+                        <div className="flex items-center gap-1 border border-border text-text-heading px-2 py-1 rounded-full">
                           <Star className="w-4 h-4 fill-current" />
-                          <span className="text-sm font-bold">
+                          <span className="text-sm font-medium">
                             {sampleReview.overall_rating}
                           </span>
                         </div>
                         <Badge
                           variant="outline"
-                          className="bg-gradient-to-r from-[#500000] to-[#600000] text-white border-transparent"
+                          className="bg-raised text-white border-transparent"
                         >
                           CSCE 121
                         </Badge>
                         <Badge
                           variant="outline"
-                          className="bg-gradient-to-r from-green-500 to-green-600 text-white border-transparent"
+                          className="border-border bg-transparent text-text-body"
                         >
                           Grade: {sampleReview.grade}
                         </Badge>
                       </div>
-                      <div className="text-sm text-text-body/70 dark:text-white/60">
+                      <div className="text-sm text-text-muted">
                         {new Date(sampleReview.review_date).toLocaleDateString(
                           "en-US",
                           {
@@ -595,7 +577,7 @@ export default function AboutPage() {
                       </div>
                     </div>
 
-                    <blockquote className="text-text-body mb-4 leading-relaxed bg-[#500000]/10 p-3 rounded-lg border-l-4 border-[#FFCF3F] italic dark:text-white/80 dark:bg-[#500000]/15">
+                    <blockquote className="text-text-body mb-4 leading-relaxed bg-canvas p-3 rounded-lg border-l-2 border-border-strong">
                       &quot;{sampleReview.review_text}&quot;
                     </blockquote>
 
@@ -605,7 +587,7 @@ export default function AboutPage() {
                           <Badge
                             key={index}
                             variant="outline"
-                            className="bg-gradient-to-r from-gray-500 to-gray-700 text-white border-transparent"
+                            className="border-border bg-transparent text-text-body"
                           >
                             {tag}
                           </Badge>
@@ -636,96 +618,96 @@ export default function AboutPage() {
             {/* Features */}
 
             <AnimatedSection delay={0.1} className="mb-16">
-              <h2 className="text-text-heading dark:text-white text-center mb-12 text-[18px] sm:text-[20px] md:text-[22px] leading-relaxed">
-                Key features
+              <h2 className="text-text-heading text-center mb-12 text-2xl font-medium leading-tight">
+                What you can do
               </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <Card className="p-6 bg-card border-border dark:bg-black/35 dark:border-white/10">
+                <Card className="p-6 gap-0 bg-card border-border shadow-none">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-[#500000] rounded-lg flex items-center justify-center">
-                      <Search className="w-5 h-5 text-white" />
+                    <div className="flex items-center justify-center text-text-muted">
+                      <Search strokeWidth={1.5} className="w-[18px] h-[18px]" />
                     </div>
-                    <h3 className="text-lg font-semibold text-text-heading dark:text-white">
-                      Smart Search
+                    <h3 className="text-base font-medium text-text-heading">
+                      Smart search
                     </h3>
                   </div>
-                  <p className="text-text-body dark:text-white/75">
+                  <p className="text-text-body">
                     Find courses and professors quickly with intelligent search
                     and filtering.
                   </p>
                 </Card>
 
-                <Card className="p-6 bg-card border-border dark:bg-black/35 dark:border-white/10">
+                <Card className="p-6 gap-0 bg-card border-border shadow-none">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-[#500000] rounded-lg flex items-center justify-center">
-                      <BookOpen className="w-5 h-5 text-white" />
+                    <div className="flex items-center justify-center text-text-muted">
+                      <BookOpen strokeWidth={1.5} className="w-[18px] h-[18px]" />
                     </div>
-                    <h3 className="text-lg font-semibold text-text-heading dark:text-white">
-                      Detailed Information
+                    <h3 className="text-base font-medium text-text-heading">
+                      Detailed information
                     </h3>
                   </div>
-                  <p className="text-text-body dark:text-white/75">
+                  <p className="text-text-body">
                     Get comprehensive course details including GPA data and
                     professor information.
                   </p>
                 </Card>
 
-                <Card className="p-6 bg-card border-border dark:bg-black/35 dark:border-white/10">
+                <Card className="p-6 gap-0 bg-card border-border shadow-none">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-[#500000] rounded-lg flex items-center justify-center">
-                      <MessageSquare className="w-5 h-5 text-white" />
+                    <div className="flex items-center justify-center text-text-muted">
+                      <MessageSquare strokeWidth={1.5} className="w-[18px] h-[18px]" />
                     </div>
-                    <h3 className="text-lg font-semibold text-text-heading dark:text-white">
-                      Student Reviews
+                    <h3 className="text-base font-medium text-text-heading">
+                      Student reviews
                     </h3>
                   </div>
-                  <p className="text-text-body dark:text-white/75">
+                  <p className="text-text-body">
                     Read authentic reviews from students with detailed ratings
                     and feedback.
                   </p>
                 </Card>
 
-                <Card className="p-6 bg-card border-border dark:bg-black/35 dark:border-white/10">
+                <Card className="p-6 gap-0 bg-card border-border shadow-none">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-[#500000] rounded-lg flex items-center justify-center">
-                      <Filter className="w-5 h-5 text-white" />
+                    <div className="flex items-center justify-center text-text-muted">
+                      <Filter strokeWidth={1.5} className="w-[18px] h-[18px]" />
                     </div>
-                    <h3 className="text-lg font-semibold text-text-heading dark:text-white">
-                      Advanced Filtering
+                    <h3 className="text-base font-medium text-text-heading">
+                      Advanced filtering
                     </h3>
                   </div>
-                  <p className="text-text-body dark:text-white/75">
+                  <p className="text-text-body">
                     Use powerful filters to narrow down by GPA, difficulty, and
                     department.
                   </p>
                 </Card>
 
-                <Card className="p-6 bg-card border-border dark:bg-black/35 dark:border-white/10">
+                <Card className="p-6 gap-0 bg-card border-border shadow-none">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-[#500000] rounded-lg flex items-center justify-center">
-                      <CheckCircle className="w-5 h-5 text-white" />
+                    <div className="flex items-center justify-center text-text-muted">
+                      <CheckCircle strokeWidth={1.5} className="w-[18px] h-[18px]" />
                     </div>
-                    <h3 className="text-lg font-semibold text-text-heading dark:text-white">
-                      Side-by-Side Comparison
+                    <h3 className="text-base font-medium text-text-heading">
+                      Side-by-side comparison
                     </h3>
                   </div>
-                  <p className="text-text-body dark:text-white/75">
+                  <p className="text-text-body">
                     Compare up to 4 courses or professors to make informed
                     decisions.
                   </p>
                 </Card>
 
-                <Card className="p-6 bg-card border-border dark:bg-black/35 dark:border-white/10">
+                <Card className="p-6 gap-0 bg-card border-border shadow-none">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-[#500000] rounded-lg flex items-center justify-center">
-                      <User className="w-5 h-5 text-white" />
+                    <div className="flex items-center justify-center text-text-muted">
+                      <User strokeWidth={1.5} className="w-[18px] h-[18px]" />
                     </div>
-                    <h3 className="text-lg font-semibold text-text-heading dark:text-white">
-                      Professor Profiles
+                    <h3 className="text-base font-medium text-text-heading">
+                      Professor profiles
                     </h3>
                   </div>
-                  <p className="text-text-body dark:text-white/75">
+                  <p className="text-text-body">
                     Explore detailed professor profiles with ratings and student
                     feedback.
                   </p>
@@ -735,25 +717,22 @@ export default function AboutPage() {
 
             {/* Getting Started */}
             <AnimatedSection delay={0.14} className="text-center">
-              <h2 className="text-text-heading dark:text-white mb-8 text-[18px] sm:text-[20px] md:text-[22px] leading-relaxed">
-                Ready to get started?
+              <h2 className="text-text-heading mb-8 text-2xl font-medium leading-tight">
+                Ready to plan your semester
               </h2>
-              <p className="text-text-body mb-8 max-w-2xl mx-auto dark:text-white/75">
-                Join thousands of Aggies who use AggieSB+ to make smarter course
-                decisions.
+              <p className="text-text-body mb-8 max-w-2xl mx-auto">
+                Search a course or a professor and see the grades, reviews and
+                difficulty before you register.
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-3">
                 <Link href="/courses">
-                  <Button className="bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966] rounded-full px-8">
+                  <Button size="lg">
                     Browse courses
-                    <ArrowRight className="w-5 h-5 ml-2" />
+                    <ArrowRight strokeWidth={1.5} className="w-4 h-4" />
                   </Button>
                 </Link>
                 <Link href="/professors">
-                  <Button
-                    variant="outline"
-                    className="rounded-full border-border bg-card text-text-heading hover:bg-button-hover px-8 dark:border-white/25 dark:bg-black/20 dark:text-white dark:hover:bg-black/35 dark:hover:text-white"
-                  >
+                  <Button variant="outline" size="lg">
                     Find professors
                   </Button>
                 </Link>

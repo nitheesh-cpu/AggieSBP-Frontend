@@ -1,15 +1,18 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Cloud, CloudOff, GraduationCap, HardDrive, Loader2, RefreshCw } from "lucide-react";
+import { Cloud, CloudOff, HardDrive, Loader2, RefreshCw, School } from "lucide-react";
 
 import { Footer } from "@/components/footer";
 import { Navigation } from "@/components/navigation";
+import { PageBanner } from "@/components/page-banner";
 import { CourseSearch } from "@/components/planner/course-search";
+import { FindCourses } from "@/components/planner/find-courses";
+import { HowdyImportDialog } from "@/components/planner/howdy-import-dialog";
 import { PasteImportDialog } from "@/components/planner/paste-import-dialog";
-import { PrereqCheck } from "@/components/planner/prereq-check";
 import { RecordList } from "@/components/planner/record-list";
+import { ScheduleBuilder } from "@/components/planner/schedule-builder";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -22,6 +25,15 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAcademicRecord, type RecordSyncStatus } from "@/hooks/use-academic-record";
 import { useCoursePrereqs } from "@/hooks/use-course-prereqs";
+import { useDegreePlan } from "@/hooks/use-degree-plan";
+import { getTerms, type Term } from "@/lib/api";
+import { pickDefaultTerm } from "@/lib/terms";
+import {
+  parseHowdyFragment,
+  parseHowdyPayload,
+  serializeHowdy,
+  type HowdyImport,
+} from "@/lib/planner/howdy";
 import {
   activeCourses,
   CLASSIFICATIONS,
@@ -32,8 +44,18 @@ import {
   type Classification,
 } from "@/lib/planner/record";
 
-const CARD = "bg-white/55 dark:bg-black/45 backdrop-blur-md border-border";
+const CARD = "bg-white/55 dark:bg-card backdrop-blur-md border-border";
 const NO_CLASSIFICATION = "__none__";
+const HOWDY_PENDING_KEY = "aggiesbp:planner:howdy-import";
+
+function readPendingHowdy(): HowdyImport | null {
+  try {
+    const raw = window.sessionStorage.getItem(HOWDY_PENDING_KEY);
+    return raw ? parseHowdyPayload(raw) : null;
+  } catch {
+    return null;
+  }
+}
 
 export default function PlannerPage() {
   const { record, status, signedIn, loaded, update, retrySync } = useAcademicRecord();
@@ -41,33 +63,96 @@ export default function PlannerPage() {
   const codes = useMemo(() => courses.map((c) => c.code), [courses]);
   const existing = useMemo(() => new Set(codes), [codes]);
   const { info } = useCoursePrereqs(codes);
+  const degreePlan = useDegreePlan();
+  const [tab, setTab] = useState("courses");
+  const syncStatus = combineStatus(status, degreePlan.status);
+  const existingByCode = useMemo(() => new Map(courses.map((c) => [c.code, c])), [courses]);
+  const noRequirements = useMemo(() => new Set<string>(), []);
+
+  // One term for finding electives and building the schedule.
+  const [terms, setTerms] = useState<Term[]>([]);
+  const [term, setTerm] = useState("");
+  useEffect(() => {
+    getTerms()
+      .then((t) => {
+        setTerms(t);
+        setTerm((cur) => cur || pickDefaultTerm(t));
+      })
+      .catch(() => setTerms([]));
+  }, []);
+
+  // Courses sent from Howdy by the extension arrive as #howdy=...; keep them in
+  // sessionStorage so they survive the sign-in redirect, and drop the hash.
+  const [howdy, setHowdy] = useState<HowdyImport | null>(null);
+  const [howdyOpen, setHowdyOpen] = useState(false);
+  useEffect(() => {
+    const read = () => {
+      const fromHash = parseHowdyFragment(window.location.hash);
+      if (fromHash) {
+        try {
+          window.sessionStorage.setItem(HOWDY_PENDING_KEY, serializeHowdy(fromHash));
+        } catch {
+          // Storage blocked: the import still works for this page view.
+        }
+        // After Next's own mount (which rewrites the URL), and keeping its history
+        // state, so the hash doesn't come back.
+        window.setTimeout(() => {
+          window.history.replaceState(
+            window.history.state,
+            "",
+            window.location.pathname + window.location.search,
+          );
+        }, 0);
+      }
+      const found = fromHash ?? readPendingHowdy();
+      const pending = found && found.courses.length > 0 ? { ...found, requirements: [] } : null;
+      if (pending) {
+        setHowdy(pending);
+        setHowdyOpen(true);
+        setTab("courses");
+      }
+    };
+    read();
+    window.addEventListener("hashchange", read);
+    return () => window.removeEventListener("hashchange", read);
+  }, []);
+  const clearHowdy = () => {
+    setHowdy(null);
+    setHowdyOpen(false);
+    try {
+      window.sessionStorage.removeItem(HOWDY_PENDING_KEY);
+    } catch {
+      // ignore
+    }
+  };
 
   return (
-    <div className="min-h-screen relative" style={{ background: "var(--app-bg-gradient)" }}>
+    <div className="min-h-screen relative overflow-x-clip" style={{ background: "var(--app-bg-gradient)" }}>
       <Navigation variant="glass" />
-      <main className="pt-24 pb-20 max-w-5xl mx-auto px-4 sm:px-6 space-y-6">
-        <div className="rounded-2xl border border-border bg-white/55 dark:bg-black/45 backdrop-blur-md p-6">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <GraduationCap className="w-6 h-6 text-accent" />
-                <h1 className="text-3xl font-bold text-text-heading dark:text-white">
-                  Degree Planner
-                </h1>
-              </div>
-              <p className="max-w-2xl text-sm text-text-body dark:text-white/80">
-                Add the classes you&apos;ve taken, are taking, or plan to take. We use them
-                to check prerequisites, so you only see classes you can actually sign up for.
-              </p>
-            </div>
-            <SyncBadge status={status} signedIn={signedIn} onRetry={() => void retrySync()} />
+      <PageBanner
+        title="Schedule builder"
+        subtitle={<>Tell us what you&apos;ve taken, star the electives you&apos;d take, and get schedules that fit, easiest first.</>}
+      />
+      <main className="pt-10 pb-20 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 space-y-6">
+        <div className="rounded-2xl border border-border bg-card p-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <p className="text-sm text-text-body">Your courses and starred electives</p>
+            <SyncBadge
+              status={syncStatus}
+              signedIn={signedIn}
+              onRetry={() => {
+                void retrySync();
+                void degreePlan.retrySync();
+              }}
+            />
           </div>
         </div>
 
-        <Tabs defaultValue="courses" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="courses">My courses</TabsTrigger>
-            <TabsTrigger value="check">Can I take…?</TabsTrigger>
+        <Tabs value={tab} onValueChange={setTab} className="space-y-4">
+          <TabsList className="h-auto flex-wrap">
+            <TabsTrigger value="courses">1 · What you&apos;ve taken</TabsTrigger>
+            <TabsTrigger value="find">2 · Find electives</TabsTrigger>
+            <TabsTrigger value="build">3 · Build schedule</TabsTrigger>
           </TabsList>
 
           <TabsContent value="courses" className="space-y-6">
@@ -75,10 +160,10 @@ export default function PlannerPage() {
               <CardContent className="space-y-4 p-6">
                 <div className="flex flex-wrap items-end justify-between gap-4">
                   <div>
-                    <h2 className="text-lg font-semibold text-text-heading dark:text-white">
+                    <h2 className="text-lg font-medium text-text-heading">
                       Add courses
                     </h2>
-                    <p className="text-sm text-text-body dark:text-white/70">
+                    <p className="text-sm text-text-body">
                       Search for one at a time, or paste a whole list.
                     </p>
                   </div>
@@ -116,8 +201,26 @@ export default function PlannerPage() {
                       )
                     }
                   />
+                  <Button variant="outline" className="gap-2" onClick={() => setHowdyOpen(true)}>
+                    <School className="h-4 w-4" />
+                    {howdy ? "Review Howdy import" : "Import from Howdy"}
+                  </Button>
                 </div>
-                <p className="text-xs text-text-body/80 dark:text-white/60">
+                <HowdyImportDialog
+                  open={howdyOpen}
+                  onOpenChange={setHowdyOpen}
+                  pending={howdy}
+                  signedIn={signedIn}
+                  authReady={loaded}
+                  existing={existingByCode}
+                  existingRequirements={noRequirements}
+                  onImport={(inputs) => {
+                    if (inputs.length > 0) update((r) => upsertCourses(r, inputs));
+                    clearHowdy();
+                  }}
+                  onDiscard={clearHowdy}
+                />
+                <p className="text-xs text-text-muted">
                   New courses are added as completed. Set the term, grade, and status on each
                   one below. Grades matter for prerequisites that need a C or better.
                 </p>
@@ -132,8 +235,8 @@ export default function PlannerPage() {
                   </p>
                 ) : courses.length === 0 ? (
                   <div className="py-8 text-center">
-                    <p className="font-medium text-text-heading dark:text-white">No courses yet</p>
-                    <p className="mt-1 text-sm text-text-body dark:text-white/70">
+                    <p className="font-medium text-text-heading">No courses yet</p>
+                    <p className="mt-1 text-sm text-text-body">
                       Search above or paste a list to get started.
                     </p>
                   </div>
@@ -149,19 +252,48 @@ export default function PlannerPage() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="check">
+          <TabsContent value="find" forceMount className="data-[state=inactive]:hidden">
             <Card className={CARD}>
               <CardContent className="space-y-4 p-6">
                 <div>
-                  <h2 className="text-lg font-semibold text-text-heading dark:text-white">
-                    Can I take this class?
-                  </h2>
-                  <p className="text-sm text-text-body dark:text-white/70">
-                    Checks the catalog prerequisites against your courses as of the term you
-                    pick. Classes in progress or planned for earlier terms count as done.
+                  <h2 className="text-lg font-medium text-text-heading">Find electives</h2>
+                  <p className="text-sm text-text-body">
+                    Courses offered in a term, easiest first. Ones you&apos;ve taken or
+                    can&apos;t take yet are hidden. Star the ones you&apos;d take, then build a
+                    schedule from them.
                   </p>
                 </div>
-                <PrereqCheck record={record} />
+                <FindCourses
+                  record={record}
+                  plan={degreePlan.plan}
+                  update={degreePlan.update}
+                  terms={terms}
+                  term={term}
+                  onTermChange={setTerm}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="build" forceMount className="data-[state=inactive]:hidden">
+            <Card className={CARD}>
+              <CardContent className="space-y-4 p-6">
+                <div>
+                  <h2 className="text-lg font-medium text-text-heading">Build your schedule</h2>
+                  <p className="text-sm text-text-body">
+                    Your set classes plus electives from your starred list, every way they fit
+                    together, ranked by how easy this term&apos;s professors are.
+                  </p>
+                </div>
+                <ScheduleBuilder
+                  record={record}
+                  plan={degreePlan.plan}
+                  update={degreePlan.update}
+                  terms={terms}
+                  term={term}
+                  onTermChange={setTerm}
+                  onFindElectives={() => setTab("find")}
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -172,6 +304,14 @@ export default function PlannerPage() {
   );
 }
 
+/** One badge for both documents: the least settled state wins. */
+function combineStatus(a: RecordSyncStatus, b: RecordSyncStatus): RecordSyncStatus {
+  for (const s of ["error", "loading", "syncing", "local"] as const) {
+    if (a === s || b === s) return s;
+  }
+  return "synced";
+}
+
 function ClassificationPicker({
   value,
   onChange,
@@ -180,7 +320,7 @@ function ClassificationPicker({
   onChange: (c: Classification | null) => void;
 }) {
   return (
-    <label className="flex items-center gap-2 text-sm text-text-body dark:text-white/80">
+    <label className="flex items-center gap-2 text-sm text-text-body">
       Classification
       <Select
         value={value ?? NO_CLASSIFICATION}

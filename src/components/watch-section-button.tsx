@@ -69,11 +69,11 @@ export function WatchSectionButton({
   if (state === "done") {
     return (
       <span className={`inline-flex items-center gap-1.5 text-xs ${className}`}>
-        <BellRing className="h-3.5 w-3.5 text-accent" />
-        <span className="text-text-heading dark:text-white">Watching.</span>
+        <BellRing strokeWidth={1.5} className="h-3.5 w-3.5" />
+        <span className="text-text-heading">Watching.</span>
         <Link
           href="/profile/alerts"
-          className="font-medium text-[#500000] underline underline-offset-2 dark:text-[#FFCF3F]"
+          className="font-medium text-text-heading underline underline-offset-2"
         >
           Manage alerts
         </Link>

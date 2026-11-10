@@ -1,13 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState, use } from "react";
-import {
-  MotionConfig,
-  animate,
-  motion,
-  useMotionValue,
-  useReducedMotion,
-} from "motion/react";
+import { MotionConfig, motion, useReducedMotion } from "motion/react";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
@@ -32,7 +26,7 @@ import {
   ChevronUp,
   ThumbsUp,
   ThumbsDown,
-  Sparkles,
+  MessageSquareText,
   BarChart3,
 } from "lucide-react";
 import Link from "next/link";
@@ -131,11 +125,11 @@ function SummaryThemeColumn({
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="text-sm font-semibold text-text-heading dark:text-white">
+          <h3 className="text-sm font-medium text-text-heading">
             {title}
           </h3>
         </div>
-        <span className="rounded-full border border-border/70 bg-card/70 px-2 py-0.5 text-xs tabular-nums text-text-body/70 dark:border-white/10 dark:bg-black/20 dark:text-white/65">
+        <span className="rounded-full border border-border/70 bg-card/70 px-2 py-0.5 text-xs tabular-nums text-text-muted dark:border-border dark:bg-card">
           {items.length}
         </span>
       </div>
@@ -148,10 +142,10 @@ function SummaryThemeColumn({
           const { topic, text } = parseSummaryTheme(item);
           return (
             <li key={`${item}-${index}`} className="px-3 py-2.5">
-              <p className="break-words text-sm leading-[1.55] text-text-body dark:text-white/80">
+              <p className="break-words text-sm leading-[1.55] text-text-body">
                 {topic && (
                   <span
-                    className={`mr-2 inline-block rounded px-1.5 py-0.5 align-baseline text-[10px] font-semibold uppercase tracking-wide ${
+                    className={`mr-2 inline-block rounded px-1.5 py-0.5 align-baseline text-[10px] font-semibold ${
                       isPositive
                         ? "bg-emerald-100/80 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"
                         : "bg-red-100/80 text-red-700 dark:bg-red-500/15 dark:text-red-300"
@@ -173,7 +167,7 @@ function SummaryThemeColumn({
           aria-controls={listId}
           aria-label={`${expanded ? "Show fewer" : "Show all"} ${title.toLowerCase()}`}
           onClick={() => setExpanded((value) => !value)}
-          className="flex min-h-10 w-full items-center justify-center gap-1.5 border-t border-border/60 px-3 py-2 text-xs font-medium text-text-body hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-current dark:border-white/[0.07] dark:text-white/70 dark:hover:bg-white/5"
+          className="flex min-h-10 w-full items-center justify-center gap-1.5 border-t border-border/60 px-3 py-2 text-xs font-medium text-text-body hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-current dark:border-white/[0.07] dark:hover:bg-raised"
         >
           {expanded ? "Show less" : `Show ${items.length - 3} more`}
           {expanded ? (
@@ -189,305 +183,277 @@ function SummaryThemeColumn({
 
 function CountUpNumber({
   value,
-  shouldReduceMotion,
   decimals = 0,
   suffix = "",
   formatter,
 }: {
   value: number;
-  shouldReduceMotion: boolean;
+  /** Unused now that values render immediately; kept so call sites stay unchanged. */
+  shouldReduceMotion?: boolean;
   decimals?: number;
   suffix?: string;
   formatter?: (n: number) => string;
 }) {
-  const motionValue = useMotionValue(0);
-  const [displayValue, setDisplayValue] = useState(() => {
-    const base = formatter ? formatter(value) : value.toFixed(decimals);
-    return `${base}${suffix}`;
-  });
-
-  const format = useMemo(() => {
-    return (n: number) => {
-      const base = formatter ? formatter(n) : n.toFixed(decimals);
-      return `${base}${suffix}`;
-    };
-  }, [decimals, formatter, suffix]);
-
-  useEffect(() => {
-    if (shouldReduceMotion) {
-      setDisplayValue(format(value));
-      return;
-    }
-
-    motionValue.set(0);
-    const controls = animate(motionValue, value, {
-      duration: 0.9,
-      ease: "easeOut",
-      onUpdate: (latest) => setDisplayValue(format(latest)),
-    });
-
-    return () => controls.stop();
-  }, [format, motionValue, shouldReduceMotion, value]);
-
-  return <span>{displayValue}</span>;
+  const base = formatter ? formatter(value) : value.toFixed(decimals);
+  return <span className="tabular-nums">{`${base}${suffix}`}</span>;
 }
 
 // Use the same solid department colors as Courses page.
 function getDepartmentBadgeColor(deptCode: string) {
   const colorMap: Record<string, string> = {
     // Accounting & Business
-    ACCT: "bg-yellow-600 dark:bg-yellow-500 text-white",
-    BUAD: "bg-blue-600 dark:bg-blue-500 text-white",
-    BUSN: "bg-indigo-600 dark:bg-indigo-500 text-white",
-    FINC: "bg-green-600 dark:bg-green-500 text-white",
-    FINP: "bg-emerald-600 dark:bg-emerald-500 text-white",
-    MGMT: "bg-purple-600 dark:bg-purple-500 text-white",
-    MKTG: "bg-pink-600 dark:bg-pink-500 text-white",
-    SCMT: "bg-orange-600 dark:bg-orange-500 text-white",
-    ECON: "bg-yellow-600 dark:bg-yellow-500 text-white",
-    IBUS: "bg-blue-600 dark:bg-blue-500 text-white",
-    ISTM: "bg-cyan-600 dark:bg-cyan-500 text-white",
-    IDIS: "bg-gray-600 dark:bg-gray-500 text-white",
+    ACCT: "bg-raised text-text-body",
+    BUAD: "bg-raised text-text-body",
+    BUSN: "bg-raised text-text-body",
+    FINC: "bg-raised text-text-body",
+    FINP: "bg-raised text-text-body",
+    MGMT: "bg-raised text-text-body",
+    MKTG: "bg-raised text-text-body",
+    SCMT: "bg-raised text-text-body",
+    ECON: "bg-raised text-text-body",
+    IBUS: "bg-raised text-text-body",
+    ISTM: "bg-raised text-text-body",
+    IDIS: "bg-raised text-text-body",
 
     // Engineering
-    CSCE: "bg-blue-600 dark:bg-blue-500 text-white",
-    ECEN: "bg-yellow-600 dark:bg-yellow-500 text-white",
-    MEEN: "bg-gray-600 dark:bg-gray-500 text-white",
-    CVEN: "bg-orange-600 dark:bg-orange-500 text-white",
-    CHEN: "bg-green-600 dark:bg-green-500 text-white",
-    AERO: "bg-sky-600 dark:bg-sky-500 text-white",
-    PETE: "bg-amber-600 dark:bg-amber-500 text-white",
-    NUEN: "bg-red-600 dark:bg-red-500 text-white",
-    BMEN: "bg-rose-600 dark:bg-rose-500 text-white",
-    ISEN: "bg-purple-600 dark:bg-purple-500 text-white",
-    OCEN: "bg-cyan-600 dark:bg-cyan-500 text-white",
-    ENGR: "bg-slate-600 dark:bg-slate-500 text-white",
-    BAEN: "bg-green-600 dark:bg-green-500 text-white",
-    EVEN: "bg-emerald-600 dark:bg-emerald-500 text-white",
-    MSEN: "bg-indigo-600 dark:bg-indigo-500 text-white",
-    AREN: "bg-blue-600 dark:bg-blue-500 text-white",
-    SENG: "bg-red-600 dark:bg-red-500 text-white",
-    SSEN: "bg-blue-600 dark:bg-blue-500 text-white",
-    CLEN: "bg-gray-600 dark:bg-gray-500 text-white",
-    ENDG: "bg-purple-600 dark:bg-purple-500 text-white",
-    ENDS: "bg-green-600 dark:bg-green-500 text-white",
-    ENTC: "bg-orange-600 dark:bg-orange-500 text-white",
-    ESET: "bg-blue-600 dark:bg-blue-500 text-white",
-    MMET: "bg-gray-600 dark:bg-gray-500 text-white",
-    MXET: "bg-purple-600 dark:bg-purple-500 text-white",
-    ITDE: "bg-cyan-600 dark:bg-cyan-500 text-white",
-    MTDE: "bg-indigo-600 dark:bg-indigo-500 text-white",
-    DAEN: "bg-blue-600 dark:bg-blue-500 text-white",
+    CSCE: "bg-raised text-text-body",
+    ECEN: "bg-raised text-text-body",
+    MEEN: "bg-raised text-text-body",
+    CVEN: "bg-raised text-text-body",
+    CHEN: "bg-raised text-text-body",
+    AERO: "bg-raised text-text-body",
+    PETE: "bg-raised text-text-body",
+    NUEN: "bg-raised text-text-body",
+    BMEN: "bg-raised text-text-body",
+    ISEN: "bg-raised text-text-body",
+    OCEN: "bg-raised text-text-body",
+    ENGR: "bg-raised text-text-body",
+    BAEN: "bg-raised text-text-body",
+    EVEN: "bg-raised text-text-body",
+    MSEN: "bg-raised text-text-body",
+    AREN: "bg-raised text-text-body",
+    SENG: "bg-raised text-text-body",
+    SSEN: "bg-raised text-text-body",
+    CLEN: "bg-raised text-text-body",
+    ENDG: "bg-raised text-text-body",
+    ENDS: "bg-raised text-text-body",
+    ENTC: "bg-raised text-text-body",
+    ESET: "bg-raised text-text-body",
+    MMET: "bg-raised text-text-body",
+    MXET: "bg-raised text-text-body",
+    ITDE: "bg-raised text-text-body",
+    MTDE: "bg-raised text-text-body",
+    DAEN: "bg-raised text-text-body",
 
     // Sciences
-    MATH: "bg-indigo-600 dark:bg-indigo-500 text-white",
-    STAT: "bg-purple-600 dark:bg-purple-500 text-white",
-    CHEM: "bg-green-600 dark:bg-green-500 text-white",
-    BIOL: "bg-emerald-600 dark:bg-emerald-500 text-white",
-    PHYS: "bg-purple-600 dark:bg-purple-500 text-white",
-    GEOL: "bg-amber-600 dark:bg-amber-500 text-white",
-    GEOG: "bg-blue-600 dark:bg-blue-500 text-white",
-    GEOS: "bg-emerald-600 dark:bg-emerald-500 text-white",
-    GEOP: "bg-orange-600 dark:bg-orange-500 text-white",
-    ASTR: "bg-indigo-600 dark:bg-indigo-500 text-white",
-    ATMO: "bg-cyan-600 dark:bg-cyan-500 text-white",
-    OCNG: "bg-blue-600 dark:bg-blue-500 text-white",
-    BICH: "bg-green-600 dark:bg-green-500 text-white",
-    GENE: "bg-red-600 dark:bg-red-500 text-white",
-    BIMS: "bg-blue-600 dark:bg-blue-500 text-white",
-    BIOT: "bg-purple-600 dark:bg-purple-500 text-white",
-    EEBL: "bg-green-600 dark:bg-green-500 text-white",
-    ECCB: "bg-emerald-600 dark:bg-emerald-500 text-white",
-    BESC: "bg-teal-600 dark:bg-teal-500 text-white",
-    ENSS: "bg-green-600 dark:bg-green-500 text-white",
-    WMHS: "bg-cyan-600 dark:bg-cyan-500 text-white",
-    ANLY: "bg-blue-600 dark:bg-blue-500 text-white",
-    MASC: "bg-purple-600 dark:bg-purple-500 text-white",
+    MATH: "bg-raised text-text-body",
+    STAT: "bg-raised text-text-body",
+    CHEM: "bg-raised text-text-body",
+    BIOL: "bg-raised text-text-body",
+    PHYS: "bg-raised text-text-body",
+    GEOL: "bg-raised text-text-body",
+    GEOG: "bg-raised text-text-body",
+    GEOS: "bg-raised text-text-body",
+    GEOP: "bg-raised text-text-body",
+    ASTR: "bg-raised text-text-body",
+    ATMO: "bg-raised text-text-body",
+    OCNG: "bg-raised text-text-body",
+    BICH: "bg-raised text-text-body",
+    GENE: "bg-raised text-text-body",
+    BIMS: "bg-raised text-text-body",
+    BIOT: "bg-raised text-text-body",
+    EEBL: "bg-raised text-text-body",
+    ECCB: "bg-raised text-text-body",
+    BESC: "bg-raised text-text-body",
+    ENSS: "bg-raised text-text-body",
+    WMHS: "bg-raised text-text-body",
+    ANLY: "bg-raised text-text-body",
+    MASC: "bg-raised text-text-body",
 
     // Medical & Health
-    NURS: "bg-red-600 dark:bg-red-500 text-white",
-    HLTH: "bg-blue-600 dark:bg-blue-500 text-white",
-    HBEH: "bg-pink-600 dark:bg-pink-500 text-white",
-    KINE: "bg-orange-600 dark:bg-orange-500 text-white",
-    ATTR: "bg-green-600 dark:bg-green-500 text-white",
-    NUTR: "bg-red-600 dark:bg-red-500 text-white",
-    PHAR: "bg-blue-600 dark:bg-blue-500 text-white",
-    PHSC: "bg-purple-600 dark:bg-purple-500 text-white",
-    MPHY: "bg-red-600 dark:bg-red-500 text-white",
-    MSCI: "bg-cyan-600 dark:bg-cyan-500 text-white",
-    MCMD: "bg-green-600 dark:bg-green-500 text-white",
-    PHLT: "bg-emerald-600 dark:bg-emerald-500 text-white",
-    PHEB: "bg-blue-600 dark:bg-blue-500 text-white",
-    PHEO: "bg-green-600 dark:bg-green-500 text-white",
-    PHPM: "bg-purple-600 dark:bg-purple-500 text-white",
-    SOPH: "bg-blue-600 dark:bg-blue-500 text-white",
-    HCPI: "bg-red-600 dark:bg-red-500 text-white",
-    EDHP: "bg-teal-600 dark:bg-teal-500 text-white",
-    IBST: "bg-indigo-600 dark:bg-indigo-500 text-white",
-    FIVS: "bg-purple-600 dark:bg-purple-500 text-white",
-    FORS: "bg-gray-600 dark:bg-gray-500 text-white",
-    NRSC: "bg-pink-600 dark:bg-pink-500 text-white",
-    NEXT: "bg-indigo-600 dark:bg-indigo-500 text-white",
-    PBSI: "bg-purple-600 dark:bg-purple-500 text-white",
+    NURS: "bg-raised text-text-body",
+    HLTH: "bg-raised text-text-body",
+    HBEH: "bg-raised text-text-body",
+    KINE: "bg-raised text-text-body",
+    ATTR: "bg-raised text-text-body",
+    NUTR: "bg-raised text-text-body",
+    PHAR: "bg-raised text-text-body",
+    PHSC: "bg-raised text-text-body",
+    MPHY: "bg-raised text-text-body",
+    MSCI: "bg-raised text-text-body",
+    MCMD: "bg-raised text-text-body",
+    PHLT: "bg-raised text-text-body",
+    PHEB: "bg-raised text-text-body",
+    PHEO: "bg-raised text-text-body",
+    PHPM: "bg-raised text-text-body",
+    SOPH: "bg-raised text-text-body",
+    HCPI: "bg-raised text-text-body",
+    EDHP: "bg-raised text-text-body",
+    IBST: "bg-raised text-text-body",
+    FIVS: "bg-raised text-text-body",
+    FORS: "bg-raised text-text-body",
+    NRSC: "bg-raised text-text-body",
+    NEXT: "bg-raised text-text-body",
+    PBSI: "bg-raised text-text-body",
 
     // Dental
-    AEGD: "bg-blue-600 dark:bg-blue-500 text-white",
-    ENDO: "bg-green-600 dark:bg-green-500 text-white",
-    ORTH: "bg-purple-600 dark:bg-purple-500 text-white",
-    PEDD: "bg-pink-600 dark:bg-pink-500 text-white",
-    PERI: "bg-orange-600 dark:bg-orange-500 text-white",
-    PROS: "bg-cyan-600 dark:bg-cyan-500 text-white",
-    OMFP: "bg-red-600 dark:bg-red-500 text-white",
-    OMFR: "bg-indigo-600 dark:bg-indigo-500 text-white",
-    OMFS: "bg-amber-600 dark:bg-amber-500 text-white",
-    OBIO: "bg-emerald-600 dark:bg-emerald-500 text-white",
-    DDHS: "bg-teal-600 dark:bg-teal-500 text-white",
-    DPHS: "bg-blue-600 dark:bg-blue-500 text-white",
+    AEGD: "bg-raised text-text-body",
+    ENDO: "bg-raised text-text-body",
+    ORTH: "bg-raised text-text-body",
+    PEDD: "bg-raised text-text-body",
+    PERI: "bg-raised text-text-body",
+    PROS: "bg-raised text-text-body",
+    OMFP: "bg-raised text-text-body",
+    OMFR: "bg-raised text-text-body",
+    OMFS: "bg-raised text-text-body",
+    OBIO: "bg-raised text-text-body",
+    DDHS: "bg-raised text-text-body",
+    DPHS: "bg-raised text-text-body",
 
     // Veterinary
-    VIBS: "bg-amber-600 dark:bg-amber-500 text-white",
-    VLCS: "bg-amber-600 dark:bg-amber-500 text-white",
-    VSCS: "bg-green-600 dark:bg-green-500 text-white",
-    VMID: "bg-red-600 dark:bg-red-500 text-white",
-    VPAR: "bg-purple-600 dark:bg-purple-500 text-white",
-    VPAT: "bg-blue-600 dark:bg-blue-500 text-white",
-    VTMI: "bg-cyan-600 dark:bg-cyan-500 text-white",
-    VTPB: "bg-emerald-600 dark:bg-emerald-500 text-white",
-    VTPP: "bg-pink-600 dark:bg-pink-500 text-white",
+    VIBS: "bg-raised text-text-body",
+    VLCS: "bg-raised text-text-body",
+    VSCS: "bg-raised text-text-body",
+    VMID: "bg-raised text-text-body",
+    VPAR: "bg-raised text-text-body",
+    VPAT: "bg-raised text-text-body",
+    VTMI: "bg-raised text-text-body",
+    VTPB: "bg-raised text-text-body",
+    VTPP: "bg-raised text-text-body",
 
     // Agriculture & Life Sciences
-    AGEC: "bg-green-600 dark:bg-green-500 text-white",
-    AGLS: "bg-emerald-600 dark:bg-emerald-500 text-white",
-    AGSC: "bg-green-600 dark:bg-green-500 text-white",
-    AGSM: "bg-amber-600 dark:bg-amber-500 text-white",
-    ANSC: "bg-amber-600 dark:bg-amber-500 text-white",
-    HORT: "bg-pink-600 dark:bg-pink-500 text-white",
-    POSC: "bg-yellow-600 dark:bg-yellow-500 text-white",
-    RWFM: "bg-green-600 dark:bg-green-500 text-white",
-    SCSC: "bg-amber-600 dark:bg-amber-500 text-white",
-    FSTC: "bg-red-600 dark:bg-red-500 text-white",
-    CULN: "bg-orange-600 dark:bg-orange-500 text-white",
-    MEPS: "bg-emerald-600 dark:bg-emerald-500 text-white",
-    PLPA: "bg-green-600 dark:bg-green-500 text-white",
-    ENTO: "bg-amber-600 dark:bg-amber-500 text-white",
-    ALEC: "bg-blue-600 dark:bg-blue-500 text-white",
-    ALED: "bg-green-600 dark:bg-green-500 text-white",
-    AGCJ: "bg-cyan-600 dark:bg-cyan-500 text-white",
+    AGEC: "bg-raised text-text-body",
+    AGLS: "bg-raised text-text-body",
+    AGSC: "bg-raised text-text-body",
+    AGSM: "bg-raised text-text-body",
+    ANSC: "bg-raised text-text-body",
+    HORT: "bg-raised text-text-body",
+    POSC: "bg-raised text-text-body",
+    RWFM: "bg-raised text-text-body",
+    SCSC: "bg-raised text-text-body",
+    FSTC: "bg-raised text-text-body",
+    CULN: "bg-raised text-text-body",
+    MEPS: "bg-raised text-text-body",
+    PLPA: "bg-raised text-text-body",
+    ENTO: "bg-raised text-text-body",
+    ALEC: "bg-raised text-text-body",
+    ALED: "bg-raised text-text-body",
+    AGCJ: "bg-raised text-text-body",
 
     // Liberal Arts & Humanities
-    ENGL: "bg-pink-600 dark:bg-pink-500 text-white",
-    HIST: "bg-amber-600 dark:bg-amber-500 text-white",
-    PHIL: "bg-purple-600 dark:bg-purple-500 text-white",
-    SPAN: "bg-red-600 dark:bg-red-500 text-white",
-    FREN: "bg-blue-600 dark:bg-blue-500 text-white",
-    GERM: "bg-gray-600 dark:bg-gray-500 text-white",
-    CHIN: "bg-yellow-600 dark:bg-yellow-500 text-white",
-    JAPN: "bg-pink-600 dark:bg-pink-500 text-white",
-    ARAB: "bg-green-600 dark:bg-green-500 text-white",
-    ITAL: "bg-green-600 dark:bg-green-500 text-white",
-    RUSS: "bg-red-600 dark:bg-red-500 text-white",
-    MODL: "bg-purple-600 dark:bg-purple-500 text-white",
-    CLAS: "bg-amber-600 dark:bg-amber-500 text-white",
-    RELS: "bg-purple-600 dark:bg-purple-500 text-white",
-    AFST: "bg-orange-600 dark:bg-orange-500 text-white",
-    ASIA: "bg-red-600 dark:bg-red-500 text-white",
-    HISP: "bg-orange-600 dark:bg-orange-500 text-white",
-    WGST: "bg-pink-600 dark:bg-pink-500 text-white",
-    DHUM: "bg-cyan-600 dark:bg-cyan-500 text-white",
+    ENGL: "bg-raised text-text-body",
+    HIST: "bg-raised text-text-body",
+    PHIL: "bg-raised text-text-body",
+    SPAN: "bg-raised text-text-body",
+    FREN: "bg-raised text-text-body",
+    GERM: "bg-raised text-text-body",
+    CHIN: "bg-raised text-text-body",
+    JAPN: "bg-raised text-text-body",
+    ARAB: "bg-raised text-text-body",
+    ITAL: "bg-raised text-text-body",
+    RUSS: "bg-raised text-text-body",
+    MODL: "bg-raised text-text-body",
+    CLAS: "bg-raised text-text-body",
+    RELS: "bg-raised text-text-body",
+    AFST: "bg-raised text-text-body",
+    ASIA: "bg-raised text-text-body",
+    HISP: "bg-raised text-text-body",
+    WGST: "bg-raised text-text-body",
+    DHUM: "bg-raised text-text-body",
 
     // Social Sciences
-    POLS: "bg-red-600 dark:bg-red-500 text-white",
-    SOCI: "bg-blue-600 dark:bg-blue-500 text-white",
-    ANTH: "bg-amber-600 dark:bg-amber-500 text-white",
-    CPSY: "bg-teal-600 dark:bg-teal-500 text-white",
-    EPSY: "bg-purple-600 dark:bg-purple-500 text-white",
-    SPSY: "bg-pink-600 dark:bg-pink-500 text-white",
-    GLST: "bg-blue-600 dark:bg-blue-500 text-white",
-    INTA: "bg-green-600 dark:bg-green-500 text-white",
+    POLS: "bg-raised text-text-body",
+    SOCI: "bg-raised text-text-body",
+    ANTH: "bg-raised text-text-body",
+    CPSY: "bg-raised text-text-body",
+    EPSY: "bg-raised text-text-body",
+    SPSY: "bg-raised text-text-body",
+    GLST: "bg-raised text-text-body",
+    INTA: "bg-raised text-text-body",
 
     // Fine Arts
-    ARTS: "bg-violet-600 dark:bg-violet-500 text-white",
-    MUSC: "bg-indigo-600 dark:bg-indigo-500 text-white",
-    THEA: "bg-pink-600 dark:bg-pink-500 text-white",
-    DCED: "bg-purple-600 dark:bg-purple-500 text-white",
-    PVFA: "bg-cyan-600 dark:bg-cyan-500 text-white",
-    VIST: "bg-blue-600 dark:bg-blue-500 text-white",
-    VIZA: "bg-green-600 dark:bg-green-500 text-white",
-    PERF: "bg-orange-600 dark:bg-orange-500 text-white",
-    MSTC: "bg-purple-600 dark:bg-purple-500 text-white",
-    FILM: "bg-gray-600 dark:bg-gray-500 text-white",
+    ARTS: "bg-raised text-text-body",
+    MUSC: "bg-raised text-text-body",
+    THEA: "bg-raised text-text-body",
+    DCED: "bg-raised text-text-body",
+    PVFA: "bg-raised text-text-body",
+    VIST: "bg-raised text-text-body",
+    VIZA: "bg-raised text-text-body",
+    PERF: "bg-raised text-text-body",
+    MSTC: "bg-raised text-text-body",
+    FILM: "bg-raised text-text-body",
 
     // Architecture & Planning
-    ARCH: "bg-gray-600 dark:bg-gray-500 text-white",
-    CARC: "bg-blue-600 dark:bg-blue-500 text-white",
-    LAND: "bg-green-600 dark:bg-green-500 text-white",
-    PLAN: "bg-purple-600 dark:bg-purple-500 text-white",
-    URPN: "bg-amber-600 dark:bg-amber-500 text-white",
-    URSC: "bg-cyan-600 dark:bg-cyan-500 text-white",
-    COSC: "bg-orange-600 dark:bg-orange-500 text-white",
-    LDEV: "bg-emerald-600 dark:bg-emerald-500 text-white",
+    ARCH: "bg-raised text-text-body",
+    CARC: "bg-raised text-text-body",
+    LAND: "bg-raised text-text-body",
+    PLAN: "bg-raised text-text-body",
+    URPN: "bg-raised text-text-body",
+    URSC: "bg-raised text-text-body",
+    COSC: "bg-raised text-text-body",
+    LDEV: "bg-raised text-text-body",
 
     // Education
-    EDCI: "bg-blue-600 dark:bg-blue-500 text-white",
-    EDAD: "bg-purple-600 dark:bg-purple-500 text-white",
-    TEED: "bg-green-600 dark:bg-green-500 text-white",
-    SPED: "bg-pink-600 dark:bg-pink-500 text-white",
-    RDNG: "bg-cyan-600 dark:bg-cyan-500 text-white",
-    LDTC: "bg-indigo-600 dark:bg-indigo-500 text-white",
-    EHRD: "bg-amber-600 dark:bg-amber-500 text-white",
-    CEHD: "bg-emerald-600 dark:bg-emerald-500 text-white",
-    BEFB: "bg-orange-600 dark:bg-orange-500 text-white",
-    BESL: "bg-yellow-600 dark:bg-yellow-500 text-white",
-    MEFB: "bg-purple-600 dark:bg-purple-500 text-white",
-    SEFB: "bg-red-600 dark:bg-red-500 text-white",
-    TEFB: "bg-blue-600 dark:bg-blue-500 text-white",
-    ECDE: "bg-pink-600 dark:bg-pink-500 text-white",
+    EDCI: "bg-raised text-text-body",
+    EDAD: "bg-raised text-text-body",
+    TEED: "bg-raised text-text-body",
+    SPED: "bg-raised text-text-body",
+    RDNG: "bg-raised text-text-body",
+    LDTC: "bg-raised text-text-body",
+    EHRD: "bg-raised text-text-body",
+    CEHD: "bg-raised text-text-body",
+    BEFB: "bg-raised text-text-body",
+    BESL: "bg-raised text-text-body",
+    MEFB: "bg-raised text-text-body",
+    SEFB: "bg-raised text-text-body",
+    TEFB: "bg-raised text-text-body",
+    ECDE: "bg-raised text-text-body",
 
     // Communication & Journalism
-    COMM: "bg-blue-600 dark:bg-blue-500 text-white",
-    JOUR: "bg-gray-600 dark:bg-gray-500 text-white",
+    COMM: "bg-raised text-text-body",
+    JOUR: "bg-raised text-text-body",
 
     // Military & Defense
-    MLSC: "bg-green-600 dark:bg-green-500 text-white",
-    AERS: "bg-sky-600 dark:bg-sky-500 text-white",
-    NVSC: "bg-blue-600 dark:bg-blue-500 text-white",
-    SOMS: "bg-red-600 dark:bg-red-500 text-white",
+    MLSC: "bg-raised text-text-body",
+    AERS: "bg-raised text-text-body",
+    NVSC: "bg-raised text-text-body",
+    SOMS: "bg-raised text-text-body",
 
     // Law & Government
-    LAW: "bg-purple-600 dark:bg-purple-500 text-white",
-    BUSH: "bg-blue-600 dark:bg-blue-500 text-white",
-    PSAA: "bg-green-600 dark:bg-green-500 text-white",
+    LAW: "bg-raised text-text-body",
+    BUSH: "bg-raised text-text-body",
+    PSAA: "bg-raised text-text-body",
 
     // Recreation & Tourism
-    RPTS: "bg-emerald-100 text-emerald-600",
-    HMGT: "bg-orange-100 text-orange-600",
-    SPMT: "bg-red-100 text-red-600",
+    RPTS: "bg-raised text-text-body",
+    HMGT: "bg-raised text-text-body",
+    SPMT: "bg-raised text-text-body",
 
     // Technology & Information Systems
-    TCMG: "bg-blue-100 text-blue-600",
-    TCMT: "bg-purple-100 text-purple-600",
-    ITSV: "bg-cyan-100 text-cyan-600",
+    TCMG: "bg-raised text-text-body",
+    TCMT: "bg-raised text-text-body",
+    ITSV: "bg-raised text-text-body",
 
     // Energy
-    ENGY: "bg-yellow-100 text-yellow-600",
+    ENGY: "bg-raised text-text-body",
 
     // Economics & Finance
-    ECMT: "bg-indigo-100 text-indigo-600",
+    ECMT: "bg-raised text-text-body",
 
     // General/Administrative
-    ARSC: "bg-gray-100 text-gray-600",
-    HONR: "bg-yellow-100 text-yellow-600",
-    UGST: "bg-blue-100 text-blue-600",
-    FYEX: "bg-green-100 text-green-600",
-    SYEX: "bg-purple-100 text-purple-600",
-    ASCC: "bg-cyan-100 text-cyan-600",
-    INST: "bg-amber-100 text-amber-600",
-    SABR: "bg-emerald-100 text-emerald-600",
-    NSEB: "bg-orange-100 text-orange-600",
+    ARSC: "bg-raised text-text-muted",
+    HONR: "bg-raised text-text-body",
+    UGST: "bg-raised text-text-body",
+    FYEX: "bg-raised text-text-body",
+    SYEX: "bg-raised text-text-body",
+    ASCC: "bg-raised text-text-body",
+    INST: "bg-raised text-text-body",
+    SABR: "bg-raised text-text-body",
+    NSEB: "bg-raised text-text-body",
     TAMU: "bg-maroon-100 text-maroon-600",
 
     // Default
-    default: "bg-slate-600 dark:bg-slate-500 text-white",
+    default: "bg-raised text-text-body",
   };
 
   return colorMap[deptCode] || colorMap.default;
@@ -639,20 +605,12 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
           className="min-h-screen relative"
           style={{ background: "var(--app-bg-gradient)" }}
         >
-          <motion.div
-            aria-hidden
-            className="pointer-events-none absolute inset-0"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8 }}
-            style={{ background: "var(--app-bg-ambient)" }}
-          />
           <Navigation variant="glass" />
           <main className="pt-24 pb-20 relative z-10">
             <div className="max-w-7xl mx-auto px-4 sm:px-6">
-              <Card className="p-8 rounded-2xl shadow-none bg-card border-border dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm">
-                <div className="text-center text-text-body dark:text-white/70">
-                  <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-accent" />
+              <Card className="p-8 rounded-2xl shadow-none bg-card border-border">
+                <div className="text-center text-text-body">
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-text-muted" />
                   Loading professor profile...
                 </div>
               </Card>
@@ -674,21 +632,13 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
           className="min-h-screen relative"
           style={{ background: "var(--app-bg-gradient)" }}
         >
-          <motion.div
-            aria-hidden
-            className="pointer-events-none absolute inset-0"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8 }}
-            style={{ background: "var(--app-bg-ambient)" }}
-          />
           <Navigation variant="glass" />
           <main className="pt-24 pb-20 relative z-10">
             <div className="max-w-7xl mx-auto px-4 sm:px-6">
               <Card className="p-8 rounded-2xl shadow-none bg-red-50 border border-red-200">
                 <div className="text-center">
                   <AlertCircle className="h-8 w-8 mx-auto mb-4 text-red-500" />
-                  <h3 className="text-xl font-semibold text-red-700 mb-2">
+                  <h3 className="text-xl font-medium text-red-700 mb-2">
                     Professor Not Found
                   </h3>
                   <p className="text-red-700/90 mb-6">
@@ -718,14 +668,6 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
         className="min-h-screen relative"
         style={{ background: "var(--app-bg-gradient)" }}
       >
-        <motion.div
-          aria-hidden
-          className="pointer-events-none absolute inset-0"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8 }}
-          style={{ background: "var(--app-bg-ambient)" }}
-        />
         <Navigation variant="glass" />
 
         <main className="pt-24 pb-20 relative z-10">
@@ -735,28 +677,13 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
             {/* Professor Header */}
             <div className="">
               {/* Main Professor Info Card */}
-              <Card className="p-6 rounded-2xl shadow-none bg-card border-border mb-8 relative overflow-hidden dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm">
-                <motion.div
-                  aria-hidden
-                  className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-[#FFCF3F]/10 blur-2xl"
-                  initial={false}
-                  animate={
-                    shouldReduceMotion
-                      ? undefined
-                      : { scale: [1, 1.06, 1], opacity: [0.7, 1, 0.8] }
-                  }
-                  transition={{
-                    duration: 6,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                />
+              <Card className="p-6 rounded-2xl shadow-none bg-card border-border mb-8 relative overflow-hidden">
                 <CardContent className="p-6">
                   <div className="flex flex-col lg:flex-row lg:items-center gap-4">
                     {/* Avatar and Basic Info */}
                     <div className="flex items-center gap-4 min-w-0">
-                      <div className="hidden sm:flex w-16 h-16 bg-button-primary rounded-full items-center justify-center flex-shrink-0">
-                        <span className="text-white text-xl font-bold">
+                      <div className="hidden sm:flex w-14 h-14 bg-raised border border-border rounded-full items-center justify-center flex-shrink-0">
+                        <span className="font-mono text-text-heading text-lg font-medium">
                           {(
                             professor.name
                               ?.split(" ")
@@ -766,10 +693,10 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                         </span>
                       </div>
                       <div className="min-w-0">
-                        <h1 className="text-2xl font-bold text-text-heading mb-2 break-words">
+                        <h1 className="text-[32px] leading-tight font-medium text-text-heading break-words">
                           {professor.name}
                         </h1>
-                        <div className="mt-3 grid grid-cols-3 gap-2 sm:gap-3">
+                        <div className="mt-4 grid grid-cols-3 gap-3">
                           {[
                             {
                               label: "Overall rating",
@@ -792,18 +719,14 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                               suffix: "%",
                             },
                           ].map((s) => {
-                            const Icon = s.icon;
                             return (
                               <div
                                 key={s.label}
-                                className="rounded-2xl border border-border bg-canvas/70 px-3 py-3 sm:px-4 dark:border-white/10 dark:bg-black/30"
+                                className="rounded-xl border border-border bg-canvas px-4 py-3"
                               >
                                 <div className="flex items-center gap-3">
-                                  <div className="hidden sm:flex h-10 w-10 rounded-xl bg-canvas border border-border items-center justify-center text-accent dark:bg-white/10 dark:border-white/10">
-                                    <Icon className="w-5 h-5" />
-                                  </div>
                                   <div className="min-w-0">
-                                    <div className="text-accent text-lg font-semibold tracking-tight leading-tight">
+                                    <div className="font-mono text-xl font-medium leading-tight text-text-heading">
                                       {typeof s.value === "number" ? (
                                         <CountUpNumber
                                           value={s.value}
@@ -818,7 +741,7 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                                         <span title="Not enough reviews yet">—</span>
                                       )}
                                     </div>
-                                    <div className="text-text-body text-xs dark:text-white/70">
+                                    <div className="mt-1 text-text-body text-xs">
                                       {s.label}
                                     </div>
                                   </div>
@@ -833,9 +756,9 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                     {/* Action Button */}
                     <div className="lg:ml-auto">
                       <Link href={`/professor/${professor.id}/reviews`}>
-                        <Button className="bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966] rounded-full px-5">
-                          <Eye className="w-4 h-4 mr-2" />
-                          View All Reviews
+                        <Button>
+                          <Eye strokeWidth={1.5} className="w-4 h-4" />
+                          Read all reviews
                         </Button>
                       </Link>
                     </div>
@@ -850,18 +773,15 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                   {professor.overall_summary && (
                     <div className="mt-4 pt-4 border-t border-border">
                       <div className="flex items-center gap-2 mb-3">
-                        <h3 className="text-xs font-semibold text-text-heading uppercase tracking-wide">
+                        <h3 className="text-xs font-medium text-text-heading">
                           Summary
                         </h3>
-                        <Badge
-                          variant="outline"
-                          className="text-xs border-border bg-canvas text-text-body dark:border-white/15 dark:bg-black/30 dark:text-white/70 font-medium rounded-full"
-                        >
-                          Generated by AI
-                        </Badge>
+                        <span className="font-mono text-xs text-text-muted">
+                          Written by AI from student reviews
+                        </span>
                       </div>
-                      <div className="bg-canvas/70 border border-border rounded-2xl p-4 dark:bg-black/30 dark:border-white/10">
-                        <p className="text-sm text-text-body dark:text-white/80 leading-relaxed">
+                      <div className="bg-canvas border border-border rounded-xl p-4">
+                        <p className="text-sm text-text-body leading-relaxed">
                           {professor.overall_summary}
                         </p>
                       </div>
@@ -872,7 +792,7 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                   {professor.departments &&
                     professor.departments.some((dept) => dept && officialCodes.has(dept)) && (
                       <div className="mt-4 pt-4 border-t border-border">
-                        <h3 className="text-xs font-semibold text-text-heading mb-2 uppercase tracking-wide">
+                        <h3 className="text-xs font-medium text-text-heading mb-2">
                           Departments
                         </h3>
                         <div className="flex flex-wrap gap-1">
@@ -896,7 +816,7 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                     Object.keys(professor.tag_frequencies).length > 0 && (
                       <div className="mt-4 pt-4 border-t border-border">
                         <div className="flex items-center justify-between mb-2">
-                          <h3 className="text-xs font-semibold text-text-heading uppercase tracking-wide">
+                          <h3 className="text-xs font-medium text-text-heading">
                             Student Tags
                           </h3>
                           {Object.keys(professor.tag_frequencies).length >
@@ -905,7 +825,7 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                               variant="ghost"
                               size="sm"
                               onClick={() => setShowAllTags(!showAllTags)}
-                              className="text-xs text-accent hover:bg-button-hover h-6 px-2 rounded-full"
+                              className="text-xs text-text-body hover:bg-raised hover:text-text-heading h-6 px-2"
                             >
                               {showAllTags ? (
                                 <>
@@ -934,7 +854,7 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                               <Badge
                                 key={tag}
                                 variant="outline"
-                                className="text-xs border-border bg-canvas/70 text-text-body font-medium px-3 py-1 rounded-full dark:border-white/15 dark:bg-black/30 dark:text-white/80"
+                                className="text-xs border-border bg-canvas/70 text-text-body font-medium px-3 py-1 rounded-full dark:bg-card"
                               >
                                 {tag}{" "}
                                 <span className="text-accent">
@@ -953,26 +873,22 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
             {professor.overallSummary && (
               <div className="mb-12">
                 <div className="flex items-center gap-3 mb-6">
-                  <h2 className="text-2xl font-bold text-text-heading">
-                    AI Summary
+                  <h2 className="text-2xl font-medium text-text-heading">
+                    What students say
                   </h2>
-                  <Badge
-                    variant="outline"
-                    className="text-xs border-border bg-canvas text-text-body dark:border-white/15 dark:bg-black/30 dark:text-white/70 font-medium rounded-full"
-                  >
-                    <Sparkles className="w-3 h-3 mr-1" />
-                    Generated by AI
-                  </Badge>
+                  <span className="font-mono text-xs text-text-muted">
+                    Summarized by AI
+                  </span>
                 </div>
 
-                <Card className="rounded-2xl shadow-none bg-card border-border dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm overflow-hidden">
+                <Card className="rounded-2xl shadow-none bg-card border-border overflow-hidden">
                   <CardContent className="p-6">
                     {(professor.overallSummary.tldr ||
                       professor.overallSummary.reviewStats) && (
                       <div className="mb-6 space-y-3">
                         <SummaryTldr
                           tldr={professor.overallSummary.tldr}
-                          className="text-base"
+                          prominent
                         />
                         <ReviewStatsRow
                           stats={professor.overallSummary.reviewStats}
@@ -980,9 +896,9 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                       </div>
                     )}
 
-                    <p className="mb-6 text-sm text-text-body dark:text-white/80">
+                    <p className="mb-6 text-sm text-text-body">
                       {professor.overallSummary.sentiment && (
-                        <span className="font-semibold text-text-heading dark:text-white">
+                        <span className="font-medium text-text-heading">
                           {professor.overallSummary.sentiment}
                         </span>
                       )}
@@ -1011,10 +927,10 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
             {/* Courses Section */}
             <div className="mb-12">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-text-heading">
-                  Courses Taught
+                <h2 className="text-2xl font-medium text-text-heading">
+                  Courses taught
                 </h2>
-                <div className="text-sm text-text-body dark:text-white/75 border border-border dark:border-white/15 px-3 py-1 rounded-full bg-canvas/70 dark:bg-black/30">
+                <div className="text-sm text-text-body border border-border px-3 py-1 rounded-full bg-canvas/70 dark:bg-card">
                   {displayedCourses.length}{" "}
                   {displayedCourses.length === 1 ? "course" : "courses"}
                   {selectedTerm && !loadingTermData && " this term"}
@@ -1032,14 +948,14 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                   allTermsLabel="Any term (full history)"
                 />
                 {loadingTermData && (
-                  <div className="text-xs text-text-body dark:text-white/75">
+                  <div className="text-xs text-text-body">
                     Checking this term&apos;s sections…
                   </div>
                 )}
               </div>
 
               {selectedTerm && !loadingTermData && displayedCourses.length === 0 && (
-                <p className="mb-6 rounded-xl border border-border bg-canvas/70 px-4 py-3 text-sm text-text-body dark:border-white/10 dark:bg-black/30 dark:text-white/80">
+                <p className="mb-6 rounded-xl border border-border bg-canvas/70 px-4 py-3 text-sm text-text-body dark:bg-card">
                   {professor.name}{" "}isn&apos;t listed on any sections of these courses
                   in the selected term.
                 </p>
@@ -1050,44 +966,40 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                   course.course_id ? (
                     <Card
                       key={course.course_id}
-                      className="bg-card border-border hover:border-border transition-all duration-200 group relative overflow-hidden rounded-2xl shadow-none dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm dark:hover:border-white/20"
+                      className="bg-card border-border hover:border-border transition-colors duration-150 group relative h-full overflow-hidden rounded-2xl shadow-none dark:hover:border-border-strong"
                     >
-                      <div
-                        aria-hidden
-                        className="absolute -top-10 -right-10 h-24 w-24 rounded-full bg-[#FFCF3F]/10 blur-2xl"
-                      />
-                      <CardContent className="p-4">
+                      <CardContent className="flex h-full flex-col p-4">
                         <div className="mb-3">
-                          <h3 className="text-lg font-bold text-text-heading mb-1 transition-colors">
+                          <h3 className="text-lg font-medium text-text-heading mb-1 transition-colors">
                             {formatCourseCode(course.course_id)}
                           </h3>
                           {course.course_name && (
-                            <p className="text-text-body dark:text-white/80 line-clamp-2 leading-relaxed text-sm">
+                            <p className="text-text-body line-clamp-2 leading-relaxed text-sm">
                               {course.course_name}
                             </p>
                           )}
                         </div>
 
                         <dl className="mb-4 grid grid-cols-2 gap-2">
-                          <div className="rounded-xl border border-border bg-canvas/70 px-3 py-2 dark:border-white/10 dark:bg-black/30">
-                            <dd className="flex items-center gap-1 font-semibold text-text-heading dark:text-white">
-                              <Star className="w-4 h-4 text-accent fill-current" />
+                          <div className="rounded-xl border border-border bg-canvas/70 px-3 py-2 dark:bg-card">
+                            <dd className="flex items-center gap-1 font-medium text-text-heading">
+                              <Star className="w-4 h-4 text-text-muted" />
                               {course.avg_rating
                                 ? course.avg_rating.toFixed(1)
                                 : "—"}
                             </dd>
-                            <dt className="text-xs text-text-body dark:text-white/75">
+                            <dt className="text-xs text-text-body">
                               rating in this course · {course.reviews_count}{" "}
                               {course.reviews_count === 1 ? "review" : "reviews"}
                             </dt>
                           </div>
-                          <div className="rounded-xl border border-border bg-canvas/70 px-3 py-2 dark:border-white/10 dark:bg-black/30">
-                            <dd className="font-semibold text-text-heading dark:text-white">
+                          <div className="rounded-xl border border-border bg-canvas/70 px-3 py-2 dark:bg-card">
+                            <dd className="font-medium text-text-heading">
                               {course.avg_gpa != null
                                 ? course.avg_gpa.toFixed(2)
                                 : "—"}
                             </dd>
-                            <dt className="text-xs text-text-body dark:text-white/75">
+                            <dt className="text-xs text-text-body">
                               {course.avg_gpa != null
                                 ? `avg GPA · ${(course.gpa_students ?? 0).toLocaleString()} students`
                                 : "no official grade data"}
@@ -1097,16 +1009,14 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
 
                         <SummaryTips tips={course.tips} className="mb-4" />
 
-                        <Link
-                          href={`/course/${course.course_id?.replace(/\s+/g, "") || ""}`}
-                        >
-                          <Button
-                            variant="default"
-                            className="w-full bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966] rounded-full transition-all duration-200 text-sm py-2"
+                        {/* Pinned to the bottom so buttons line up across the row */}
+                        <Button asChild variant="outline" className="mt-auto w-full">
+                          <Link
+                            href={`/course/${course.course_id?.replace(/\s+/g, "") || ""}`}
                           >
-                            View Course Details
-                          </Button>
-                        </Link>
+                            View course
+                          </Link>
+                        </Button>
                       </CardContent>
                     </Card>
                   ) : null,
@@ -1119,15 +1029,12 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
               professor.recent_reviews.length > 0 && (
                 <div className="mb-12">
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold text-text-heading">
-                      Recent Reviews
+                    <h2 className="text-2xl font-medium text-text-heading">
+                      Recent reviews
                     </h2>
                     <Link href={`/professor/${professor.id}/reviews`}>
-                      <Button
-                        variant="default"
-                        className="bg-[#500000] text-white hover:bg-[#500000] hover:scale-105 transition-all duration-200 text-sm"
-                      >
-                        View All Reviews
+                      <Button variant="outline" size="sm">
+                        All reviews
                       </Button>
                     </Link>
                   </div>
@@ -1136,17 +1043,16 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                     {professor.recent_reviews?.slice(0, 4).map((review) => (
                       <Card
                         key={review.id}
-                        className="bg-card border-border hover:shadow-md transition-shadow duration-200 break-inside-avoid"
+                        className="bg-card border-border transition-shadow duration-150 break-inside-avoid"
                       >
                         <CardContent className="p-4">
                           <div className="flex flex-wrap items-center gap-2 mb-3">
                             {review.overall_rating != null && (
                               <div
-                                className="flex items-center gap-1 bg-yellow-700 dark:bg-yellow-500 px-2 py-1 rounded-lg"
+                                className="flex items-center gap-1 border border-border bg-raised px-2 h-6 rounded-md"
                                 title="This student's quality rating (1-5)"
                               >
-                                <Star className="w-3 h-3 text-white fill-current dark:text-black" />
-                                <span className="font-semibold text-white text-sm dark:text-black">
+                                <span className="font-mono text-text-heading text-xs">
                                   {review.overall_rating.toFixed(1)}
                                 </span>
                               </div>
@@ -1154,7 +1060,7 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                             {review.course_code && (
                               <Badge
                                 variant="outline"
-                                className="text-xs border-border text-text-heading dark:border-white/20 dark:text-white"
+                                className="text-xs border-border text-text-heading dark:border-border-strong"
                               >
                                 {formatCourseCode(review.course_code)}
                               </Badge>
@@ -1168,23 +1074,23 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                               </Badge>
                             )}
                             {formatReviewDate(review.review_date) && (
-                              <span className="ml-auto text-xs text-text-body dark:text-white/75">
+                              <span className="ml-auto text-xs text-text-body">
                                 {formatReviewDate(review.review_date)}
                               </span>
                             )}
                           </div>
 
-                          <blockquote className="text-text-body leading-relaxed italic border-l-4 border-gray-200 dark:border-gray-600 pl-3 text-sm">
+                          <blockquote className="text-text-body leading-relaxed border-l-4 border-border dark:border-gray-600 pl-3 text-sm">
                             &quot;{review.review_text}&quot;
                           </blockquote>
 
                           {review.tags && review.tags.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-3 pt-3 border-t border-border dark:border-white/10">
+                            <div className="flex flex-wrap gap-1 mt-3 pt-3 border-t border-border">
                               {review.tags.slice(0, 3).map((tag, index) => (
                                 <Badge
                                   key={index}
                                   variant="outline"
-                                  className="text-xs bg-gray-50 dark:bg-white/10 text-gray-700 dark:text-white/80 dark:border-white/15"
+                                  className="text-xs bg-raised text-text-body dark:border-border"
                                 >
                                   {tag}
                                 </Badge>

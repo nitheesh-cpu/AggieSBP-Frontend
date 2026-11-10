@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, MotionConfig, useReducedMotion } from "motion/react";
 import { Navigation } from "@/components/navigation";
+import { PageBanner } from "@/components/page-banner";
 import { EasinessBadge, EasinessLegend } from "@/components/easiness";
 import { pickDefaultTerm, sortTermsForMenu } from "@/lib/terms";
 import type { Term as ApiTerm } from "@/lib/api";
@@ -32,7 +33,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Loader2, GraduationCap, Star, ChevronDown, Building2, MapPin, ArrowUpDown, Check, ChevronsUpDown } from "lucide-react";
+import { Search, Loader2, GraduationCap, Star, ChevronDown, Building2, MapPin, ArrowUpDown, Check, ChevronsUpDown } from "lucide-react";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL?.trim() || "http://localhost:8000";
@@ -237,28 +238,24 @@ export default function DiscoverDeptPage() {
 
         <Navigation variant="glass" />
 
-        <main className="relative pt-24 pb-20">
+        <PageBanner
+          title="Easiest courses by department"
+          subtitle="Pick a department to see its courses and professors ranked by easiness"
+        />
+
+        <main className="relative pt-10 pb-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
 
             {/* Header */}
             <div className="mb-8 space-y-6">
-              <div className="space-y-2">
-                <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-text-heading dark:text-white">
-                  Explore Easy Courses
-                </h1>
-                <p className="text-text-body dark:text-white/80 text-lg max-w-2xl">
-                  Pick a department to see its courses and professors ranked by easiness.
-                </p>
-              </div>
-
               {/* Selectors row */}
               <div className="flex flex-wrap gap-3 items-center">
                 {/* Term */}
                 <Select onValueChange={handleTermChange} value={selectedTerm}>
-                  <SelectTrigger aria-label="Term" className="w-full sm:w-56 h-10 bg-card/80 backdrop-blur-md border-border dark:border-white/15 dark:bg-black/50 dark:text-white rounded-full px-5 shadow-sm transition-all">
+                  <SelectTrigger aria-label="Term" className="w-full sm:w-56 h-10 bg-card/80 backdrop-blur-md border-border dark:bg-card dark:text-text-heading rounded-full px-5 shadow-sm transition-colors">
                     <SelectValue placeholder={fetchingTerms ? "Loading..." : "Select Term"} />
                   </SelectTrigger>
-                  <SelectContent className="dark:bg-black/90 dark:border-white/15 dark:text-white">
+                  <SelectContent className="dark:bg-card dark:border-border dark:text-text-heading">
                     <SelectGroup>
                       <SelectLabel>Available Terms</SelectLabel>
                       {(() => {
@@ -288,7 +285,7 @@ export default function DiscoverDeptPage() {
                       role="combobox"
                       aria-expanded={departmentOpen}
                       disabled={!selectedTerm || fetchingDepts}
-                      className="h-10 w-full sm:w-64 justify-between rounded-full border-border bg-card/80 px-5 font-normal text-text-body shadow-sm backdrop-blur-md transition-all dark:border-white/15 dark:bg-black/50 dark:text-white disabled:opacity-50"
+                      className="h-10 w-full sm:w-64 justify-between rounded-full border-border bg-card/80 px-5 font-normal text-text-body shadow-sm backdrop-blur-md transition-colors dark:bg-card dark:text-text-heading disabled:opacity-50"
                     >
                       <span className="truncate text-left">
                         {!selectedTerm
@@ -304,7 +301,7 @@ export default function DiscoverDeptPage() {
                   </PopoverTrigger>
                   <PopoverContent
                     align="start"
-                    className="w-[min(90vw,360px)] p-0 dark:border-white/15 dark:bg-black/95"
+                    className="w-[min(90vw,360px)] p-0 dark:border-border dark:bg-card"
                   >
                     <Command>
                       <CommandInput
@@ -327,7 +324,7 @@ export default function DiscoverDeptPage() {
                               <Check
                                 className={`h-4 w-4 ${selectedDept === dept.code ? "opacity-100" : "opacity-0"}`}
                               />
-                              <span className="w-12 shrink-0 font-mono text-xs text-text-body/75 dark:text-white/65">
+                              <span className="w-12 shrink-0 font-mono text-xs text-text-muted">
                                 {dept.code}
                               </span>
                               <span className="truncate">{dept.name}</span>
@@ -341,11 +338,11 @@ export default function DiscoverDeptPage() {
 
                 {/* Campus */}
                 <Select onValueChange={handleCampusChange} value={selectedCampus}>
-                  <SelectTrigger aria-label="Campus" className="w-full sm:w-48 h-10 bg-card/80 backdrop-blur-md border-border dark:border-white/15 dark:bg-black/50 dark:text-white rounded-full px-5 shadow-sm transition-all">
-                    <MapPin className="w-3.5 h-3.5 mr-1 shrink-0 text-text-body/75 dark:text-white/65" />
+                  <SelectTrigger aria-label="Campus" className="w-full sm:w-48 h-10 bg-card/80 backdrop-blur-md border-border dark:bg-card dark:text-text-heading rounded-full px-5 shadow-sm transition-colors">
+                    <MapPin className="w-3.5 h-3.5 mr-1 shrink-0 text-text-muted" />
                     <SelectValue placeholder="All Campuses" />
                   </SelectTrigger>
-                  <SelectContent className="dark:bg-black/90 dark:border-white/15 dark:text-white">
+                  <SelectContent className="dark:bg-card dark:border-border dark:text-text-heading">
                     <SelectGroup>
                       <SelectLabel>Campus</SelectLabel>
                       {CAMPUS_OPTIONS.map((c) => (
@@ -359,11 +356,11 @@ export default function DiscoverDeptPage() {
 
                 {/* Sort */}
                 <Select onValueChange={(v) => setSortKey(v as SortKey)} value={sortKey}>
-                  <SelectTrigger aria-label="Sort by" className="w-full sm:w-44 h-10 bg-card/80 backdrop-blur-md border-border dark:border-white/15 dark:bg-black/50 dark:text-white rounded-full px-5 shadow-sm transition-all">
-                    <ArrowUpDown className="w-3.5 h-3.5 mr-1 shrink-0 text-text-body/75 dark:text-white/65" />
+                  <SelectTrigger aria-label="Sort by" className="w-full sm:w-44 h-10 bg-card/80 backdrop-blur-md border-border dark:bg-card dark:text-text-heading rounded-full px-5 shadow-sm transition-colors">
+                    <ArrowUpDown className="w-3.5 h-3.5 mr-1 shrink-0 text-text-muted" />
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="dark:bg-black/90 dark:border-white/15 dark:text-white">
+                  <SelectContent className="dark:bg-card dark:border-border dark:text-text-heading">
                     <SelectGroup>
                       <SelectLabel>Sort by</SelectLabel>
                       {SORT_OPTIONS.map((o) => (
@@ -377,10 +374,10 @@ export default function DiscoverDeptPage() {
                 <button
                   type="button"
                   onClick={handleGraduateToggle}
-                  className={`h-10 px-4 rounded-full border text-sm font-medium transition-all flex items-center gap-2 ${
+                  className={`h-10 px-4 rounded-full border text-sm font-medium transition-colors flex items-center gap-2 ${
                     includeGraduate
-                      ? "bg-[#500000] text-white border-[#500000] dark:bg-[#FFCF3F] dark:text-black dark:border-[#FFCF3F]"
-                      : "bg-card/80 border-border dark:border-white/15 dark:bg-black/50 dark:text-white/70 text-text-body hover:bg-card"
+                      ? "bg-maroon-band text-on-maroon border-transparent"
+                      : "bg-card/80 border-border dark:bg-card text-text-body hover:bg-card"
                   }`}
                   title="Toggle graduate-level courses (600+)"
                 >
@@ -388,8 +385,8 @@ export default function DiscoverDeptPage() {
                   Grad courses
                   <span className={`text-xs px-1.5 py-0.5 rounded-full ${
                     includeGraduate
-                      ? "bg-white/20 text-white dark:bg-black/20 dark:text-black"
-                      : "bg-black/10 dark:bg-white/10"
+                      ? "bg-white/20 text-white dark:bg-card dark:text-black"
+                      : "bg-black/10 dark:bg-raised"
                   }`}>
                     {includeGraduate ? "ON" : "OFF"}
                   </span>
@@ -405,19 +402,18 @@ export default function DiscoverDeptPage() {
             >
               <motion.div
                 className="relative group cursor-help shrink-0 z-20"
-                whileHover={{ scale: 1.05 }}
                 transition={{ duration: 0.3 }}
               >
                 <img
                   src="/pixel-reveille.png"
                   alt="Reveille"
-                  className="w-60 h-60 object-contain drop-shadow-xl"
+                  className="w-60 h-60 object-contain"
                   style={{ imageRendering: "pixelated" }}
                 />
               </motion.div>
 
               <div className="relative w-full md:max-w-xl md:flex-1 lg:mt-8">
-                <div className="bg-popover border-2 border-primary rounded-2xl p-4 md:p-5 relative shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.9)]">
+                <div className="bg-card border border-border-strong rounded-2xl p-5 relative">
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-5 h-5 bg-popover border-t-2 border-l-2 border-primary transform rotate-45 md:hidden" />
                   <div className="absolute md:top-20 lg:top-14 -left-3 w-5 h-5 bg-popover border-b-2 border-l-2 border-primary transform rotate-45 hidden md:block" />
 
@@ -425,16 +421,16 @@ export default function DiscoverDeptPage() {
                     <div className="flex items-center gap-4">
                       <Loader2 className="w-6 h-6 animate-spin text-primary shrink-0" />
                       <div>
-                        <h3 className="font-bold text-lg text-primary mb-1">*sniff sniff*</h3>
-                        <p className="text-sm text-text-body dark:text-white/90">
+                        <h3 className="font-medium text-lg text-primary mb-1">*sniff sniff*</h3>
+                        <p className="text-sm text-text-body dark:text-text-heading">
                           Fetching the <strong className="text-emerald-500">easiest</strong> courses in {selectedDept}...
                         </p>
                       </div>
                     </div>
                   ) : !selectedTerm || !selectedDept ? (
                     <>
-                      <h3 className="font-bold text-lg text-primary mb-3">Howdy! Woof!</h3>
-                      <p className="text-sm text-text-body dark:text-white/90">
+                      <h3 className="font-medium text-lg text-primary mb-3">Howdy</h3>
+                      <p className="text-sm text-text-body dark:text-text-heading">
                         I&apos;m <strong>Reveille</strong>! Pick a <strong>term</strong> and a <strong>department</strong> above, and I&apos;ll rank every course by{" "}
                         <strong className="text-emerald-500 bg-emerald-500/10 px-1 rounded">EASINESS</strong> for you!
                         Use the campus and grad filters to narrow things down.
@@ -442,7 +438,7 @@ export default function DiscoverDeptPage() {
                     </>
                   ) : (
                     <>
-                      <h3 className="font-bold text-lg lg:text-xl text-primary mb-4">Here&apos;s what the numbers mean</h3>
+                      <h3 className="font-medium text-lg lg:text-xl text-primary mb-4">Here&apos;s what the numbers mean</h3>
                       <EasinessLegend showAbRate />
                     </>
                   )}
@@ -452,21 +448,21 @@ export default function DiscoverDeptPage() {
 
             {/* Results Header */}
             {!loading && courses.length > 0 && (
-              <div className="flex items-center gap-3 pb-3 mb-6 border-b border-border dark:border-white/10 flex-wrap">
-                <Building2 className="w-5 h-5 text-accent" />
-                <h2 className="text-xl font-semibold text-text-heading dark:text-white">
+              <div className="flex items-center gap-3 pb-3 mb-6 border-b border-border flex-wrap">
+                <Building2 strokeWidth={1.5} className="w-5 h-5 text-text-muted" />
+                <h2 className="text-xl font-medium text-text-heading">
                   {deptLabel} — Ranked by Easiness
                 </h2>
-                <Badge className="bg-[#FFCF3F]/25 text-[#5c4400] border-transparent dark:bg-[#FFCF3F]/20 dark:text-[#FFCF3F]">
+                <Badge className="border-border bg-transparent font-mono font-normal text-text-body">
                   {courses.length} courses
                 </Badge>
                 {selectedCampus && (
-                  <Badge variant="outline" className="text-xs dark:border-white/20 dark:text-white/60">
+                  <Badge variant="outline" className="text-xs dark:border-border-strong dark:text-text-muted">
                     <MapPin className="w-3 h-3 mr-1" />{selectedCampus}
                   </Badge>
                 )}
                 {includeGraduate && (
-                  <Badge variant="outline" className="text-xs dark:border-white/20 dark:text-white/60">
+                  <Badge variant="outline" className="text-xs dark:border-border-strong dark:text-text-muted">
                     <GraduationCap className="w-3 h-3 mr-1" />incl. grad
                   </Badge>
                 )}
@@ -494,27 +490,18 @@ export default function DiscoverDeptPage() {
                         hidden: { opacity: 0, y: 20 },
                         visible: { opacity: 1, y: 0 },
                       }}
-                      transition={shouldReduceMotion ? undefined : { type: "spring", stiffness: 420, damping: 34 }}
-                      whileHover={shouldReduceMotion ? undefined : { y: -2, scale: 1.01, transition: { duration: 0.18 } }}
-                      whileTap={shouldReduceMotion ? undefined : { scale: 0.99 }}
+                      transition={shouldReduceMotion ? undefined : { duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                     >
-                      <Card className="bg-card border-border hover:border-border transition-all duration-200 relative overflow-hidden group dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm dark:hover:border-white/20">
-                        <motion.div
-                          aria-hidden
-                          className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-[#FFCF3F]/10 blur-2xl"
-                          initial={false}
-                          animate={shouldReduceMotion ? undefined : { scale: [1, 1.06, 1], opacity: [0.7, 1, 0.8] }}
-                          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                        />
+                      <Card className="bg-card border-border hover:border-border transition-colors duration-150 relative overflow-hidden group dark:hover:border-border-strong">
 
                         <CardContent className="relative pt-2">
                           {/* Course header + easiness score */}
                           <div className="flex items-start justify-between gap-4 mb-4">
                             <div className="flex-1 min-w-0">
-                              <h3 className="text-lg font-bold text-text-heading dark:text-white">
+                              <h3 className="text-lg font-medium text-text-heading">
                                 {course.dept} {course.courseNumber}
                               </h3>
-                              <p className="text-sm text-text-body/80 dark:text-white/60 line-clamp-1">
+                              <p className="text-sm text-text-muted line-clamp-1">
                                 {course.courseTitle}
                               </p>
                             </div>
@@ -527,8 +514,8 @@ export default function DiscoverDeptPage() {
 
                           {/* Professor */}
                           <div className="flex items-center gap-2 mb-3 min-w-0">
-                            <GraduationCap className="w-4 h-4 text-accent shrink-0" />
-                            <span className="text-md font-medium text-text-heading dark:text-white truncate">
+                            <GraduationCap strokeWidth={1.5} className="w-5 h-5 text-text-muted shrink-0" />
+                            <span className="text-md font-medium text-text-heading truncate">
                               {course.professor
                                 ? `${course.professor.firstName} ${course.professor.lastName}`
                                 : "TBA"}
@@ -536,25 +523,25 @@ export default function DiscoverDeptPage() {
                           </div>
 
                           {/* Stats */}
-                          <div className="py-3 px-3 rounded-lg bg-black/5 dark:bg-white/5 mb-3">
+                          <div className="py-3 px-3 rounded-lg bg-black/5 dark:bg-raised mb-3">
                             <div className="grid grid-cols-3 gap-2 text-sm w-full justify-items-center">
                               {course.professor?.avgRating && course.professor.avgRating > 0 && (
                                 <div className="flex items-center gap-1">
-                                  <Star className="w-3.5 h-3.5 text-accent fill-current" />
-                                  <span className="font-medium text-text-heading dark:text-white">
+                                  <Star className="w-3.5 h-3.5 text-text-muted" />
+                                  <span className="font-medium text-text-heading">
                                     {course.professor.avgRating.toFixed(1)}
                                   </span>
                                 </div>
                               )}
                               {course.professor?.avgGpa && (
-                                <div className="text-text-body/80 dark:text-white/60">
-                                  <span className="font-medium text-text-heading dark:text-white">
+                                <div className="text-text-muted">
+                                  <span className="font-medium text-text-heading">
                                     {course.professor.avgGpa.toFixed(2)}
                                   </span>{" "}GPA
                                 </div>
                               )}
                               {course.professor?.percentAB && (
-                                <div className="text-text-body/80 dark:text-white/60">
+                                <div className="text-text-muted">
                                   <span className="font-medium text-emerald-500">
                                     {course.professor.percentAB.toFixed(0)}%
                                   </span>{" "}A/B
@@ -569,13 +556,13 @@ export default function DiscoverDeptPage() {
                               {course.professor.tags.slice(0, 2).map((tag, tagIdx) => (
                                 <span
                                   key={tagIdx}
-                                  className="text-xs px-2 py-0.5 rounded-full bg-white/5 text-text-body/70 dark:text-white/65"
+                                  className="text-xs px-2 py-0.5 rounded-full bg-white/5 text-text-muted"
                                 >
                                   {tag}
                                 </span>
                               ))}
                               {course.professor.tags.length > 2 && (
-                                <span className="text-xs text-text-body/75 dark:text-white/65">
+                                <span className="text-xs text-text-muted">
                                   +{course.professor.tags.length - 2}
                                 </span>
                               )}
@@ -593,11 +580,11 @@ export default function DiscoverDeptPage() {
                     <Button
                       variant="outline"
                       onClick={() => setShownCount((n) => Math.min(n + INCREMENT, courses.length))}
-                      className="border-border bg-canvas text-text-body hover:bg-button-hover dark:border-white/15 dark:bg-black/30 dark:text-white/80 dark:hover:bg-black/45 rounded-full px-6"
+                      className="border-border bg-canvas text-text-body hover:bg-button-hover dark:bg-card dark:hover:bg-raised rounded-full px-6"
                     >
                       View More
                       <ChevronDown className="w-4 h-4 ml-2" />
-                      <span className="ml-1 text-xs text-text-body/70 dark:text-white/60">
+                      <span className="ml-1 text-xs text-text-muted">
                         ({courses.length - shownCount} remaining)
                       </span>
                     </Button>
@@ -608,10 +595,10 @@ export default function DiscoverDeptPage() {
 
             {/* Empty State */}
             {!loading && selectedTerm && selectedDept && courses.length === 0 && (
-              <div className="text-center py-20 bg-card rounded-2xl border border-dashed border-border dark:border-white/10 dark:bg-black/30">
-                <div className="text-6xl mb-4">🔍</div>
-                <h3 className="text-2xl font-semibold text-text-heading dark:text-white mb-2">No courses found</h3>
-                <p className="text-text-body dark:text-white/70">
+              <div className="text-center py-20 bg-card rounded-2xl border border-dashed border-border">
+                <Search strokeWidth={1.5} className="w-6 h-6 text-text-muted mx-auto mb-3" aria-hidden />
+                <h3 className="text-2xl font-medium text-text-heading mb-2">No courses found</h3>
+                <p className="text-text-body">
                   No courses found for <strong>{selectedDept}</strong>
                   {selectedCampus ? ` on the ${selectedCampus} campus` : ""} in that term.
                   {!includeGraduate && " Try enabling graduate courses."}

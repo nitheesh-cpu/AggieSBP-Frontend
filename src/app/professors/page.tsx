@@ -7,6 +7,7 @@ import {
   useReducedMotion,
 } from "motion/react";
 import { Navigation } from "@/components/navigation";
+import { PageBanner } from "@/components/page-banner";
 import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -128,57 +129,27 @@ export default function ProfessorsPage() {
           background: "var(--app-bg-gradient)",
         }}
       >
-        {/* Ambient background */}
-        <motion.div
-          aria-hidden
-          className="pointer-events-none absolute inset-0"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8 }}
-          style={{
-            background: "var(--app-bg-ambient)",
-          }}
-        />
 
         <Navigation variant="glass" />
 
-        <main className="pt-20 pb-20 relative z-10">
+        <PageBanner
+          title="Professors"
+          subtitle={<>Ratings, review summaries and course history for Texas A&amp;M instructors</>}
+        >
+          <div className="relative">
+            <Search strokeWidth={1.5} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted w-[18px] h-[18px]" />
+            <Input
+              placeholder="Search by name"
+              aria-label="Search professors by name"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="h-12 rounded-xl border border-transparent bg-card shadow-lg pl-12 text-base text-text-heading transition-colors placeholder:text-text-muted focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
+            />
+          </div>
+        </PageBanner>
+
+        <main className="pt-10 pb-20 relative z-10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
-            {/* Breadcrumbs */}
-            <div className="flex items-center justify-center gap-2 text-xs text-text-body mb-8 dark:text-white/70">
-              <span>Home</span>
-              <ChevronRight className="w-4 h-4 text-text-body/75 dark:text-white/65" />
-              <span className="text-text-heading dark:text-white/90">
-                Professors
-              </span>
-            </div>
-
-            {/* Header */}
-            <motion.div
-              className="text-center mb-12"
-              initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <h1 className="text-text-heading dark:text-white text-[28px] sm:text-[34px] md:text-[42px] leading-tight font-semibold tracking-tight mb-4">
-                Browse Professors
-              </h1>
-              <p className="text-text-body dark:text-white/80 text-[13px] sm:text-[14px] md:text-[15px] max-w-2xl mx-auto mb-8 leading-relaxed">
-                Discover Texas A&M professors, compare their ratings, and find
-                the best instructors for your courses.
-              </p>
-
-              {/* Search Bar */}
-              <div className="relative max-w-lg mx-auto">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-body w-5 h-5 dark:text-white/60" />
-                <Input
-                  placeholder="Search professors by name..."
-                  aria-label="Search professors by name"
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  className="h-12 rounded-full border-2 border-[#500000]/25 bg-canvas pl-12 text-[14px] text-text-body shadow-sm transition-colors placeholder:text-text-body/75 hover:border-[#500000]/40 focus-visible:border-[#500000]/60 focus-visible:ring-2 focus-visible:ring-[#500000]/15 focus-visible:ring-offset-0 dark:border-white/25 dark:bg-black/45 dark:text-white dark:placeholder:text-white/65 dark:backdrop-blur-sm dark:hover:border-[#FFCF3F]/40 dark:focus-visible:border-[#FFCF3F]/60 dark:focus-visible:ring-[#FFCF3F]/20 sm:h-14 sm:text-[15px]"
-                />
-              </div>
-            </motion.div>
 
             {/* Filters */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -190,7 +161,7 @@ export default function ProfessorsPage() {
                   id="professor-department"
                   value={departmentFilter}
                   onChange={(e) => setDepartmentFilter(e.target.value)}
-                  className="w-full px-4 h-12 bg-canvas border border-border rounded-xl text-text-body focus:outline-none dark:bg-black/45 dark:border-white/15 dark:text-white/90 dark:backdrop-blur-sm"
+                  className="w-full px-3 h-10 bg-card border border-border rounded-lg text-sm text-text-heading"
                 >
                   <option value="">All departments</option>
                   {departments.map((dept) => (
@@ -211,28 +182,28 @@ export default function ProfessorsPage() {
                   onChange={(e) =>
                     setMinRating(e.target.value ? Number(e.target.value) : null)
                   }
-                  className="w-full px-4 h-12 bg-canvas border border-border rounded-xl text-text-body focus:outline-none dark:bg-black/45 dark:border-white/15 dark:text-white/90 dark:backdrop-blur-sm"
+                  className="w-full px-3 h-10 bg-card border border-border rounded-lg text-sm text-text-heading"
                 >
                   <option value="">Any rating</option>
-                  <option value="4">4.0+ stars</option>
-                  <option value="3.5">3.5+ stars</option>
-                  <option value="3">3.0+ stars</option>
-                  <option value="2.5">2.5+ stars</option>
+                  <option value="4">4.0 and up</option>
+                  <option value="3.5">3.5 and up</option>
+                  <option value="3">3.0 and up</option>
+                  <option value="2.5">2.5 and up</option>
                 </select>
               </div>
             </div>
 
             {/* Results Summary */}
             <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
-              <p className="text-text-body text-sm dark:text-white/75">
+              <p className="text-text-body text-sm">
                 {loading
-                  ? "Loading professors…"
+                  ? "Loading professors"
                   : professors.length === 0
                     ? "No matches"
                     : `Showing ${(currentPage - 1) * itemsPerPage + 1}–${(currentPage - 1) * itemsPerPage + professors.length}, most-reviewed first`}
               </p>
               {(currentPage > 1 || hasNextPage) && (
-                <p className="text-sm text-text-body dark:text-white/75">
+                <p className="text-sm text-text-body">
                   Page {currentPage}
                 </p>
               )}
@@ -274,35 +245,35 @@ export default function ProfessorsPage() {
                         hidden: { opacity: 0, y: 20 },
                         visible: { opacity: 1, y: 0 },
                       }}
-                      whileHover={
-                        shouldReduceMotion
-                          ? undefined
-                          : { y: -2, transition: { duration: 0.18 } }
-                      }
                     >
-                      <Card className="group relative h-full gap-0 overflow-clip border-border bg-card p-4 transition-all duration-normal hover:border-[#500000]/25 hover:shadow-md dark:border-white/10 dark:bg-black/45 dark:backdrop-blur-sm dark:hover:border-[#FFCF3F]/25">
-                        <div className="relative mb-3 flex items-start gap-3">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-canvas text-accent dark:border-white/10 dark:bg-white/10">
-                            <User className="h-4 w-4" />
-                          </div>
+                      <Card className="group relative h-full gap-0 overflow-clip border-border bg-card p-0 shadow-none transition-colors duration-150 hover:border-maroon-edge">
+                        {/* Header: name, departments and the rating */}
+                        <div className="flex items-start gap-3 px-5 pt-5">
+                          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-border bg-raised font-mono text-sm text-text-body">
+                            {professor.name
+                              .split(" ")
+                              .map((n) => n[0] || "")
+                              .join("")
+                              .slice(0, 2)}
+                          </span>
                           <div className="min-w-0 flex-1">
                             <Link
                               href={`/professor/${professor.id}`}
                               className="group/name"
                             >
-                              <h3 className="line-clamp-2 text-lg font-semibold leading-tight tracking-tight text-text-heading transition-colors group-hover/name:text-accent dark:text-white sm:text-xl">
+                              <h3 className="line-clamp-1 text-base font-medium leading-6 text-text-heading underline-offset-4 group-hover/name:underline">
                                 {professor.name}
                               </h3>
                             </Link>
                             {depts.length > 0 && (
-                              <div className="mt-1.5 flex flex-wrap gap-1">
+                              <div className="mt-1 flex flex-wrap gap-1">
                                 {depts.slice(0, 3).map((dept) => (
                                   <button
                                     type="button"
                                     key={dept}
                                     onClick={() => setDepartmentFilter(dept)}
                                     title={`Show ${dept} professors`}
-                                    className="rounded-full border border-border bg-canvas px-2 py-0.5 text-[11px] font-medium text-text-body transition-colors hover:border-[#500000]/30 hover:text-[#500000] dark:border-white/15 dark:bg-black/20 dark:text-white/80 dark:hover:border-[#FFCF3F]/35 dark:hover:text-[#FFCF3F]"
+                                    className="h-5 rounded border border-border px-1.5 font-mono text-[11px] text-text-muted transition-colors duration-150 hover:border-border-strong hover:text-text-heading"
                                   >
                                     {dept}
                                   </button>
@@ -310,73 +281,77 @@ export default function ProfessorsPage() {
                               </div>
                             )}
                           </div>
+                          <div className="flex shrink-0 flex-col items-end">
+                            <span className="font-mono text-base leading-6 text-accent">
+                              {professor.overall_rating ? professor.overall_rating.toFixed(1) : "—"}
+                              {professor.overall_rating ? (
+                                <span className="text-xs text-text-muted">/5</span>
+                              ) : null}
+                            </span>
+                            <span className="text-[11px] text-text-muted">rating</span>
+                          </div>
                         </div>
 
-                        <dl className="relative grid grid-cols-3 divide-x divide-border/70 rounded-xl border border-border/70 bg-canvas/60 py-2 text-center dark:divide-white/10 dark:border-white/10 dark:bg-white/5">
-                          <div className="px-1">
-                            <dd className="flex items-center justify-center gap-1 text-base font-semibold tracking-tight text-text-heading dark:text-white">
-                              <Star className="h-3.5 w-3.5 fill-current text-accent" />
-                              {professor.overall_rating
-                                ? professor.overall_rating.toFixed(1)
-                                : "—"}
-                            </dd>
-                            <dt className="text-[11px] text-text-body dark:text-white/70">
-                              rating
-                            </dt>
-                          </div>
-                          <div className="px-1">
-                            <dd className="text-base font-semibold text-text-heading dark:text-white">
+                        <div className="flex flex-1 flex-col px-5 pb-5 pt-4">
+                        {/* Rating meter on the 1-5 scale */}
+                        <div className="relative h-1.5 overflow-hidden rounded-full bg-raised">
+                          {professor.overall_rating ? (
+                            <span
+                              className="absolute inset-y-0 left-0 rounded-full bg-accent"
+                              style={{ width: `${(professor.overall_rating / 5) * 100}%` }}
+                            />
+                          ) : null}
+                        </div>
+
+                        <dl className="relative mt-4 grid grid-cols-2 gap-3">
+                          <div className="flex flex-col-reverse">
+                            <dd className="mt-1 font-mono text-base text-text-heading">
                               {formatCompactCount(professor.total_reviews)}
                             </dd>
-                            <dt className="text-[11px] text-text-body dark:text-white/70">
-                              reviews
-                            </dt>
+                            <dt className="text-xs text-text-muted">Reviews</dt>
                           </div>
-                          <div className="px-1">
-                            <dd className="text-base font-semibold text-text-heading dark:text-white">
+                          <div className="flex flex-col-reverse">
+                            <dd className="mt-1 font-mono text-base text-text-heading">
                               {courses.length}
                             </dd>
-                            <dt className="text-[11px] text-text-body dark:text-white/70">
-                              {courses.length === 1 ? "course" : "courses"}
+                            <dt className="text-xs text-text-muted">
+                              {courses.length === 1 ? "Course" : "Courses"}
                             </dt>
                           </div>
                         </dl>
 
-                        <div className="relative mt-3 min-h-6">
-                          <div className="flex flex-wrap gap-1">
+                        <div className="relative mb-4 mt-4 min-h-6">
+                          <div className="flex flex-wrap items-center gap-1">
                             {courses.slice(0, 3).map((course) => (
                               <span
                                 key={course}
-                                className="rounded-md bg-[#500000]/6 px-2 py-0.5 font-mono text-[11px] text-text-heading dark:bg-[#FFCF3F]/10 dark:text-white/80"
+                                className="code-tag"
                               >
                                 {course}
                               </span>
                             ))}
                             {courses.length > 3 && (
-                              <span className="py-0.5 text-[11px] text-text-body dark:text-white/70">
+                              <span className="py-0.5 text-xs text-text-body">
                                 +{courses.length - 3} more
                               </span>
                             )}
                             {courses.length === 0 && (
-                              <span className="text-xs text-text-body dark:text-white/70">
+                              <span className="text-xs text-text-body">
                                 No course history yet
                               </span>
                             )}
                           </div>
                         </div>
 
-                        <div className="relative mt-3 border-t border-border/60 pt-3 dark:border-white/10">
-                          <Button
-                            asChild
-                            size="sm"
-                            variant="ghost"
-                            className="-ml-3 text-[#500000] hover:bg-[#500000]/7 hover:text-[#500000] dark:text-[#FFCF3F] dark:hover:bg-[#FFCF3F]/10 dark:hover:text-[#FFCF3F]"
+                        <div className="relative mt-auto border-t border-border pt-3">
+                          <Link
+                            href={`/professor/${professor.id}`}
+                            className="inline-flex items-center gap-1 text-sm text-text-body transition-colors duration-150 hover:text-text-heading"
                           >
-                            <Link href={`/professor/${professor.id}`}>
-                              View profile
-                              <ChevronRight className="h-4 w-4" />
-                            </Link>
-                          </Button>
+                            View profile
+                            <ChevronRight strokeWidth={1.5} className="h-4 w-4" />
+                          </Link>
+                        </div>
                         </div>
                       </Card>
                     </motion.div>
@@ -388,11 +363,11 @@ export default function ProfessorsPage() {
             {/* No Results Message */}
             {!loading && !error && professors.length === 0 && (
               <div className="text-center py-16">
-                <GraduationCap className="w-16 h-16 text-text-body/75 mx-auto mb-4 dark:text-white/65" />
-                <h3 className="text-2xl font-semibold text-text-heading dark:text-white mb-2">
+                <GraduationCap className="w-16 h-16 text-text-muted mx-auto mb-4" />
+                <h3 className="text-2xl font-medium text-text-heading mb-2">
                   No professors found
                 </h3>
-                <p className="text-text-body dark:text-white/75">
+                <p className="text-text-body">
                   Check the spelling, or clear the department and rating
                   filters.
                 </p>
@@ -407,12 +382,12 @@ export default function ProfessorsPage() {
                   size="sm"
                   onClick={() => goToPage(currentPage - 1)}
                   disabled={currentPage === 1 || loading}
-                  className="border-border bg-canvas text-text-body hover:bg-button-hover dark:border-white/15 dark:bg-black/30 dark:text-white/80 dark:hover:bg-black/45"
+                  className="border-border bg-canvas text-text-body hover:bg-button-hover dark:bg-card dark:hover:bg-raised"
                 >
                   <ChevronLeft className="w-4 h-4" />
                   Previous
                 </Button>
-                <span className="text-sm text-text-body dark:text-white/75">
+                <span className="text-sm text-text-body">
                   Page {currentPage}
                 </span>
                 <Button
@@ -420,7 +395,7 @@ export default function ProfessorsPage() {
                   size="sm"
                   onClick={() => goToPage(currentPage + 1)}
                   disabled={!hasNextPage || loading}
-                  className="border-border bg-canvas text-text-body hover:bg-button-hover dark:border-white/15 dark:bg-black/30 dark:text-white/80 dark:hover:bg-black/45"
+                  className="border-border bg-canvas text-text-body hover:bg-button-hover dark:bg-card dark:hover:bg-raised"
                 >
                   Next
                   <ChevronRight className="w-4 h-4" />

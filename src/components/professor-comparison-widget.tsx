@@ -56,8 +56,8 @@ export function ProfessorComparisonWidget() {
   const ComparisonContent = () => (
     <>
       <div className="flex items-center gap-2 mb-4">
-        <Users className="w-5 h-5 text-accent" />
-        <span className="font-semibold text-text-heading">
+        <Users strokeWidth={1.5} className="w-5 h-5 text-text-muted" />
+        <span className="font-medium text-text-heading">
           Compare Professors ({selectedProfessors.length}/4)
         </span>
       </div>
@@ -69,7 +69,7 @@ export function ProfessorComparisonWidget() {
             className="flex items-center justify-between bg-canvas/50 rounded-lg p-3"
           >
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-[#500000] to-[#800000] rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-raised rounded-full flex items-center justify-center">
                 <span className="text-white text-sm font-medium">
                   {professor.name.charAt(0)}
                 </span>
@@ -107,7 +107,7 @@ export function ProfessorComparisonWidget() {
         <Link href="/compare?tab=professors" onClick={handleCompare}>
           <Button
             disabled={selectedProfessors.length < 2}
-            className="w-full bg-[#500000] hover:bg-[#600000] text-white mb-2"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground mb-2"
           >
             Compare Selected
             <ArrowRight className="w-4 h-4 ml-2" />
@@ -139,7 +139,7 @@ export function ProfessorComparisonWidget() {
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetTrigger asChild>
           <Button
-            className="fixed bottom-6 left-6 z-50 w-14 h-14 rounded-full bg-[#500000] hover:bg-[#600000] text-white shadow-2xl"
+            className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] left-6 z-50 w-14 h-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-2xl"
             size="lg"
           >
             <div className="flex flex-col items-center">
@@ -166,7 +166,7 @@ export function ProfessorComparisonWidget() {
 
   // Desktop: Use Bottom Bar
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 bg-card border-t border-border shadow-lg">
+    <div className="fixed bottom-0 left-0 right-0 z-40 pb-[env(safe-area-inset-bottom)] bg-card border-t border-border shadow-lg">
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -185,7 +185,7 @@ export function ProfessorComparisonWidget() {
                   className="flex items-center gap-2 px-3 py-2 bg-canvas border-border min-w-fit"
                 >
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-gradient-to-r from-[#500000] to-[#800000] rounded-full flex items-center justify-center">
+                    <div className="w-6 h-6 bg-raised rounded-full flex items-center justify-center">
                       <span className="text-white text-xs font-medium">
                         {professor.name.charAt(0)}
                       </span>
@@ -230,7 +230,7 @@ export function ProfessorComparisonWidget() {
             <Link href="/compare?tab=professors">
               <Button
                 size="sm"
-                className="bg-[#500000] hover:bg-[#600000] text-white flex items-center gap-2"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground flex items-center gap-2"
               >
                 Compare Now
                 <ArrowRight className="w-4 h-4" />

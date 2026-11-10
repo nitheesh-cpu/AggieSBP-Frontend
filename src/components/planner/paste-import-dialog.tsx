@@ -94,7 +94,7 @@ export function PasteImportDialog({
           Paste a list
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-h-[90vh] overflow-y-auto bg-white sm:max-w-3xl dark:bg-neutral-950">
+      <DialogContent className="max-h-[90vh] overflow-y-auto bg-white sm:max-w-3xl dark:bg-card">
         <DialogHeader>
           <DialogTitle>Paste your courses</DialogTitle>
           <DialogDescription>
@@ -115,14 +115,14 @@ export function PasteImportDialog({
 
         {rows.length > 0 && (
           <div className="space-y-2">
-            <p className="text-sm text-text-body dark:text-white/80">
+            <p className="text-sm text-text-body">
               Found {rows.length} course{rows.length === 1 ? "" : "s"}. Fix any term,
               grade, or status below.
               {error && " Couldn't check course names right now, so all are selected."}
             </p>
             <div className="max-h-[45vh] overflow-y-auto rounded-md border border-border">
               <table className="w-full text-sm">
-                <thead className="sticky top-0 bg-white/95 text-left text-xs text-text-body dark:bg-neutral-900/95">
+                <thead className="sticky top-0 bg-white/95 text-left text-xs text-text-body dark:bg-card">
                   <tr>
                     <th className="w-8 p-2" />
                     <th className="p-2">Course</th>
@@ -145,16 +145,16 @@ export function PasteImportDialog({
                           />
                         </td>
                         <td className="p-2">
-                          <div className="font-semibold text-text-heading dark:text-white">
+                          <div className="font-medium text-text-heading">
                             {r.code}
                             {existing.has(r.code) && (
-                              <span className="ml-2 text-xs font-normal text-text-body/70">
+                              <span className="ml-2 text-xs font-normal text-text-muted">
                                 already added, will update
                               </span>
                             )}
                           </div>
                           {name && (
-                            <div className="text-xs text-text-body dark:text-white/70">{name}</div>
+                            <div className="text-xs text-text-body">{name}</div>
                           )}
                           {isUnknown && (
                             <div className="flex items-center gap-1 text-xs text-amber-700 dark:text-amber-400">

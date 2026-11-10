@@ -40,7 +40,7 @@ export function RecordList({ courses, info, onEdit, onRemove }: RecordListProps)
           <section key={status} aria-labelledby={`record-${status}`}>
             <h3
               id={`record-${status}`}
-              className="mb-2 text-sm font-semibold uppercase tracking-wide text-text-body dark:text-white/70"
+              className="mb-2 text-sm font-medium text-text-body"
             >
               {STATUS_LABELS[status]} · {inStatus.length}
             </h3>
@@ -48,11 +48,11 @@ export function RecordList({ courses, info, onEdit, onRemove }: RecordListProps)
               {terms.map((term) => (
                 <div key={term || "none"}>
                   {(terms.length > 1 || term) && (
-                    <div className="mb-1 text-xs font-medium text-text-body/80 dark:text-white/60">
+                    <div className="mb-1 text-xs font-medium text-text-muted">
                       {term ? termLabel(term) : "No term (credit by exam, transfer, or unknown)"}
                     </div>
                   )}
-                  <ul className="divide-y divide-border/60 rounded-lg border border-border bg-white/60 dark:bg-white/5">
+                  <ul className="divide-y divide-border/60 rounded-lg border border-border bg-white/60 dark:bg-raised">
                     {inStatus
                       .filter((c) => (c.term ?? "") === term)
                       .map((c) => (
@@ -92,11 +92,11 @@ function CourseRow({
       <div className="min-w-[10rem] flex-1">
         <Link
           href={`/course/${courseId(c.code)}`}
-          className="font-semibold text-text-heading hover:underline dark:text-white"
+          className="font-medium text-text-heading hover:underline"
         >
           {c.code}
         </Link>
-        {name && <span className="ml-2 text-sm text-text-body dark:text-white/70">{name}</span>}
+        {name && <span className="ml-2 text-sm text-text-body">{name}</span>}
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <TermSelect
@@ -117,7 +117,7 @@ function CourseRow({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-text-body/70 hover:text-red-600"
+          className="h-8 w-8 text-text-muted hover:text-red-600"
           onClick={() => onRemove(c.code)}
           aria-label={`Remove ${c.code}`}
         >

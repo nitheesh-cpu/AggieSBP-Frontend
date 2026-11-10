@@ -168,7 +168,14 @@ export function updateCourse(
 ): AcademicRecord {
   const existing = findCourse(record, code);
   if (!existing) return record;
-  const { updatedAt: _u, deleted: _d, ...rest } = existing;
+  const rest: CourseInput = {
+    code: existing.code,
+    status: existing.status,
+    term: existing.term,
+    grade: existing.grade,
+    source: existing.source,
+    credit: existing.credit,
+  };
   return upsertCourses(record, [{ ...rest, ...patch, code }], now);
 }
 

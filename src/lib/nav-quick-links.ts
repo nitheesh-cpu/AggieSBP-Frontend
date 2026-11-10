@@ -13,7 +13,7 @@ export const MOBILE_APP_QUICK_LINKS: AppQuickLink[] = [
   { name: "Courses", href: "/courses" },
   { name: "Professors", href: "/professors" },
   { name: "Compare", href: "/compare" },
-  { name: "Degree Planner", href: "/planner" },
+  { name: "Schedule Builder", href: "/planner" },
   { name: "Fit My Schedule", href: "/discover/fit" },
   { name: "Core Curriculum", href: "/discover/ucc" },
   { name: "Explore Easy Courses", href: "/discover/dept" },

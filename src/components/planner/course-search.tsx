@@ -67,7 +67,7 @@ export function CourseSearch({ onSelect, placeholder, existing, autoFocus }: Cou
 
   return (
     <div ref={boxRef} className="relative">
-      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-body/60" />
+      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
       <Input
         value={query}
         autoFocus={autoFocus}
@@ -99,13 +99,13 @@ export function CourseSearch({ onSelect, placeholder, existing, autoFocus }: Cou
         aria-label="Search courses"
       />
       {loading && (
-        <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-text-body/60" />
+        <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-text-muted" />
       )}
       {open && results.length > 0 && (
         <ul
           id="course-search-results"
           role="listbox"
-          className="absolute z-30 mt-1 max-h-72 w-full overflow-auto rounded-md border border-border bg-white shadow-lg dark:bg-neutral-900"
+          className="absolute z-30 mt-1 max-h-72 w-full overflow-auto rounded-md border border-border bg-white shadow-lg dark:bg-card"
         >
           {results.map((course, i) => {
             const added = existing?.has(course.code);
@@ -121,14 +121,14 @@ export function CourseSearch({ onSelect, placeholder, existing, autoFocus }: Cou
                 onMouseEnter={() => setActive(i)}
                 className={cn(
                   "flex cursor-pointer items-center justify-between gap-3 px-3 py-2 text-sm",
-                  i === active && "bg-accent/10",
+                  i === active && "bg-raised",
                 )}
               >
                 <span className="min-w-0">
-                  <span className="font-semibold text-text-heading dark:text-white">{course.code}</span>
-                  <span className="ml-2 truncate text-text-body dark:text-white/70">{course.name}</span>
+                  <span className="font-medium text-text-heading">{course.code}</span>
+                  <span className="ml-2 truncate text-text-body">{course.name}</span>
                 </span>
-                {added && <span className="shrink-0 text-xs text-text-body/70">in your list</span>}
+                {added && <span className="shrink-0 text-xs text-text-muted">in your list</span>}
               </li>
             );
           })}

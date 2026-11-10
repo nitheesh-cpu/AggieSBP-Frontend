@@ -9,13 +9,13 @@ export default function TermsPage() {
       <main className="pt-20 pb-16">
         <div className="max-w-4xl mx-auto px-6">
           <div className="bg-card border border-border rounded-xl p-8">
-            <h1 className="text-3xl font-bold text-text-heading mb-8">
+            <h1 className="text-[32px] leading-tight font-medium text-text-heading mb-8">
               Terms of Service & Disclaimer
             </h1>
             
             <div className="prose prose-slate dark:prose-invert max-w-none">
               <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-text-heading mb-4">
+                <h2 className="text-2xl font-medium text-text-heading mb-4">
                   Service Disclaimer
                 </h2>
                 <p className="text-text-body mb-4">
@@ -29,7 +29,7 @@ export default function TermsPage() {
               </section>
 
               <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-text-heading mb-4">
+                <h2 className="text-2xl font-medium text-text-heading mb-4">
                   Affiliation Disclaimer
                 </h2>
                 <p className="text-text-body mb-4">
@@ -41,7 +41,7 @@ export default function TermsPage() {
               </section>
 
               <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-text-heading mb-4">
+                <h2 className="text-2xl font-medium text-text-heading mb-4">
                   Data Accuracy
                 </h2>
                 <p className="text-text-body mb-4">
@@ -57,7 +57,7 @@ export default function TermsPage() {
               </section>
 
               <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-text-heading mb-4">
+                <h2 className="text-2xl font-medium text-text-heading mb-4">
                   Limitation of Liability
                 </h2>
                 <p className="text-text-body mb-4">
@@ -70,7 +70,7 @@ export default function TermsPage() {
               </section>
 
               <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-text-heading mb-4">
+                <h2 className="text-2xl font-medium text-text-heading mb-4">
                   Use at Your Own Risk
                 </h2>
                 <p className="text-text-body mb-4">
@@ -81,7 +81,7 @@ export default function TermsPage() {
               </section>
 
               <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-text-heading mb-4">
+                <h2 className="text-2xl font-medium text-text-heading mb-4">
                   Contact
                 </h2>
                 <p className="text-text-body mb-4">

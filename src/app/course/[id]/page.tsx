@@ -10,14 +10,7 @@ import {
   looksLikeQuotedReview,
 } from "@/components/summary-insights";
 import { pickDefaultTerm, shortTermName } from "@/lib/terms";
-import {
-  animate,
-  MotionConfig,
-  motion,
-  useInView,
-  useMotionValue,
-  useReducedMotion,
-} from "motion/react";
+import { MotionConfig, motion, useReducedMotion } from "motion/react";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
@@ -28,6 +21,7 @@ import {
   getCourseDetail,
   getTerms,
   getCourseProfessorsForTerm,
+  getCourseProfessorsWithDetailsForTerm,
   getCourseSectionsForTerm,
   type CourseDetail,
   type Term,
@@ -56,7 +50,7 @@ import {
   Briefcase,
   UserCircle,
   ScrollText,
-  Sparkles,
+  MessageSquareText,
 } from "lucide-react";
 import Link from "next/link";
 import { useComparison } from "@/contexts/ComparisonContext";
@@ -83,6 +77,7 @@ function formatAnimatedNumber(n: number, decimals: number) {
   return decimals > 0 ? `${withCommas}.${decPart}` : withCommas;
 }
 
+/** Shows the real value right away; a GPA should never read 0.70 on its way to 3.27. */
 function CountUpNumber({
   value,
   decimals = 0,
@@ -90,35 +85,17 @@ function CountUpNumber({
   value: number;
   decimals?: number;
 }) {
-  const shouldReduceMotion = useReducedMotion();
-  const ref = React.useRef<HTMLSpanElement | null>(null);
-  const isInView = useInView(ref, { once: true, amount: 0.6 });
+  return <span className="tabular-nums">{formatAnimatedNumber(value, decimals)}</span>;
+}
 
-  const motionValue = useMotionValue(0);
-  const [display, setDisplay] = React.useState(() =>
-    formatAnimatedNumber(0, decimals)
-  );
-
-  React.useEffect(() => {
-    if (!isInView) return;
-
-    if (shouldReduceMotion) {
-      setDisplay(formatAnimatedNumber(value, decimals));
-      return;
-    }
-
-    const controls = animate(motionValue, value, {
-      duration: 1.05,
-      ease: [0.22, 1, 0.36, 1],
-      onUpdate(latest) {
-        setDisplay(formatAnimatedNumber(latest, decimals));
-      },
-    });
-
-    return () => controls.stop();
-  }, [decimals, isInView, motionValue, shouldReduceMotion, value]);
-
-  return <span ref={ref}>{display}</span>;
+/** "10:20 AM", "11:10 AM" -> "10:20–11:10 AM"; keeps both meridiems when they differ. */
+function formatMeetingTime(begin: string, end: string) {
+  const b = begin.trim().match(/^(.*?)\s*([AP]M)$/i);
+  const e = end.trim().match(/^(.*?)\s*([AP]M)$/i);
+  if (b && e && b[2].toUpperCase() === e[2].toUpperCase()) {
+    return `${b[1]}–${e[1]} ${e[2].toUpperCase()}`;
+  }
+  return `${begin}–${end}`;
 }
 
 // Helper function to get department name from course code
@@ -168,259 +145,259 @@ const getDepartmentFromCode = (courseCode: string) => {
 const getDepartmentColor = (courseCode: string) => {
   const colorMap: { [key: string]: string } = {
     // Accounting & Business
-    ACCT: "bg-yellow-600 dark:bg-yellow-500 text-white",
-    BUAD: "bg-blue-600 dark:bg-blue-500 text-white",
-    BUSN: "bg-indigo-600 dark:bg-indigo-500 text-white",
-    FINC: "bg-green-600 dark:bg-green-500 text-white",
-    FINP: "bg-emerald-600 dark:bg-emerald-500 text-white",
-    MGMT: "bg-purple-600 dark:bg-purple-500 text-white",
-    MKTG: "bg-pink-600 dark:bg-pink-500 text-white",
-    SCMT: "bg-orange-600 dark:bg-orange-500 text-white",
-    ECON: "bg-yellow-600 dark:bg-yellow-500 text-white",
-    IBUS: "bg-blue-600 dark:bg-blue-500 text-white",
-    ISTM: "bg-cyan-600 dark:bg-cyan-500 text-white",
-    IDIS: "bg-gray-600 dark:bg-gray-500 text-white",
+    ACCT: "bg-raised text-text-body",
+    BUAD: "bg-raised text-text-body",
+    BUSN: "bg-raised text-text-body",
+    FINC: "bg-raised text-text-body",
+    FINP: "bg-raised text-text-body",
+    MGMT: "bg-raised text-text-body",
+    MKTG: "bg-raised text-text-body",
+    SCMT: "bg-raised text-text-body",
+    ECON: "bg-raised text-text-body",
+    IBUS: "bg-raised text-text-body",
+    ISTM: "bg-raised text-text-body",
+    IDIS: "bg-raised text-text-body",
 
     // Engineering
-    CSCE: "bg-blue-600 dark:bg-blue-500 text-white",
-    ECEN: "bg-yellow-600 dark:bg-yellow-500 text-white",
-    MEEN: "bg-gray-600 dark:bg-gray-500 text-white",
-    CVEN: "bg-orange-600 dark:bg-orange-500 text-white",
-    CHEN: "bg-green-600 dark:bg-green-500 text-white",
-    AERO: "bg-sky-600 dark:bg-sky-500 text-white",
-    PETE: "bg-amber-600 dark:bg-amber-500 text-white",
-    NUEN: "bg-red-600 dark:bg-red-500 text-white",
-    BMEN: "bg-rose-600 dark:bg-rose-500 text-white",
-    ISEN: "bg-purple-600 dark:bg-purple-500 text-white",
-    OCEN: "bg-cyan-600 dark:bg-cyan-500 text-white",
-    ENGR: "bg-slate-600 dark:bg-slate-500 text-white",
-    BAEN: "bg-green-600 dark:bg-green-500 text-white",
-    EVEN: "bg-emerald-600 dark:bg-emerald-500 text-white",
-    MSEN: "bg-indigo-600 dark:bg-indigo-500 text-white",
-    AREN: "bg-blue-600 dark:bg-blue-500 text-white",
-    SENG: "bg-red-600 dark:bg-red-500 text-white",
-    SSEN: "bg-blue-600 dark:bg-blue-500 text-white",
-    CLEN: "bg-gray-600 dark:bg-gray-500 text-white",
-    ENDG: "bg-purple-600 dark:bg-purple-500 text-white",
-    ENDS: "bg-green-600 dark:bg-green-500 text-white",
-    ENTC: "bg-orange-600 dark:bg-orange-500 text-white",
-    ESET: "bg-blue-600 dark:bg-blue-500 text-white",
-    MMET: "bg-gray-600 dark:bg-gray-500 text-white",
-    MXET: "bg-purple-600 dark:bg-purple-500 text-white",
-    ITDE: "bg-cyan-600 dark:bg-cyan-500 text-white",
-    MTDE: "bg-indigo-600 dark:bg-indigo-500 text-white",
-    DAEN: "bg-blue-600 dark:bg-blue-500 text-white",
+    CSCE: "bg-raised text-text-body",
+    ECEN: "bg-raised text-text-body",
+    MEEN: "bg-raised text-text-body",
+    CVEN: "bg-raised text-text-body",
+    CHEN: "bg-raised text-text-body",
+    AERO: "bg-raised text-text-body",
+    PETE: "bg-raised text-text-body",
+    NUEN: "bg-raised text-text-body",
+    BMEN: "bg-raised text-text-body",
+    ISEN: "bg-raised text-text-body",
+    OCEN: "bg-raised text-text-body",
+    ENGR: "bg-raised text-text-body",
+    BAEN: "bg-raised text-text-body",
+    EVEN: "bg-raised text-text-body",
+    MSEN: "bg-raised text-text-body",
+    AREN: "bg-raised text-text-body",
+    SENG: "bg-raised text-text-body",
+    SSEN: "bg-raised text-text-body",
+    CLEN: "bg-raised text-text-body",
+    ENDG: "bg-raised text-text-body",
+    ENDS: "bg-raised text-text-body",
+    ENTC: "bg-raised text-text-body",
+    ESET: "bg-raised text-text-body",
+    MMET: "bg-raised text-text-body",
+    MXET: "bg-raised text-text-body",
+    ITDE: "bg-raised text-text-body",
+    MTDE: "bg-raised text-text-body",
+    DAEN: "bg-raised text-text-body",
 
     // Sciences
-    MATH: "bg-indigo-600 dark:bg-indigo-500 text-white",
-    STAT: "bg-purple-600 dark:bg-purple-500 text-white",
-    CHEM: "bg-green-600 dark:bg-green-500 text-white",
-    BIOL: "bg-emerald-600 dark:bg-emerald-500 text-white",
-    PHYS: "bg-purple-600 dark:bg-purple-500 text-white",
-    GEOL: "bg-amber-600 dark:bg-amber-500 text-white",
-    GEOG: "bg-blue-600 dark:bg-blue-500 text-white",
-    GEOS: "bg-emerald-600 dark:bg-emerald-500 text-white",
-    GEOP: "bg-orange-600 dark:bg-orange-500 text-white",
-    ASTR: "bg-indigo-600 dark:bg-indigo-500 text-white",
-    ATMO: "bg-cyan-600 dark:bg-cyan-500 text-white",
-    OCNG: "bg-blue-600 dark:bg-blue-500 text-white",
-    BICH: "bg-green-600 dark:bg-green-500 text-white",
-    GENE: "bg-red-600 dark:bg-red-500 text-white",
-    BIMS: "bg-blue-600 dark:bg-blue-500 text-white",
-    BIOT: "bg-purple-600 dark:bg-purple-500 text-white",
-    EEBL: "bg-green-600 dark:bg-green-500 text-white",
-    ECCB: "bg-emerald-600 dark:bg-emerald-500 text-white",
-    BESC: "bg-teal-600 dark:bg-teal-500 text-white",
-    ENSS: "bg-green-600 dark:bg-green-500 text-white",
-    WMHS: "bg-cyan-600 dark:bg-cyan-500 text-white",
-    ANLY: "bg-blue-600 dark:bg-blue-500 text-white",
-    MASC: "bg-purple-600 dark:bg-purple-500 text-white",
+    MATH: "bg-raised text-text-body",
+    STAT: "bg-raised text-text-body",
+    CHEM: "bg-raised text-text-body",
+    BIOL: "bg-raised text-text-body",
+    PHYS: "bg-raised text-text-body",
+    GEOL: "bg-raised text-text-body",
+    GEOG: "bg-raised text-text-body",
+    GEOS: "bg-raised text-text-body",
+    GEOP: "bg-raised text-text-body",
+    ASTR: "bg-raised text-text-body",
+    ATMO: "bg-raised text-text-body",
+    OCNG: "bg-raised text-text-body",
+    BICH: "bg-raised text-text-body",
+    GENE: "bg-raised text-text-body",
+    BIMS: "bg-raised text-text-body",
+    BIOT: "bg-raised text-text-body",
+    EEBL: "bg-raised text-text-body",
+    ECCB: "bg-raised text-text-body",
+    BESC: "bg-raised text-text-body",
+    ENSS: "bg-raised text-text-body",
+    WMHS: "bg-raised text-text-body",
+    ANLY: "bg-raised text-text-body",
+    MASC: "bg-raised text-text-body",
 
     // Medical & Health
-    NURS: "bg-red-600 dark:bg-red-500 text-white",
-    HLTH: "bg-blue-600 dark:bg-blue-500 text-white",
-    HBEH: "bg-pink-600 dark:bg-pink-500 text-white",
-    KINE: "bg-orange-600 dark:bg-orange-500 text-white",
-    ATTR: "bg-green-600 dark:bg-green-500 text-white",
-    NUTR: "bg-red-600 dark:bg-red-500 text-white",
-    PHAR: "bg-blue-600 dark:bg-blue-500 text-white",
-    PHSC: "bg-purple-600 dark:bg-purple-500 text-white",
-    MPHY: "bg-red-600 dark:bg-red-500 text-white",
-    MSCI: "bg-cyan-600 dark:bg-cyan-500 text-white",
-    MCMD: "bg-green-600 dark:bg-green-500 text-white",
-    PHLT: "bg-emerald-600 dark:bg-emerald-500 text-white",
-    PHEB: "bg-blue-600 dark:bg-blue-500 text-white",
-    PHEO: "bg-green-600 dark:bg-green-500 text-white",
-    PHPM: "bg-purple-600 dark:bg-purple-500 text-white",
-    SOPH: "bg-blue-600 dark:bg-blue-500 text-white",
-    HCPI: "bg-red-600 dark:bg-red-500 text-white",
-    EDHP: "bg-teal-600 dark:bg-teal-500 text-white",
-    IBST: "bg-indigo-600 dark:bg-indigo-500 text-white",
-    FIVS: "bg-purple-600 dark:bg-purple-500 text-white",
-    FORS: "bg-gray-600 dark:bg-gray-500 text-white",
-    NRSC: "bg-pink-600 dark:bg-pink-500 text-white",
-    NEXT: "bg-indigo-600 dark:bg-indigo-500 text-white",
-    PBSI: "bg-purple-600 dark:bg-purple-500 text-white",
+    NURS: "bg-raised text-text-body",
+    HLTH: "bg-raised text-text-body",
+    HBEH: "bg-raised text-text-body",
+    KINE: "bg-raised text-text-body",
+    ATTR: "bg-raised text-text-body",
+    NUTR: "bg-raised text-text-body",
+    PHAR: "bg-raised text-text-body",
+    PHSC: "bg-raised text-text-body",
+    MPHY: "bg-raised text-text-body",
+    MSCI: "bg-raised text-text-body",
+    MCMD: "bg-raised text-text-body",
+    PHLT: "bg-raised text-text-body",
+    PHEB: "bg-raised text-text-body",
+    PHEO: "bg-raised text-text-body",
+    PHPM: "bg-raised text-text-body",
+    SOPH: "bg-raised text-text-body",
+    HCPI: "bg-raised text-text-body",
+    EDHP: "bg-raised text-text-body",
+    IBST: "bg-raised text-text-body",
+    FIVS: "bg-raised text-text-body",
+    FORS: "bg-raised text-text-body",
+    NRSC: "bg-raised text-text-body",
+    NEXT: "bg-raised text-text-body",
+    PBSI: "bg-raised text-text-body",
 
     // Dental
-    AEGD: "bg-blue-600 dark:bg-blue-500 text-white",
-    ENDO: "bg-green-600 dark:bg-green-500 text-white",
-    ORTH: "bg-purple-600 dark:bg-purple-500 text-white",
-    PEDD: "bg-pink-600 dark:bg-pink-500 text-white",
-    PERI: "bg-orange-600 dark:bg-orange-500 text-white",
-    PROS: "bg-cyan-600 dark:bg-cyan-500 text-white",
-    OMFP: "bg-red-600 dark:bg-red-500 text-white",
-    OMFR: "bg-indigo-600 dark:bg-indigo-500 text-white",
-    OMFS: "bg-amber-600 dark:bg-amber-500 text-white",
-    OBIO: "bg-emerald-600 dark:bg-emerald-500 text-white",
-    DDHS: "bg-teal-600 dark:bg-teal-500 text-white",
-    DPHS: "bg-blue-600 dark:bg-blue-500 text-white",
+    AEGD: "bg-raised text-text-body",
+    ENDO: "bg-raised text-text-body",
+    ORTH: "bg-raised text-text-body",
+    PEDD: "bg-raised text-text-body",
+    PERI: "bg-raised text-text-body",
+    PROS: "bg-raised text-text-body",
+    OMFP: "bg-raised text-text-body",
+    OMFR: "bg-raised text-text-body",
+    OMFS: "bg-raised text-text-body",
+    OBIO: "bg-raised text-text-body",
+    DDHS: "bg-raised text-text-body",
+    DPHS: "bg-raised text-text-body",
 
     // Veterinary
-    VIBS: "bg-amber-600 dark:bg-amber-500 text-white",
-    VLCS: "bg-amber-600 dark:bg-amber-500 text-white",
-    VSCS: "bg-green-600 dark:bg-green-500 text-white",
-    VMID: "bg-red-600 dark:bg-red-500 text-white",
-    VPAR: "bg-purple-600 dark:bg-purple-500 text-white",
-    VPAT: "bg-blue-600 dark:bg-blue-500 text-white",
-    VTMI: "bg-cyan-600 dark:bg-cyan-500 text-white",
-    VTPB: "bg-emerald-600 dark:bg-emerald-500 text-white",
-    VTPP: "bg-pink-600 dark:bg-pink-500 text-white",
+    VIBS: "bg-raised text-text-body",
+    VLCS: "bg-raised text-text-body",
+    VSCS: "bg-raised text-text-body",
+    VMID: "bg-raised text-text-body",
+    VPAR: "bg-raised text-text-body",
+    VPAT: "bg-raised text-text-body",
+    VTMI: "bg-raised text-text-body",
+    VTPB: "bg-raised text-text-body",
+    VTPP: "bg-raised text-text-body",
 
     // Agriculture & Life Sciences
-    AGEC: "bg-green-600 dark:bg-green-500 text-white",
-    AGLS: "bg-emerald-600 dark:bg-emerald-500 text-white",
-    AGSC: "bg-green-600 dark:bg-green-500 text-white",
-    AGSM: "bg-amber-600 dark:bg-amber-500 text-white",
-    ANSC: "bg-amber-600 dark:bg-amber-500 text-white",
-    HORT: "bg-pink-600 dark:bg-pink-500 text-white",
-    POSC: "bg-yellow-600 dark:bg-yellow-500 text-white",
-    RWFM: "bg-green-600 dark:bg-green-500 text-white",
-    SCSC: "bg-amber-600 dark:bg-amber-500 text-white",
-    FSTC: "bg-red-600 dark:bg-red-500 text-white",
-    CULN: "bg-orange-600 dark:bg-orange-500 text-white",
-    MEPS: "bg-emerald-600 dark:bg-emerald-500 text-white",
-    PLPA: "bg-green-600 dark:bg-green-500 text-white",
-    ENTO: "bg-amber-600 dark:bg-amber-500 text-white",
-    ALEC: "bg-blue-600 dark:bg-blue-500 text-white",
-    ALED: "bg-green-600 dark:bg-green-500 text-white",
-    AGCJ: "bg-cyan-600 dark:bg-cyan-500 text-white",
+    AGEC: "bg-raised text-text-body",
+    AGLS: "bg-raised text-text-body",
+    AGSC: "bg-raised text-text-body",
+    AGSM: "bg-raised text-text-body",
+    ANSC: "bg-raised text-text-body",
+    HORT: "bg-raised text-text-body",
+    POSC: "bg-raised text-text-body",
+    RWFM: "bg-raised text-text-body",
+    SCSC: "bg-raised text-text-body",
+    FSTC: "bg-raised text-text-body",
+    CULN: "bg-raised text-text-body",
+    MEPS: "bg-raised text-text-body",
+    PLPA: "bg-raised text-text-body",
+    ENTO: "bg-raised text-text-body",
+    ALEC: "bg-raised text-text-body",
+    ALED: "bg-raised text-text-body",
+    AGCJ: "bg-raised text-text-body",
 
     // Liberal Arts & Humanities
-    ENGL: "bg-pink-600 dark:bg-pink-500 text-white",
-    HIST: "bg-amber-600 dark:bg-amber-500 text-white",
-    PHIL: "bg-purple-600 dark:bg-purple-500 text-white",
-    SPAN: "bg-red-600 dark:bg-red-500 text-white",
-    FREN: "bg-blue-600 dark:bg-blue-500 text-white",
-    GERM: "bg-gray-600 dark:bg-gray-500 text-white",
-    CHIN: "bg-yellow-600 dark:bg-yellow-500 text-white",
-    JAPN: "bg-pink-600 dark:bg-pink-500 text-white",
-    ARAB: "bg-green-600 dark:bg-green-500 text-white",
-    ITAL: "bg-green-600 dark:bg-green-500 text-white",
-    RUSS: "bg-red-600 dark:bg-red-500 text-white",
-    MODL: "bg-purple-600 dark:bg-purple-500 text-white",
-    CLAS: "bg-amber-600 dark:bg-amber-500 text-white",
-    RELS: "bg-purple-600 dark:bg-purple-500 text-white",
-    AFST: "bg-orange-600 dark:bg-orange-500 text-white",
-    ASIA: "bg-red-600 dark:bg-red-500 text-white",
-    HISP: "bg-orange-600 dark:bg-orange-500 text-white",
-    WGST: "bg-pink-600 dark:bg-pink-500 text-white",
-    DHUM: "bg-cyan-600 dark:bg-cyan-500 text-white",
+    ENGL: "bg-raised text-text-body",
+    HIST: "bg-raised text-text-body",
+    PHIL: "bg-raised text-text-body",
+    SPAN: "bg-raised text-text-body",
+    FREN: "bg-raised text-text-body",
+    GERM: "bg-raised text-text-body",
+    CHIN: "bg-raised text-text-body",
+    JAPN: "bg-raised text-text-body",
+    ARAB: "bg-raised text-text-body",
+    ITAL: "bg-raised text-text-body",
+    RUSS: "bg-raised text-text-body",
+    MODL: "bg-raised text-text-body",
+    CLAS: "bg-raised text-text-body",
+    RELS: "bg-raised text-text-body",
+    AFST: "bg-raised text-text-body",
+    ASIA: "bg-raised text-text-body",
+    HISP: "bg-raised text-text-body",
+    WGST: "bg-raised text-text-body",
+    DHUM: "bg-raised text-text-body",
 
     // Social Sciences
-    POLS: "bg-red-600 dark:bg-red-500 text-white",
-    SOCI: "bg-blue-600 dark:bg-blue-500 text-white",
-    ANTH: "bg-amber-600 dark:bg-amber-500 text-white",
-    CPSY: "bg-teal-600 dark:bg-teal-500 text-white",
-    EPSY: "bg-purple-600 dark:bg-purple-500 text-white",
-    SPSY: "bg-pink-600 dark:bg-pink-500 text-white",
-    GLST: "bg-blue-600 dark:bg-blue-500 text-white",
-    INTA: "bg-green-600 dark:bg-green-500 text-white",
+    POLS: "bg-raised text-text-body",
+    SOCI: "bg-raised text-text-body",
+    ANTH: "bg-raised text-text-body",
+    CPSY: "bg-raised text-text-body",
+    EPSY: "bg-raised text-text-body",
+    SPSY: "bg-raised text-text-body",
+    GLST: "bg-raised text-text-body",
+    INTA: "bg-raised text-text-body",
 
     // Fine Arts
-    ARTS: "bg-violet-600 dark:bg-violet-500 text-white",
-    MUSC: "bg-indigo-600 dark:bg-indigo-500 text-white",
-    THEA: "bg-pink-600 dark:bg-pink-500 text-white",
-    DCED: "bg-purple-600 dark:bg-purple-500 text-white",
-    PVFA: "bg-cyan-600 dark:bg-cyan-500 text-white",
-    VIST: "bg-blue-600 dark:bg-blue-500 text-white",
-    VIZA: "bg-green-600 dark:bg-green-500 text-white",
-    PERF: "bg-orange-600 dark:bg-orange-500 text-white",
-    MSTC: "bg-purple-600 dark:bg-purple-500 text-white",
-    FILM: "bg-gray-600 dark:bg-gray-500 text-white",
+    ARTS: "bg-raised text-text-body",
+    MUSC: "bg-raised text-text-body",
+    THEA: "bg-raised text-text-body",
+    DCED: "bg-raised text-text-body",
+    PVFA: "bg-raised text-text-body",
+    VIST: "bg-raised text-text-body",
+    VIZA: "bg-raised text-text-body",
+    PERF: "bg-raised text-text-body",
+    MSTC: "bg-raised text-text-body",
+    FILM: "bg-raised text-text-body",
 
     // Architecture & Planning
-    ARCH: "bg-gray-600 dark:bg-gray-500 text-white",
-    CARC: "bg-blue-600 dark:bg-blue-500 text-white",
-    LAND: "bg-green-600 dark:bg-green-500 text-white",
-    PLAN: "bg-purple-600 dark:bg-purple-500 text-white",
-    URPN: "bg-amber-600 dark:bg-amber-500 text-white",
-    URSC: "bg-cyan-600 dark:bg-cyan-500 text-white",
-    COSC: "bg-orange-600 dark:bg-orange-500 text-white",
-    LDEV: "bg-emerald-600 dark:bg-emerald-500 text-white",
+    ARCH: "bg-raised text-text-body",
+    CARC: "bg-raised text-text-body",
+    LAND: "bg-raised text-text-body",
+    PLAN: "bg-raised text-text-body",
+    URPN: "bg-raised text-text-body",
+    URSC: "bg-raised text-text-body",
+    COSC: "bg-raised text-text-body",
+    LDEV: "bg-raised text-text-body",
 
     // Education
-    EDCI: "bg-blue-600 dark:bg-blue-500 text-white",
-    EDAD: "bg-purple-600 dark:bg-purple-500 text-white",
-    TEED: "bg-green-600 dark:bg-green-500 text-white",
-    SPED: "bg-pink-600 dark:bg-pink-500 text-white",
-    RDNG: "bg-cyan-600 dark:bg-cyan-500 text-white",
-    LDTC: "bg-indigo-600 dark:bg-indigo-500 text-white",
-    EHRD: "bg-amber-600 dark:bg-amber-500 text-white",
-    CEHD: "bg-emerald-600 dark:bg-emerald-500 text-white",
-    BEFB: "bg-orange-600 dark:bg-orange-500 text-white",
-    BESL: "bg-yellow-600 dark:bg-yellow-500 text-white",
-    MEFB: "bg-purple-600 dark:bg-purple-500 text-white",
-    SEFB: "bg-red-600 dark:bg-red-500 text-white",
-    TEFB: "bg-blue-600 dark:bg-blue-500 text-white",
-    ECDE: "bg-pink-600 dark:bg-pink-500 text-white",
+    EDCI: "bg-raised text-text-body",
+    EDAD: "bg-raised text-text-body",
+    TEED: "bg-raised text-text-body",
+    SPED: "bg-raised text-text-body",
+    RDNG: "bg-raised text-text-body",
+    LDTC: "bg-raised text-text-body",
+    EHRD: "bg-raised text-text-body",
+    CEHD: "bg-raised text-text-body",
+    BEFB: "bg-raised text-text-body",
+    BESL: "bg-raised text-text-body",
+    MEFB: "bg-raised text-text-body",
+    SEFB: "bg-raised text-text-body",
+    TEFB: "bg-raised text-text-body",
+    ECDE: "bg-raised text-text-body",
 
     // Communication & Journalism
-    COMM: "bg-blue-600 dark:bg-blue-500 text-white",
-    JOUR: "bg-gray-600 dark:bg-gray-500 text-white",
+    COMM: "bg-raised text-text-body",
+    JOUR: "bg-raised text-text-body",
 
     // Military & Defense
-    MLSC: "bg-green-600 dark:bg-green-500 text-white",
-    AERS: "bg-sky-600 dark:bg-sky-500 text-white",
-    NVSC: "bg-blue-600 dark:bg-blue-500 text-white",
-    SOMS: "bg-red-600 dark:bg-red-500 text-white",
+    MLSC: "bg-raised text-text-body",
+    AERS: "bg-raised text-text-body",
+    NVSC: "bg-raised text-text-body",
+    SOMS: "bg-raised text-text-body",
 
     // Law & Government
-    LAW: "bg-purple-600 dark:bg-purple-500 text-white",
-    BUSH: "bg-blue-600 dark:bg-blue-500 text-white",
-    PSAA: "bg-green-600 dark:bg-green-500 text-white",
+    LAW: "bg-raised text-text-body",
+    BUSH: "bg-raised text-text-body",
+    PSAA: "bg-raised text-text-body",
 
     // Recreation & Tourism
-    RPTS: "bg-emerald-100 text-emerald-600",
-    HMGT: "bg-orange-100 text-orange-600",
-    SPMT: "bg-red-100 text-red-600",
+    RPTS: "bg-raised text-text-body",
+    HMGT: "bg-raised text-text-body",
+    SPMT: "bg-raised text-text-body",
 
     // Technology & Information Systems
-    TCMG: "bg-blue-100 text-blue-600",
-    TCMT: "bg-purple-100 text-purple-600",
-    ITSV: "bg-cyan-100 text-cyan-600",
+    TCMG: "bg-raised text-text-body",
+    TCMT: "bg-raised text-text-body",
+    ITSV: "bg-raised text-text-body",
 
     // Energy
-    ENGY: "bg-yellow-100 text-yellow-600",
+    ENGY: "bg-raised text-text-body",
 
     // Economics & Finance
-    ECMT: "bg-indigo-100 text-indigo-600",
+    ECMT: "bg-raised text-text-body",
 
     // General/Administrative
-    ARSC: "bg-gray-100 text-gray-600",
-    HONR: "bg-yellow-100 text-yellow-600",
-    UGST: "bg-blue-100 text-blue-600",
-    FYEX: "bg-green-100 text-green-600",
-    SYEX: "bg-purple-100 text-purple-600",
-    ASCC: "bg-cyan-100 text-cyan-600",
-    INST: "bg-amber-100 text-amber-600",
-    SABR: "bg-emerald-100 text-emerald-600",
-    NSEB: "bg-orange-100 text-orange-600",
+    ARSC: "bg-raised text-text-muted",
+    HONR: "bg-raised text-text-body",
+    UGST: "bg-raised text-text-body",
+    FYEX: "bg-raised text-text-body",
+    SYEX: "bg-raised text-text-body",
+    ASCC: "bg-raised text-text-body",
+    INST: "bg-raised text-text-body",
+    SABR: "bg-raised text-text-body",
+    NSEB: "bg-raised text-text-body",
     TAMU: "bg-maroon-100 text-maroon-600",
   };
 
   const deptCode = courseCode.split(/\s+/)[0];
-  return colorMap[deptCode] || "bg-slate-700 dark:bg-slate-600 text-white";
+  return colorMap[deptCode] || "bg-raised text-text-body";
 };
 
 export default function CoursePage({ params }: CoursePageProps) {
@@ -434,6 +411,10 @@ export default function CoursePage({ params }: CoursePageProps) {
   const [termProfessorIds, setTermProfessorIds] = useState<Set<string>>(
     new Set()
   );
+  // Professors teaching this term who have no history for this course yet.
+  const [newTermProfessors, setNewTermProfessors] = useState<
+    NonNullable<CourseDetail["professors"]>
+  >([]);
   const [sections, setSections] = useState<CourseSection[]>([]);
   const [loadingTermData, setLoadingTermData] = useState(false);
   const [profSummaryMode, setProfSummaryMode] = useState<Record<string, string>>(
@@ -499,16 +480,22 @@ export default function CoursePage({ params }: CoursePageProps) {
       if (!selectedTerm || !courseData) {
         // Reset to all professors when no term is selected
         setTermProfessorIds(new Set());
+        setNewTermProfessors([]);
         setSections([]);
         return;
       }
 
       try {
         setLoadingTermData(true);
-        const [professorsData, sectionsData] = await Promise.all([
-          getCourseProfessorsForTerm(selectedTerm, resolvedParams.id),
-          getCourseSectionsForTerm(selectedTerm, resolvedParams.id),
-        ]);
+        const [professorsData, sectionsData, termProfessorDetails] =
+          await Promise.all([
+            getCourseProfessorsForTerm(selectedTerm, resolvedParams.id),
+            getCourseSectionsForTerm(selectedTerm, resolvedParams.id),
+            getCourseProfessorsWithDetailsForTerm(
+              selectedTerm,
+              resolvedParams.id,
+            ).catch(() => [] as NonNullable<CourseDetail["professors"]>),
+          ]);
 
         // Create a set of professor IDs/names from term-specific data
         // Use both ID and name for matching since some professors might only have one
@@ -523,10 +510,12 @@ export default function CoursePage({ params }: CoursePageProps) {
           }
         });
         setTermProfessorIds(professorIdSet);
+        setNewTermProfessors(termProfessorDetails || []);
         setSections(sectionsData);
       } catch (err) {
         console.error("Failed to load term data:", err);
         setTermProfessorIds(new Set());
+        setNewTermProfessors([]);
         setSections([]);
       } finally {
         setLoadingTermData(false);
@@ -536,7 +525,8 @@ export default function CoursePage({ params }: CoursePageProps) {
     loadTermData();
   }, [selectedTerm, courseData, resolvedParams.id]);
 
-  // Filter professors based on selected term
+  // Filter professors based on selected term, then append professors teaching
+  // this term who have no history for this course yet.
   const displayedProfessors = React.useMemo(() => {
     if (!courseData?.professors) return undefined;
 
@@ -546,7 +536,7 @@ export default function CoursePage({ params }: CoursePageProps) {
     }
 
     // Filter professors to only those teaching in the selected term
-    return courseData.professors.filter((prof) => {
+    const withHistory = courseData.professors.filter((prof) => {
       // Match by ID if available
       if (prof.id && termProfessorIds.has(prof.id)) {
         return true;
@@ -565,7 +555,26 @@ export default function CoursePage({ params }: CoursePageProps) {
       }
       return false;
     });
-  }, [courseData?.professors, selectedTerm, termProfessorIds]);
+
+    const firstTime = newTermProfessors.filter(
+      (np) =>
+        !withHistory.some(
+          (p) =>
+            (np.id && p.id === np.id) ||
+            (np.name && p.name && professorNamesMatch(p.name, np.name)),
+        ),
+    );
+
+    return [...withHistory, ...firstTime];
+  }, [courseData?.professors, selectedTerm, termProfessorIds, newTermProfessors]);
+
+  const historyProfessorKeys = React.useMemo(
+    () =>
+      new Set(
+        (courseData?.professors || []).map((p) => (p.id || p.name) as string),
+      ),
+    [courseData?.professors],
+  );
 
   if (loading) {
     return (
@@ -577,19 +586,11 @@ export default function CoursePage({ params }: CoursePageProps) {
           className="min-h-screen relative"
           style={{ background: "var(--app-bg-gradient)" }}
         >
-          <motion.div
-            aria-hidden
-            className="pointer-events-none absolute inset-0"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8 }}
-            style={{ background: "var(--app-bg-ambient)" }}
-          />
           <Navigation variant="glass" />
           <main className="pt-24 pb-20 relative z-10">
             <div className="max-w-7xl mx-auto px-4 sm:px-6">
-              <Card className="p-8 rounded-2xl shadow-none bg-card border-border dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm">
-                <div className="text-center text-text-body dark:text-white/70">
+              <Card className="p-8 rounded-2xl shadow-none bg-card border-border">
+                <div className="text-center text-text-body">
                   Loading course details...
                 </div>
               </Card>
@@ -611,19 +612,11 @@ export default function CoursePage({ params }: CoursePageProps) {
           className="min-h-screen relative"
           style={{ background: "var(--app-bg-gradient)" }}
         >
-          <motion.div
-            aria-hidden
-            className="pointer-events-none absolute inset-0"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8 }}
-            style={{ background: "var(--app-bg-ambient)" }}
-          />
           <Navigation variant="glass" />
           <main className="pt-24 pb-20 relative z-10">
             <div className="max-w-7xl mx-auto px-4 sm:px-6">
               <Card className="p-8 rounded-2xl shadow-none bg-red-50 border border-red-200 mb-6">
-                <div className="text-center text-red-700 font-semibold">
+                <div className="text-center text-red-700 font-medium">
                   {error || "Course not found"}
                 </div>
               </Card>
@@ -653,14 +646,6 @@ export default function CoursePage({ params }: CoursePageProps) {
         className="min-h-screen relative"
         style={{ background: "var(--app-bg-gradient)" }}
       >
-        <motion.div
-          aria-hidden
-          className="pointer-events-none absolute inset-0"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8 }}
-          style={{ background: "var(--app-bg-ambient)" }}
-        />
         <Navigation variant="glass" />
 
         <main className="pt-24 pb-20 relative z-10">
@@ -669,30 +654,25 @@ export default function CoursePage({ params }: CoursePageProps) {
 
             {/* Course Header */}
             <div className="">
-              <Card className="p-4 sm:p-6 gap-4 rounded-2xl shadow-none bg-card border-border relative overflow-clip dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm">
-                {/* subtle corner highlight (match Courses cards) */}
-                <div
-                  aria-hidden
-                  className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-[#FFCF3F]/10 blur-2xl"
-                />
+              <Card className="p-4 sm:p-6 gap-4 rounded-2xl shadow-none bg-card border-border relative overflow-clip">
                 <div className="flex flex-wrap items-center gap-2 mb-4">
                   <Badge
                     variant="outline"
-                    className={`${getDepartmentColor(courseData.code)} border-transparent px-3 py-1 text-xs font-medium rounded-full`}
+                    className="border-border bg-transparent px-2 py-0.5 text-xs font-normal text-text-body"
                   >
                     {getDepartmentFromCode(courseData.code)}
                   </Badge>
                   <Badge
                     variant="outline"
-                    className="border-accent text-accent bg-canvas/70 px-3 py-1 text-xs font-medium rounded-full dark:bg-black/30 dark:border-accent"
+                    className="border-border bg-transparent px-2 py-0.5 font-mono text-xs font-normal text-text-body"
                   >
-                    {courseData.credits} Credits
+                    {courseData.credits} credits
                   </Badge>
                   {courseData.lectureHours !== undefined &&
                     courseData.lectureHours > 0 && (
                       <Badge
                         variant="outline"
-                        className="border-border text-text-body bg-canvas/70 px-3 py-1 text-xs font-medium rounded-full dark:bg-black/30 dark:border-white/15 dark:text-white/80"
+                        className="border-border text-text-body bg-canvas/70 px-3 py-1 text-xs font-medium rounded-full dark:bg-card"
                       >
                         <Clock className="w-3 h-3 mr-1" />
                         {courseData.lectureHours}h Lecture
@@ -702,7 +682,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                     courseData.labHours > 0 && (
                       <Badge
                         variant="outline"
-                        className="border-border text-text-body bg-canvas/70 px-3 py-1 text-xs font-medium rounded-full dark:bg-black/30 dark:border-white/15 dark:text-white/80"
+                        className="border-border text-text-body bg-canvas/70 px-3 py-1 text-xs font-medium rounded-full dark:bg-card"
                       >
                         <FlaskConical className="w-3 h-3 mr-1" />
                         {courseData.labHours}h Lab
@@ -712,11 +692,11 @@ export default function CoursePage({ params }: CoursePageProps) {
 
                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 relative">
                   <div className="flex-1">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-text-heading dark:text-white break-words">
+                    <h1 className="text-2xl sm:text-3xl font-medium text-text-heading break-words">
                       {courseData.code}: {courseData.name}
                     </h1>
 
-                    <p className="text-text-body dark:text-white/80 mb-4 max-w-4xl leading-relaxed">
+                    <p className="text-text-body mb-4 max-w-4xl leading-relaxed">
                       {courseData.description}
                     </p>
                   </div>
@@ -736,22 +716,22 @@ export default function CoursePage({ params }: CoursePageProps) {
                     disabled={!isSelected(courseData.code) && !canAddMore()}
                     className={`w-full lg:w-auto lg:ml-4 ${
                       isSelected(courseData.code)
-                        ? "bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966]"
-                        : "border-border bg-canvas text-text-body hover:bg-button-hover dark:border-white/15 dark:bg-black/30 dark:text-white/80 dark:hover:bg-black/45"
-                    } transition-all duration-200 rounded-full`}
+                        ? "border border-border-strong bg-raised text-text-heading hover:bg-raised/70"
+                        : "border border-border-strong bg-card text-text-heading hover:bg-raised"
+                    } transition-colors duration-150`}
                   >
                     {isSelected(courseData.code) ? (
                       <>
                         <Check className="w-4 h-4 mr-2" />
                         <span className="hidden sm:inline">
-                          Added to Compare
+                          Added to compare
                         </span>
                         <span className="sm:hidden">Added</span>
                       </>
                     ) : (
                       <>
                         <BarChart3 className="w-4 h-4 mr-2" />
-                        <span className="hidden sm:inline">Add to Compare</span>
+                        <span className="hidden sm:inline">Add to compare</span>
                         <span className="sm:hidden">Compare</span>
                       </>
                     )}
@@ -784,7 +764,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                       icon: Zap,
                       display:
                         courseData.difficulty && courseData.difficulty !== "Unknown" ? (
-                          <span className="block whitespace-nowrap text-base min-[360px]:text-lg sm:text-xl lg:text-lg xl:text-xl font-semibold tracking-tight leading-tight">
+                          <span className="block whitespace-nowrap text-base min-[360px]:text-lg sm:text-xl lg:text-lg xl:text-xl font-medium leading-tight">
                             {courseData.difficulty}
                           </span>
                         ) : (
@@ -831,18 +811,17 @@ export default function CoursePage({ params }: CoursePageProps) {
                           shouldReduceMotion ? false : { opacity: 0, y: 12 }
                         }
                         animate={{ opacity: 1, y: 0 }}
-                        whileHover={shouldReduceMotion ? undefined : { y: -2 }}
-                        className="rounded-2xl border border-border bg-card px-3 py-3 sm:px-4 sm:py-4 flex items-center dark:border-white/10 dark:bg-black/45 dark:backdrop-blur-sm"
+                        className="rounded-2xl border border-border bg-card px-3 py-3 sm:px-4 sm:py-4 flex items-center"
                       >
                         <div className="flex items-center gap-3 w-full">
-                          <div className="hidden sm:flex h-10 w-10 shrink-0 rounded-xl bg-canvas border border-border items-center justify-center text-accent dark:bg-white/10 dark:border-white/10">
+                          <div className="hidden sm:flex h-5 w-5 shrink-0 mt-1 items-start justify-center text-text-muted">
                             <Icon className="w-5 h-5" />
                           </div>
                           <div className="min-w-0">
-                            <div className="text-[#500000] dark:text-[#FFCF3F] text-xl sm:text-2xl font-semibold tracking-tight leading-tight break-normal">
+                            <div className="text-text-heading text-xl sm:text-2xl font-medium leading-tight break-normal">
                               {m.display}
                             </div>
-                            <div className="text-text-body text-xs sm:text-sm dark:text-white/80">
+                            <div className="text-text-body text-xs sm:text-sm">
                               {m.label}
                             </div>
                           </div>
@@ -857,16 +836,16 @@ export default function CoursePage({ params }: CoursePageProps) {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
               {/* Main Content */}
               <div className="lg:col-span-2 space-y-6">
-                <Card className="p-6 rounded-2xl shadow-none bg-card border-border dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm">
-                  <h3 className="text-xl font-bold text-text-heading dark:text-white">
-                    Course Information
+                <Card className="p-6 rounded-2xl shadow-none bg-card border-border">
+                  <h3 className="text-xl font-medium text-text-heading">
+                    Course information
                   </h3>
                   <div className="space-y-4">
                     <div>
-                      <span className="text-xs font-semibold text-body uppercase tracking-wider">
+                      <span className="text-xs font-medium text-body">
                         Description:
                       </span>
-                      <p className="text-text-body dark:text-white/80 mt-1 leading-relaxed">
+                      <p className="text-text-body mt-1 leading-relaxed">
                         {courseData.description}
                       </p>
                     </div>
@@ -878,11 +857,11 @@ export default function CoursePage({ params }: CoursePageProps) {
                         (courseData.prerequisites.courses &&
                           courseData.prerequisites.courses.length > 0)) && (
                         <div>
-                          <span className="text-xs font-semibold text-body uppercase tracking-wider">
+                          <span className="text-xs font-medium text-body">
                             Prerequisites:
                           </span>
                           {courseData.prerequisites.text && (
-                            <p className="text-sm text-text-body dark:text-white/70 mt-1 mb-2">
+                            <p className="text-sm text-text-body mt-1 mb-2">
                               {courseData.prerequisites.text}
                             </p>
                           )}
@@ -923,7 +902,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                                             className="flex flex-wrap items-center gap-1"
                                           >
                                             {groupIndex > 0 && (
-                                              <span className="text-xs text-text-body/75 dark:text-white/65 mx-1 font-medium">
+                                              <span className="text-xs text-text-muted mx-1 font-medium">
                                                 AND
                                               </span>
                                             )}
@@ -954,7 +933,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                                                           className={`text-xs px-2 py-1 font-medium rounded-full transition-colors cursor-pointer ${
                                                             isAlsoCoreq
                                                               ? "border-green-500 text-green-800 bg-green-200 dark:border-green-400 dark:text-green-200 dark:bg-green-600/40"
-                                                              : "border-border text-text-body bg-canvas/70 hover:bg-accent hover:text-white dark:border-white/15 dark:text-white/80 dark:bg-black/30 dark:hover:bg-accent dark:hover:text-white"
+                                                              : "border-border text-text-body bg-canvas/70 hover:bg-raised hover:text-text-heading dark:bg-card"
                                                           }`}
                                                           title={
                                                             isAlsoCoreq
@@ -988,7 +967,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                                           return (
                                             <React.Fragment key={index}>
                                               {index > 0 && (
-                                                <span className="text-xs text-text-body/75 dark:text-white/65">
+                                                <span className="text-xs text-text-muted">
                                                   ,
                                                 </span>
                                               )}
@@ -1000,7 +979,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                                                   className={`text-xs px-2 py-1 font-medium rounded-full transition-colors cursor-pointer ${
                                                     isAlsoCoreq
                                                       ? "border-green-500 text-green-800 bg-green-200 dark:border-green-400 dark:text-green-200 dark:bg-green-600/40"
-                                                      : "border-border text-text-body bg-canvas/70 hover:bg-accent hover:text-white dark:border-white/15 dark:text-white/80 dark:bg-black/30 dark:hover:bg-accent dark:hover:text-white"
+                                                      : "border-border text-text-body bg-canvas/70 hover:bg-raised hover:text-text-heading dark:bg-card"
                                                   }`}
                                                   title={
                                                     isAlsoCoreq
@@ -1081,13 +1060,13 @@ export default function CoursePage({ params }: CoursePageProps) {
                             ) {
                               return (
                                 <>
-                                  <span className="text-xs font-semibold text-body uppercase tracking-wider">
+                                  <span className="text-xs font-medium text-body">
                                     Corequisites:
                                   </span>
-                                  <p className="text-sm text-text-body dark:text-white/70 mt-1">
+                                  <p className="text-sm text-text-body mt-1">
                                     {courseData.corequisites.text}
                                   </p>
-                                  <p className="text-xs text-text-body/70 dark:text-white/65 mt-1 italic">
+                                  <p className="text-xs text-text-muted mt-1">
                                     (Same as prerequisites marked in green above
                                     - can be taken before or concurrently)
                                   </p>
@@ -1097,10 +1076,10 @@ export default function CoursePage({ params }: CoursePageProps) {
 
                             return (
                               <>
-                                <span className="text-xs font-semibold text-body uppercase tracking-wider">
+                                <span className="text-xs font-medium text-body">
                                   Corequisites:
                                 </span>
-                                <p className="text-sm text-text-body dark:text-white/70 mt-1 mb-2">
+                                <p className="text-sm text-text-body mt-1 mb-2">
                                   {courseData.corequisites.text}
                                 </p>
                                 <div className="flex flex-wrap gap-1">
@@ -1147,7 +1126,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                     {courseData.crossListings &&
                       courseData.crossListings.length > 0 && (
                         <div>
-                          <span className="text-xs font-semibold text-body uppercase tracking-wider">
+                          <span className="text-xs font-medium text-body">
                             Cross-Listed With:
                           </span>
                           <div className="flex flex-wrap gap-1 mt-2">
@@ -1173,7 +1152,7 @@ export default function CoursePage({ params }: CoursePageProps) {
 
                     {(courseData.sectionAttributes?.length ?? 0) > 0 && (
                     <div>
-                      <span className="text-xs font-semibold text-body uppercase tracking-wider">
+                      <span className="text-xs font-medium text-body">
                         Counts toward:
                       </span>
                       <div className="flex flex-wrap gap-1 mt-2 max-h-24 overflow-y-auto md:max-h-none md:overflow-visible">
@@ -1182,7 +1161,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                             <Badge
                               key={index}
                               variant="outline"
-                              className="text-xs border-border text-text-body bg-canvas/70 dark:border-white/15 dark:text-white/80 dark:bg-black/30 px-2 py-1 font-medium flex-shrink-0 rounded-full"
+                              className="text-xs border-border text-text-body bg-canvas/70 dark:bg-card px-2 py-1 font-medium flex-shrink-0 rounded-full"
                             >
                               {attr}
                             </Badge>
@@ -1207,86 +1186,122 @@ export default function CoursePage({ params }: CoursePageProps) {
 
                 {/* Sections for the chosen term, with seat alerts */}
                 {selectedTerm && !loadingTermData && (
-                  <Card className="p-4 rounded-2xl shadow-none bg-card border-border dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm">
-                    <h3 className="text-xl font-bold text-text-heading dark:text-white">
+                  <Card className="p-4 rounded-2xl shadow-none bg-card border-border">
+                    <h3 className="text-xl font-medium text-text-heading">
                       Sections in {shortTermName(terms.find((t) => t.termCode === selectedTerm)) || selectedTerm}
                     </h3>
                     {sections.length === 0 ? (
-                      <p className="text-sm text-text-body dark:text-white/80">
+                      <p className="text-sm text-text-body">
                         {courseData.code}{" "}isn&apos;t offered in this term. Pick another
                         term above, or see past professors below.
                       </p>
                     ) : (
                       <>
-                        <p className="text-sm text-text-body dark:text-white/80">
+                        <p className="text-sm text-text-body">
                           {sections.filter((s) => s.isOpen).length} of {sections.length}{" "}
                           open. Full sections can be watched for a seat.
                         </p>
-                        <ul className="divide-y divide-border/70 rounded-xl border border-border/70 dark:divide-white/10 dark:border-white/10">
-                          {sections.map((section) => (
-                            <li
-                              key={section.id}
-                              className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-3 py-2.5 text-sm"
-                            >
-                              <span className="font-semibold text-text-heading dark:text-white">
-                                Sec {section.sectionNumber}
-                              </span>
-                              <span className="text-text-body dark:text-white/80">
-                                {section.meetings && section.meetings.length > 0
-                                  ? section.meetings
-                                      .filter((m) => m.beginTime && m.endTime)
-                                      .map(
-                                        (m) =>
-                                          `${(m.daysOfWeek || []).join("")} ${m.beginTime}–${m.endTime}`,
-                                      )
-                                      .join("; ") || "Time TBA / online"
-                                  : "Time TBA / online"}
-                              </span>
-                              {section.instructors?.[0]?.name && (
-                                <span className="text-text-body dark:text-white/80">
-                                  {section.instructors[0].name}
-                                </span>
-                              )}
-                              <span className="text-xs text-text-body dark:text-white/75">
-                                CRN {section.crn}
-                              </span>
-                              <span className="ml-auto flex items-center gap-2">
-                                {section.isOpen ? (
-                                  <Badge className="border-transparent bg-emerald-700 text-white dark:bg-emerald-500 dark:text-black">
-                                    Open
-                                  </Badge>
-                                ) : (
-                                  <>
-                                    <Badge className="border-transparent bg-red-700 text-white dark:bg-red-400 dark:text-black">
-                                      Full
-                                    </Badge>
-                                    <WatchSectionButton
-                                      termCode={selectedTerm}
-                                      crn={section.crn}
-                                      dept={section.dept}
-                                      courseNumber={section.courseNumber}
-                                      section={section.sectionNumber}
-                                    />
-                                  </>
-                                )}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
+                        <div className="mt-3 overflow-hidden rounded-xl border border-border">
+                          <div
+                            aria-hidden
+                            className="hidden md:grid-cols-[4rem_minmax(0,1fr)_minmax(0,10rem)_4rem_8rem] gap-x-4 border-b border-border bg-raised px-4 py-2 text-xs font-medium text-text-muted md:grid"
+                          >
+                            <span>Section</span>
+                            <span>Meets</span>
+                            <span>Professor</span>
+                            <span>CRN</span>
+                            <span className="text-right">Seats</span>
+                          </div>
+                          <ul className="divide-y divide-border">
+                            {sections.map((section) => {
+                              const meetings = (section.meetings || []).filter(
+                                (m) => m.beginTime && m.endTime,
+                              );
+                              return (
+                                <li
+                                  key={section.id}
+                                  className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-1 px-4 py-3 text-sm md:grid-cols-[4rem_minmax(0,1fr)_minmax(0,10rem)_4rem_8rem] md:items-center"
+                                >
+                                  <span className="font-mono font-medium text-text-heading">
+                                    {section.sectionNumber}
+                                  </span>
+                                  <span className="col-start-1 row-start-2 md:col-start-auto md:row-start-auto">
+                                    {meetings.length > 0 ? (
+                                      <span className="flex flex-col gap-0.5">
+                                        {meetings.map((m, i) => (
+                                          <span
+                                            key={i}
+                                            className="flex items-baseline gap-2 tabular-nums text-text-body"
+                                          >
+                                            <span className="w-10 shrink-0 font-mono text-xs text-text-heading">
+                                              {(m.daysOfWeek || []).join("")}
+                                            </span>
+                                            <span className="whitespace-nowrap">
+                                              {formatMeetingTime(m.beginTime, m.endTime)}
+                                            </span>
+                                            {/* Lecture is the default; only call out the other kinds */}
+                                            {m.meetingType && !/^lec/i.test(m.meetingType) && (
+                                              <span className="text-xs text-text-muted">
+                                                {/^lab/i.test(m.meetingType) ? "Lab" : m.meetingType}
+                                              </span>
+                                            )}
+                                          </span>
+                                        ))}
+                                      </span>
+                                    ) : (
+                                      <span className="text-text-muted">Time TBA / online</span>
+                                    )}
+                                  </span>
+                                  <span className="col-start-1 truncate text-text-body md:col-start-auto">
+                                    {section.instructors?.[0]?.name || (
+                                      <span className="text-text-muted">TBA</span>
+                                    )}
+                                  </span>
+                                  <span className="col-start-1 font-mono text-xs tabular-nums text-text-muted md:col-start-auto">
+                                    <span className="md:hidden">CRN </span>
+                                    {section.crn}
+                                  </span>
+                                  <span className="col-start-2 row-start-1 flex items-center justify-end gap-2 md:col-start-auto md:row-start-auto">
+                                    {section.isOpen ? (
+                                      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-positive">
+                                        <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-positive" />
+                                        Open
+                                      </span>
+                                    ) : (
+                                      <>
+                                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-negative">
+                                          <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-negative" />
+                                          Full
+                                        </span>
+                                        <WatchSectionButton
+                                          termCode={selectedTerm}
+                                          crn={section.crn}
+                                          dept={section.dept}
+                                          courseNumber={section.courseNumber}
+                                          section={section.sectionNumber}
+                                        />
+                                      </>
+                                    )}
+                                  </span>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </div>
                       </>
                     )}
                   </Card>
                 )}
 
                 {/* Professors Section */}
-                <Card className="p-4 rounded-2xl shadow-none bg-card border-border dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm">
+                <Card className="p-4 rounded-2xl shadow-none bg-card border-border">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-                    <h3 className="text-xl font-bold text-text-heading dark:text-white">
-                      Course Professors
+                    <h3 className="text-xl font-medium text-text-heading">
+                      Professors
                     </h3>
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
                       {loadingTermData && (
-                        <div className="text-xs text-text-body dark:text-white/75">
+                        <div className="text-xs text-text-body">
                           Checking this term&apos;s sections…
                         </div>
                       )}
@@ -1297,17 +1312,18 @@ export default function CoursePage({ params }: CoursePageProps) {
                         >
                           <Button
                             size="sm"
-                            className="bg-[#FFCF3F] text-[#0f0f0f] hover:bg-[#FFD966] rounded-full flex items-center gap-2 w-full sm:w-auto"
+                            variant="outline"
+                            className="flex items-center gap-2 w-full sm:w-auto"
                           >
-                            <BarChart3 className="w-4 h-4" />
+                            <BarChart3 strokeWidth={1.5} className="w-4 h-4" />
                             <span className="hidden sm:inline">
-                              Compare Professors
+                              Compare professors
                             </span>
                             <span className="sm:hidden">Compare</span>
                           </Button>
                         </Link>
                       )}
-                      <div className="text-xs text-text-body dark:text-white/75 border border-border dark:border-white/15 px-3 py-1 rounded-full bg-canvas dark:bg-black/30">
+                      <div className="font-mono text-xs text-text-muted">
                         {displayedProfessors?.length || 0}{" "}
                         {(displayedProfessors?.length || 0) === 1 ? "professor" : "professors"}
                         {selectedTerm && !loadingTermData && termProfessorIds.size > 0 && " teaching this term"}
@@ -1318,26 +1334,28 @@ export default function CoursePage({ params }: CoursePageProps) {
                     {displayedProfessors?.map((prof, index: number) => (
                       <Card
                         key={index}
-                        className="p-3 sm:p-4 gap-0 rounded-2xl shadow-none bg-card border-border hover:border-border transition-all duration-200 group relative overflow-clip dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm dark:hover:border-white/20"
+                        className="p-4 sm:p-5 gap-0 rounded-2xl shadow-none bg-card border-border transition-colors duration-150 group relative overflow-clip hover:border-border-strong"
                       >
-                        {/* Decorative gradient accent */}
-                        <div
-                          aria-hidden
-                          className="absolute -top-10 -right-10 h-24 w-24 rounded-full bg-[#FFCF3F]/10 blur-2xl"
-                        />
 
                         <div className="">
                           <div className="flex gap-4">
                             {/* Left side: Name and AI Summary header */}
                             <div className="flex-1 min-w-0">
-                              <h4 className="text-md font-bold text-text-heading dark:text-white mb-1">
+                              <h4 className="text-md font-medium text-text-heading mb-1">
                                 {prof.name}
                               </h4>
+                              {!historyProfessorKeys.has(
+                                (prof.id || prof.name) as string,
+                              ) && (
+                                <p className="text-xs text-text-muted mb-1">
+                                  First time teaching this course
+                                </p>
+                              )}
                               {/* Show Grade data only badge if no review data */}
                               {!(prof.id && prof.rating !== undefined) && (
                                 <Badge
                                   variant="outline"
-                                  className="text-xs border-border bg-canvas text-text-body dark:border-white/15 dark:bg-black/30 dark:text-white/70 font-medium rounded-full"
+                                  className="text-xs border-border bg-canvas text-text-body dark:bg-card font-medium rounded-full"
                                 >
                                   Grade data only
                                 </Badge>
@@ -1437,10 +1455,10 @@ export default function CoursePage({ params }: CoursePageProps) {
 
                                 return (
                                   <div className="flex flex-wrap items-center gap-2 mt-1">
-                                    <h5 className="text-xs font-semibold text-heading uppercase tracking-wide">
+                                    <h5 className="text-xs font-medium text-heading">
                                       Summary
                                     </h5>
-                                    <span className="text-xs text-text-body dark:text-white/75">
+                                    <span className="text-xs text-text-body">
                                       from{" "}
                                       {active?.reviewCount ??
                                         (prof.totalReviews ?? prof.reviews ?? 0)}{" "}
@@ -1450,7 +1468,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                                     </span>
                                     {options.length > 1 && (
                                       <select
-                                        className="ml-auto text-xs border border-border bg-canvas/70 rounded-full px-2 py-1 dark:bg-black/30 dark:border-white/15 dark:text-white/80"
+                                        className="ml-auto text-xs border border-border bg-canvas/70 rounded-full px-2 py-1 dark:bg-card dark:text-text-body"
                                         value={selected}
                                         onChange={(e) =>
                                           setProfSummaryMode((prev) => ({
@@ -1474,7 +1492,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                             {/* Right side: rating for this course when we have one */}
                             {prof.id && (prof.courseRating ?? prof.rating) != null && (
                               <div
-                                className="flex items-center justify-center bg-[#FFCF3F] text-[#0f0f0f] px-3 py-2 rounded-2xl min-w-[70px] self-start"
+                                className="flex items-center justify-center border border-border bg-raised text-text-heading px-3 py-2 rounded-xl min-w-[72px] self-start"
                                 title={
                                   prof.courseRating != null
                                     ? "Average rating in reviews of this course"
@@ -1483,12 +1501,11 @@ export default function CoursePage({ params }: CoursePageProps) {
                               >
                                 <div className="flex flex-col items-center">
                                   <div className="flex items-center gap-1">
-                                    <Star className="h-5 w-5 fill-current" />
-                                    <span className="text-xl font-bold">
+                                    <span className="font-mono text-xl font-medium">
                                       {(prof.courseRating ?? prof.rating ?? 0).toFixed(1)}
                                     </span>
                                   </div>
-                                  <span className="text-[10px] font-medium">
+                                  <span className="text-xs text-text-muted">
                                     {prof.courseRating != null ? "this course" : "overall"}
                                   </span>
                                 </div>
@@ -1565,10 +1582,10 @@ export default function CoursePage({ params }: CoursePageProps) {
                             const sectionText = (text?: string | null) =>
                               legacy && looksLikeQuotedReview(text) ? (
                                 <>
-                                  <span className="not-italic font-medium text-text-heading dark:text-white/90">
+                                  <span className=" font-medium text-text-heading">
                                     One student wrote:{" "}
                                   </span>
-                                  <span className="italic">&ldquo;{text}&rdquo;</span>
+                                  <span className="">&ldquo;{text}&rdquo;</span>
                                 </>
                               ) : (
                                 text
@@ -1576,13 +1593,13 @@ export default function CoursePage({ params }: CoursePageProps) {
                             return (
                               <div className="mb-3 mt-3">
                                 {legacy && (
-                                  <p className="mb-2 text-xs text-text-body dark:text-white/75">
+                                  <p className="mb-2 text-xs text-text-body">
                                     Older summary, not yet updated. It may quote
                                     individual reviews.
                                   </p>
                                 )}
                                 <div
-                                  className={`relative bg-canvas/70 border border-border rounded-2xl p-3 dark:bg-black/30 dark:border-white/10 space-y-3 ${
+                                  className={`relative bg-canvas/70 border border-border rounded-2xl p-3 dark:bg-card dark:border-border space-y-3 ${
                                     expanded ? "" : "max-h-56 overflow-hidden"
                                   }`}
                                 >
@@ -1591,32 +1608,32 @@ export default function CoursePage({ params }: CoursePageProps) {
                                       <SummaryTldr tldr={overall?.tldr} />
                                       <ReviewStatsRow stats={overall?.reviewStats} />
                                       {overall?.sentiment && (
-                                        <p className="text-text-body dark:text-white/80 leading-relaxed text-sm">
-                                          <span className="font-semibold text-text-heading dark:text-white/90">
+                                        <p className="text-text-body leading-relaxed text-sm">
+                                          <span className="font-medium text-text-heading">
                                             Sentiment:{" "}
                                           </span>
                                           {overall.sentiment}
                                         </p>
                                       )}
                                       {(overall?.strengths?.length || 0) > 0 && (
-                                        <p className="text-text-body dark:text-white/80 leading-relaxed text-sm">
-                                          <span className="font-semibold text-text-heading dark:text-white/90">
+                                        <p className="text-text-body leading-relaxed text-sm">
+                                          <span className="font-medium text-text-heading">
                                             Strengths:{" "}
                                           </span>
                                           {overall?.strengths?.slice(0, 3).join(" · ")}
                                         </p>
                                       )}
                                       {(overall?.complaints?.length || 0) > 0 && (
-                                        <p className="text-text-body dark:text-white/80 leading-relaxed text-sm">
-                                          <span className="font-semibold text-text-heading dark:text-white/90">
+                                        <p className="text-text-body leading-relaxed text-sm">
+                                          <span className="font-medium text-text-heading">
                                             Complaints:{" "}
                                           </span>
                                           {overall?.complaints?.slice(0, 3).join(" · ")}
                                         </p>
                                       )}
                                       {overall?.consistency && (
-                                        <p className="text-text-body dark:text-white/80 leading-relaxed text-sm">
-                                          <span className="font-semibold text-text-heading dark:text-white/90">
+                                        <p className="text-text-body leading-relaxed text-sm">
+                                          <span className="font-medium text-text-heading">
                                             Note:{" "}
                                           </span>
                                           {overall.consistency}
@@ -1631,12 +1648,12 @@ export default function CoursePage({ params }: CoursePageProps) {
                                       {activeCourseSummary.teaching && (
                                         <div>
                                           <div className="flex items-center gap-1.5 mb-1">
-                                            <GraduationCap className="w-3.5 h-3.5 text-accent" />
-                                            <span className="text-xs font-semibold text-text-heading dark:text-white/90">
+                                            <GraduationCap strokeWidth={1.5} className="w-3.5 h-3.5 text-text-muted" />
+                                            <span className="text-xs font-medium text-text-heading">
                                               Teaching Style
                                             </span>
                                           </div>
-                                          <p className="text-text-body dark:text-white/80 leading-relaxed text-sm pl-5">
+                                          <p className="text-text-body leading-relaxed text-sm pl-5">
                                             {sectionText(activeCourseSummary.teaching)}
                                           </p>
                                         </div>
@@ -1644,12 +1661,12 @@ export default function CoursePage({ params }: CoursePageProps) {
                                       {activeCourseSummary.exams && (
                                         <div>
                                           <div className="flex items-center gap-1.5 mb-1">
-                                            <ClipboardList className="w-3.5 h-3.5 text-accent" />
-                                            <span className="text-xs font-semibold text-text-heading dark:text-white/90">
+                                            <ClipboardList strokeWidth={1.5} className="w-3.5 h-3.5 text-text-muted" />
+                                            <span className="text-xs font-medium text-text-heading">
                                               Exams & Quizzes
                                             </span>
                                           </div>
-                                          <p className="text-text-body dark:text-white/80 leading-relaxed text-sm pl-5">
+                                          <p className="text-text-body leading-relaxed text-sm pl-5">
                                             {sectionText(activeCourseSummary.exams)}
                                           </p>
                                         </div>
@@ -1657,12 +1674,12 @@ export default function CoursePage({ params }: CoursePageProps) {
                                       {activeCourseSummary.grading && (
                                         <div>
                                           <div className="flex items-center gap-1.5 mb-1">
-                                            <FileText className="w-3.5 h-3.5 text-accent" />
-                                            <span className="text-xs font-semibold text-text-heading dark:text-white/90">
+                                            <FileText strokeWidth={1.5} className="w-3.5 h-3.5 text-text-muted" />
+                                            <span className="text-xs font-medium text-text-heading">
                                               Grading
                                             </span>
                                           </div>
-                                          <p className="text-text-body dark:text-white/80 leading-relaxed text-sm pl-5">
+                                          <p className="text-text-body leading-relaxed text-sm pl-5">
                                             {sectionText(activeCourseSummary.grading)}
                                           </p>
                                         </div>
@@ -1670,12 +1687,12 @@ export default function CoursePage({ params }: CoursePageProps) {
                                       {activeCourseSummary.workload && (
                                         <div>
                                           <div className="flex items-center gap-1.5 mb-1">
-                                            <Briefcase className="w-3.5 h-3.5 text-accent" />
-                                            <span className="text-xs font-semibold text-text-heading dark:text-white/90">
+                                            <Briefcase strokeWidth={1.5} className="w-3.5 h-3.5 text-text-muted" />
+                                            <span className="text-xs font-medium text-text-heading">
                                               Workload
                                             </span>
                                           </div>
-                                          <p className="text-text-body dark:text-white/80 leading-relaxed text-sm pl-5">
+                                          <p className="text-text-body leading-relaxed text-sm pl-5">
                                             {sectionText(activeCourseSummary.workload)}
                                           </p>
                                         </div>
@@ -1683,12 +1700,12 @@ export default function CoursePage({ params }: CoursePageProps) {
                                       {activeCourseSummary.personality && (
                                         <div>
                                           <div className="flex items-center gap-1.5 mb-1">
-                                            <UserCircle className="w-3.5 h-3.5 text-accent" />
-                                            <span className="text-xs font-semibold text-text-heading dark:text-white/90">
+                                            <UserCircle strokeWidth={1.5} className="w-3.5 h-3.5 text-text-muted" />
+                                            <span className="text-xs font-medium text-text-heading">
                                               Personality
                                             </span>
                                           </div>
-                                          <p className="text-text-body dark:text-white/80 leading-relaxed text-sm pl-5">
+                                          <p className="text-text-body leading-relaxed text-sm pl-5">
                                             {sectionText(activeCourseSummary.personality)}
                                           </p>
                                         </div>
@@ -1696,12 +1713,12 @@ export default function CoursePage({ params }: CoursePageProps) {
                                       {activeCourseSummary.policies && (
                                         <div>
                                           <div className="flex items-center gap-1.5 mb-1">
-                                            <ScrollText className="w-3.5 h-3.5 text-accent" />
-                                            <span className="text-xs font-semibold text-text-heading dark:text-white/90">
+                                            <ScrollText strokeWidth={1.5} className="w-3.5 h-3.5 text-text-muted" />
+                                            <span className="text-xs font-medium text-text-heading">
                                               Policies
                                             </span>
                                           </div>
-                                          <p className="text-text-body dark:text-white/80 leading-relaxed text-sm pl-5">
+                                          <p className="text-text-body leading-relaxed text-sm pl-5">
                                             {sectionText(activeCourseSummary.policies)}
                                           </p>
                                         </div>
@@ -1712,19 +1729,19 @@ export default function CoursePage({ params }: CoursePageProps) {
                                         !(activeCourseSummary.tips?.length > 0) && (
                                         <div>
                                           <div className="flex items-center gap-1.5 mb-1">
-                                            <Sparkles className="w-3.5 h-3.5 text-accent" />
-                                            <span className="text-xs font-semibold text-text-heading dark:text-white/90">
+                                            <MessageSquareText strokeWidth={1.5} className="w-3.5 h-3.5 text-text-muted" />
+                                            <span className="text-xs font-medium text-text-heading">
                                               Notes
                                             </span>
                                           </div>
-                                          <p className="text-text-body dark:text-white/80 leading-relaxed text-sm pl-5">
+                                          <p className="text-text-body leading-relaxed text-sm pl-5">
                                             {sectionText(activeCourseSummary.other)}
                                           </p>
                                         </div>
                                       )}
                                     </>
                                   ) : (
-                                    <p className="text-text-body dark:text-white/80 leading-relaxed text-sm">
+                                    <p className="text-text-body leading-relaxed text-sm">
                                       {legacyDesc}
                                     </p>
                                   )}
@@ -1739,7 +1756,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                                   type="button"
                                   onClick={() => toggleProf(key)}
                                   aria-expanded={expanded}
-                                  className="mt-2 text-xs font-medium text-[#500000] underline underline-offset-2 dark:text-[#FFCF3F]"
+                                  className="mt-2 text-xs font-medium text-text-heading underline underline-offset-2"
                                 >
                                   {expanded ? "Show less" : "Read full summary"}
                                 </button>
@@ -1752,7 +1769,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                             prof.tag_frequencies &&
                             Object.keys(prof.tag_frequencies).length > 0 && (
                               <div className="mt-3">
-                                <h5 className="text-xs font-semibold text-heading mb-2 uppercase tracking-wide">
+                                <h5 className="text-xs font-medium text-heading mb-2">
                                   Student Tags
                                 </h5>
                                 <div className="flex flex-wrap gap-1">
@@ -1763,7 +1780,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                                       <Badge
                                         key={tag}
                                         variant="outline"
-                                        className="text-xs border-border bg-canvas/70 text-text-body font-medium px-2 py-1 rounded-full dark:border-white/15 dark:bg-black/30 dark:text-white/80"
+                                        className="text-xs border-border bg-canvas/70 text-text-body font-medium px-2 py-1 rounded-full dark:bg-card"
                                       >
                                         {tag}{" "}
                                         <span className="text-accent">
@@ -1779,12 +1796,12 @@ export default function CoursePage({ params }: CoursePageProps) {
                         {/* Grade Distribution for this professor - only show if data exists */}
                         {prof.gradeDistribution && (
                           <div className="border-t border-border pt-3 mt-3">
-                            <h5 className="text-sm font-semibold text-heading mb-2">
+                            <h5 className="text-sm font-medium text-heading mb-2">
                               Official grades (their latest semester)
                             </h5>
-                            <div className="flex gap-1 h-6 mb-2 rounded-lg overflow-hidden shadow-md">
+                            <div className="flex gap-0.5 h-6 mb-2 rounded-md overflow-hidden">
                               <div
-                                className="bg-green-500 flex items-center justify-center text-white text-xs font-semibold"
+                                className="bg-accent text-primary-foreground flex items-center justify-center font-mono text-xs"
                                 style={{
                                   width: `${prof.gradeDistribution.A}%`,
                                 }}
@@ -1792,7 +1809,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                                 {prof.gradeDistribution.A > 12 ? "A" : ""}
                               </div>
                               <div
-                                className="bg-blue-500 flex items-center justify-center text-white text-xs font-semibold"
+                                className="bg-text-heading/45 text-canvas flex items-center justify-center font-mono text-xs"
                                 style={{
                                   width: `${prof.gradeDistribution.B}%`,
                                 }}
@@ -1800,7 +1817,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                                 {prof.gradeDistribution.B > 12 ? "B" : ""}
                               </div>
                               <div
-                                className="bg-yellow-500 flex items-center justify-center text-white text-xs font-semibold"
+                                className="bg-text-heading/25 text-text-heading flex items-center justify-center font-mono text-xs"
                                 style={{
                                   width: `${prof.gradeDistribution.C}%`,
                                 }}
@@ -1808,7 +1825,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                                 {prof.gradeDistribution.C > 12 ? "C" : ""}
                               </div>
                               <div
-                                className="bg-orange-500 flex items-center justify-center text-white text-xs font-semibold"
+                                className="bg-caution/80 text-canvas flex items-center justify-center font-mono text-xs"
                                 style={{
                                   width: `${prof.gradeDistribution.D}%`,
                                 }}
@@ -1816,7 +1833,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                                 {prof.gradeDistribution.D > 12 ? "D" : ""}
                               </div>
                               <div
-                                className="bg-red-500 flex items-center justify-center text-white text-xs font-semibold"
+                                className="bg-negative/85 text-canvas flex items-center justify-center font-mono text-xs"
                                 style={{
                                   width: `${prof.gradeDistribution.F}%`,
                                 }}
@@ -1826,7 +1843,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                             </div>
                             <div className="grid grid-cols-5 gap-1 text-xs">
                               <div className="text-center">
-                                <div className="font-bold text-green-600 text-sm">
+                                <div className="font-mono text-text-heading text-sm">
                                   {prof.gradeDistribution.A}%
                                 </div>
                                 <div className="text-body font-medium text-xs">
@@ -1834,7 +1851,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                                 </div>
                               </div>
                               <div className="text-center">
-                                <div className="font-bold text-blue-600 text-sm">
+                                <div className="font-mono text-text-heading text-sm">
                                   {prof.gradeDistribution.B}%
                                 </div>
                                 <div className="text-body font-medium text-xs">
@@ -1842,7 +1859,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                                 </div>
                               </div>
                               <div className="text-center">
-                                <div className="font-bold text-yellow-600 text-sm">
+                                <div className="font-mono text-text-heading text-sm">
                                   {prof.gradeDistribution.C}%
                                 </div>
                                 <div className="text-body font-medium text-xs">
@@ -1850,7 +1867,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                                 </div>
                               </div>
                               <div className="text-center">
-                                <div className="font-bold text-orange-600 text-sm">
+                                <div className="font-mono text-text-heading text-sm">
                                   {prof.gradeDistribution.D}%
                                 </div>
                                 <div className="text-body font-medium text-xs">
@@ -1858,7 +1875,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                                 </div>
                               </div>
                               <div className="text-center">
-                                <div className="font-bold text-red-600 text-sm">
+                                <div className="font-mono text-text-heading text-sm">
                                   {prof.gradeDistribution.F}%
                                 </div>
                                 <div className="text-body font-medium text-xs">
@@ -1882,10 +1899,11 @@ export default function CoursePage({ params }: CoursePageProps) {
                                   className="flex-1"
                                 >
                                   <Button
-                                    variant="default"
-                                    className="w-full bg-[#500000] hover:bg-[#600000] text-white transition-all duration-200 hover:scale-105 text-xs py-2"
+                                    variant="outline"
+                                    size="sm"
+                                    className="w-full"
                                   >
-                                    <User className="w-3 h-3 mr-1" />
+                                    <User strokeWidth={1.5} className="w-4 h-4" />
                                     <span className="sm:hidden">Prof</span>
                                     <span className="hidden sm:inline">
                                       Professor
@@ -1896,8 +1914,8 @@ export default function CoursePage({ params }: CoursePageProps) {
                                   href={`/professor/${prof.id}/reviews`}
                                   className="flex-1"
                                 >
-                                  <Button className="w-full bg-gradient-to-r from-[#500000] to-[#700000] hover:from-[#600000] hover:to-[#800000] text-white transition-all duration-200 hover:scale-105 text-xs py-2">
-                                    <Eye className="w-3 h-3 mr-1" />
+                                  <Button variant="outline" size="sm" className="w-full">
+                                    <Eye strokeWidth={1.5} className="w-4 h-4" />
                                     <span className="sm:hidden">Reviews</span>
                                     <span className="hidden sm:inline">
                                       Reviews (
@@ -1927,10 +1945,11 @@ export default function CoursePage({ params }: CoursePageProps) {
                                   !isProfessorSelected(prof.id!) &&
                                   !canAddMoreProfessors()
                                 }
-                                className={`w-full sm:w-auto sm:min-w-[100px] transition-all duration-200 hover:scale-105 text-xs py-2 ${
+                                size="sm"
+                                className={`w-full sm:w-auto sm:min-w-[100px] ${
                                   isProfessorSelected(prof.id!)
-                                    ? "bg-green-600 hover:bg-green-700 text-white"
-                                    : "border-[#500000] text-[#500000] hover:bg-[#500000] hover:text-white"
+                                    ? "border border-border-strong bg-raised text-text-heading hover:bg-raised/70"
+                                    : ""
                                 }`}
                               >
                                 {isProfessorSelected(prof.id!) ? (
@@ -1954,7 +1973,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                             </div>
                           ) : (
                             <div className="flex justify-center">
-                              <div className="text-xs text-text-body bg-canvas/70 border border-border px-3 py-2 rounded-lg dark:bg-black/30 dark:border-white/10 dark:text-white/80">
+                              <div className="text-xs text-text-body bg-canvas/70 border border-border px-3 py-2 rounded-lg dark:bg-card">
                                 No reviews found for this professor yet. Only
                                 official grade data.
                               </div>
@@ -1973,8 +1992,8 @@ export default function CoursePage({ params }: CoursePageProps) {
                 {/* Related Courses */}
                 {courseData.relatedCourses &&
                   courseData.relatedCourses.length > 0 && (
-                    <Card className="p-4 rounded-2xl shadow-none bg-card border-border dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm">
-                      <h3 className="text-md font-bold text-text-heading dark:text-white mb-3">
+                    <Card className="p-4 rounded-2xl shadow-none bg-card border-border">
+                      <h3 className="text-md font-medium text-text-heading mb-3">
                         Nearby {courseData.code.split(" ")[0]} courses
                       </h3>
                       <div className="space-y-2">
@@ -1987,18 +2006,13 @@ export default function CoursePage({ params }: CoursePageProps) {
                               className="block"
                             >
                             <Card
-                              className="gap-2 p-3 rounded-2xl shadow-none bg-canvas/70 border border-border hover:bg-canvas transition-all duration-200 group relative overflow-clip dark:bg-black/30 dark:border-white/10 dark:hover:bg-black/40"
+                              className="gap-2 p-3 rounded-2xl shadow-none bg-canvas/70 border border-border hover:bg-canvas transition-colors duration-150 group relative overflow-clip dark:bg-card dark:hover:bg-raised"
                             >
-                              {/* Small decorative accent */}
-                              <div
-                                aria-hidden
-                                className="absolute -top-8 -right-8 h-16 w-16 rounded-full bg-[#FFCF3F]/10 blur-2xl"
-                              />
 
-                              <div className="text-xs font-bold text-text-heading dark:text-white">
-                                {course.code}
+                              <div>
+                                <span className="code-tag">{course.code}</span>
                               </div>
-                              <div className="text-xs text-text-body dark:text-white/75 line-clamp-2 leading-relaxed">
+                              <div className="text-xs text-text-body line-clamp-2 leading-relaxed">
                                 {course.name}
                               </div>
                             </Card>
@@ -2009,24 +2023,26 @@ export default function CoursePage({ params }: CoursePageProps) {
                   )}
 
                 {/* Quick Actions */}
-                <Card className="p-4 rounded-2xl shadow-none bg-card border-border dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm">
-                  <h3 className="text-md font-bold text-text-heading dark:text-white">
-                    Quick Actions
+                <Card className="p-4 rounded-2xl shadow-none bg-card border-border">
+                  <h3 className="text-sm font-medium text-text-heading">
+                    Next steps
                   </h3>
-                  <div className="space-y-2 mb-2">
-                    <Link href="/compare" className="block">
-                      <Button className="w-full bg-button-primary text-button-primary hover:opacity-95 transition-all duration-200 py-2 text-xs rounded-full">
-                        <BarChart3 className="w-3 h-3 mr-1" />
-                        Compare courses
-                        <ChevronRight className="w-3 h-3 ml-1" />
-                      </Button>
+                  <div className="-mx-2 space-y-1">
+                    <Link
+                      href="/compare"
+                      className="flex h-9 items-center gap-2 rounded-lg px-2 text-sm text-text-body transition-colors duration-150 hover:bg-raised hover:text-text-heading"
+                    >
+                      <BarChart3 strokeWidth={1.5} className="w-4 h-4 text-text-muted" />
+                      Compare courses
+                      <ChevronRight strokeWidth={1.5} className="ml-auto w-4 h-4 text-text-muted" />
                     </Link>
-                    <Link href="/discover/fit" className="block">
-                      <Button className="w-full border border-accent text-accent bg-canvas/70 hover:bg-button-hover transition-all duration-200 py-2 text-xs rounded-full dark:bg-black/30 dark:border-accent dark:hover:bg-black/40">
-                        <Award className="w-3 h-3 mr-1" />
-                        Find classes that fit my schedule
-                        <ChevronRight className="w-3 h-3 ml-1" />
-                      </Button>
+                    <Link
+                      href="/discover/fit"
+                      className="flex h-9 items-center gap-2 rounded-lg px-2 text-sm text-text-body transition-colors duration-150 hover:bg-raised hover:text-text-heading"
+                    >
+                      <Award strokeWidth={1.5} className="w-4 h-4 text-text-muted" />
+                      Find sections that fit my schedule
+                      <ChevronRight strokeWidth={1.5} className="ml-auto w-4 h-4 text-text-muted" />
                     </Link>
                   </div>
                 </Card>

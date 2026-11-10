@@ -11,7 +11,7 @@ function AuthErrorFallback({ error, resetErrorBoundary }: any) {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-4">
             <div className="max-w-md w-full border-2 border-red-500 rounded-lg p-6 bg-red-500/10">
-                <h2 className="text-xl font-bold mb-4 text-red-500">Authentication Service Error</h2>
+                <h2 className="text-xl font-medium mb-4 text-red-500">Authentication Service Error</h2>
                 <p className="text-sm text-gray-300 mb-4">
                     The frontend couldn't initialize the sign-in providers. This usually means the FastAPI backend is returning a 400 error because the Google ThirdParty provider is not fully configured in the backend SuperTokens recipe.
                 </p>
@@ -20,7 +20,7 @@ function AuthErrorFallback({ error, resetErrorBoundary }: any) {
                 </div>
                 <button
                     onClick={resetErrorBoundary}
-                    className="w-full bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600 transition-colors"
+                    className="w-full bg-red-500 text-white font-medium py-2 px-4 rounded hover:bg-red-600 transition-colors"
                 >
                     Retry
                 </button>

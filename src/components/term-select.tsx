@@ -32,7 +32,7 @@ export function TermSelect({
     <div className={`flex flex-wrap items-center gap-x-3 gap-y-2 ${className}`}>
       <label
         htmlFor={id}
-        className="text-sm font-semibold text-text-heading dark:text-white"
+        className="text-sm font-medium text-text-heading"
       >
         {label}
       </label>
@@ -40,7 +40,7 @@ export function TermSelect({
         id={id}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full min-w-0 sm:w-auto sm:max-w-xs bg-canvas border border-border rounded-xl px-4 py-2 text-text-body dark:bg-black/45 dark:border-white/15 dark:text-white/90 dark:backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
+        className="w-full min-w-0 sm:w-auto sm:max-w-xs h-10 bg-card border border-border rounded-lg px-3 text-sm text-text-heading focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
       >
         {allTermsLabel && <option value="">{allTermsLabel}</option>}
         {main.length > 0 && (

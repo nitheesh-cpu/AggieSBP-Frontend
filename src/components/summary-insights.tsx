@@ -128,15 +128,15 @@ export function ReviewStatsRow({
         <li
           key={chip.key}
           title={`Based on ${reviewsLabel(chip.n)}`}
-          className="flex min-w-0 max-w-full flex-wrap items-baseline gap-x-1.5 rounded-xl border border-border bg-canvas/70 px-3 py-1.5 text-xs dark:border-white/10 dark:bg-black/30"
+          className="flex min-w-0 max-w-full flex-wrap items-baseline gap-x-1.5 rounded-lg border border-border bg-canvas px-3 py-1.5 text-xs"
         >
-          <span className="font-semibold tabular-nums text-text-heading dark:text-white">
+          <span className="font-medium tabular-nums text-text-heading">
             {chip.value}
           </span>
-          <span className="text-text-body dark:text-white/80">
+          <span className="text-text-body">
             {chip.label}
           </span>
-          <span className="tabular-nums text-text-body/80 dark:text-white/65">
+          <span className="tabular-nums text-text-muted">
             ({chip.countLabel})
           </span>
         </li>
@@ -159,12 +159,12 @@ export function SummaryTips({
   return (
     <div className={className}>
       <div className="mb-1 flex items-center gap-1.5">
-        <Lightbulb className="h-3.5 w-3.5 text-accent" />
-        <span className="text-xs font-semibold text-text-heading dark:text-white/90">
+        <Lightbulb strokeWidth={1.5} className="h-3.5 w-3.5 text-text-muted" />
+        <span className="text-xs font-medium text-text-heading">
           Tips from students
         </span>
       </div>
-      <ul className="list-disc space-y-1 pl-9 text-sm leading-relaxed text-text-body marker:text-accent dark:text-white/80">
+      <ul className="list-disc space-y-1 pl-9 text-sm leading-relaxed text-text-body marker:text-text-muted">
         {items.map((tip, index) => (
           <li key={`${tip}-${index}`}>{tip}</li>
         ))}
@@ -173,24 +173,43 @@ export function SummaryTips({
   );
 }
 
-/** One-paragraph takeaway shown above the rest of an overall summary. */
+/**
+ * One-paragraph takeaway shown above the rest of an overall summary.
+ * `prominent` makes it a callout, for the professor page where it's the headline.
+ */
 export function SummaryTldr({
   tldr,
   className = "",
+  prominent = false,
 }: {
   tldr?: string | null;
   className?: string;
+  prominent?: boolean;
 }) {
   if (!tldr || !tldr.trim()) return null;
+  if (!prominent) {
+    return (
+      <p
+        className={`text-sm leading-relaxed text-text-body dark:text-white/85 ${className}`}
+      >
+        <span className="mr-1.5 font-semibold text-text-heading dark:text-white">
+          TL;DR
+        </span>
+        {tldr}
+      </p>
+    );
+  }
   return (
-    <p
-      className={`text-sm leading-relaxed text-text-body dark:text-white/85 ${className}`}
+    <div
+      className={`rounded-r-xl border-l-4 border-accent bg-accent/[0.06] px-4 py-3 dark:bg-accent/10 ${className}`}
     >
-      <span className="mr-1.5 font-semibold text-text-heading dark:text-white">
+      <span className="inline-block rounded bg-accent px-1.5 py-0.5 text-[11px] font-bold leading-none tracking-wide text-accent-foreground">
         TL;DR
       </span>
-      {tldr}
-    </p>
+      <p className="mt-2 text-base font-medium leading-relaxed text-text-heading sm:text-lg">
+        {tldr}
+      </p>
+    </div>
   );
 }
 
@@ -217,17 +236,13 @@ export function RatingTrend({
   const dropped = diff < 0;
   return (
     <p
-      className={`rounded-xl border px-3 py-2 text-sm ${
-        dropped
-          ? "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-400/40 dark:bg-amber-500/10 dark:text-amber-100"
-          : "border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-400/40 dark:bg-emerald-500/10 dark:text-emerald-100"
-      } ${className}`}
+      className={`rounded-xl border border-border bg-canvas px-3 py-2 text-sm text-text-body ${className}`}
     >
-      <span className="font-semibold">
+      <span className={`font-medium ${dropped ? "text-caution" : "text-positive"}`}>
         {dropped ? "Ratings dropped recently: " : "Ratings improved recently: "}
       </span>
       {recent.toFixed(1)} in the last {years} years ({reviewsLabel(recentN)})
-      vs {older.toFixed(1)} before ({reviewsLabel(olderN)}).
+      vs {older.toFixed(1)} before ({reviewsLabel(olderN)})
     </p>
   );
 }

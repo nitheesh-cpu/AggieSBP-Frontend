@@ -4,6 +4,7 @@ import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Navigation } from "@/components/navigation";
+import { PageBanner } from "@/components/page-banner";
 import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,7 +56,7 @@ const DIFFICULTY_ORDER: Record<string, number> = {
 };
 
 const cardClass =
-  "bg-card border-border dark:bg-black/45 dark:border-white/10 dark:backdrop-blur-sm";
+  "bg-card border-border";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -303,7 +304,7 @@ function SearchPicker<T>({
 
   return (
     <div ref={containerRef} className="relative">
-      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-body dark:text-white/60" />
+      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-body dark:text-text-muted" />
       <Input
         value={term}
         disabled={full}
@@ -323,18 +324,18 @@ function SearchPicker<T>({
             setOpen(false);
           }
         }}
-        className="h-12 pl-10 bg-canvas border-border text-text-body placeholder:text-text-body/75 dark:bg-black/30 dark:border-white/15 dark:text-white dark:placeholder:text-white/65"
+        className="h-12 pl-10 bg-canvas border-border text-text-body placeholder:text-text-muted dark:bg-card dark:text-text-heading dark:placeholder:text-white/65"
       />
       {loading && (
-        <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-[#FFCF3F]" />
+        <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-text-muted" />
       )}
 
       {showDropdown && (
-        <div className="absolute z-30 mt-2 w-full max-h-80 overflow-y-auto rounded-xl border border-border bg-card shadow-lg dark:bg-neutral-950 dark:border-white/15">
+        <div className="absolute z-30 mt-2 w-full max-h-80 overflow-y-auto rounded-xl border border-border bg-card shadow-lg">
           {error ? (
             <p className="p-4 text-sm text-red-600 dark:text-red-300">{error}</p>
           ) : results.length === 0 ? (
-            <p className="p-4 text-sm text-text-body dark:text-white/70">
+            <p className="p-4 text-sm text-text-body">
               {loading || term.trim() !== debounced
                 ? "Searching..."
                 : `No matches for "${term.trim()}"`}
@@ -349,13 +350,13 @@ function SearchPicker<T>({
                       type="button"
                       disabled={picked}
                       onClick={() => pick(item)}
-                      className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-canvas disabled:cursor-default disabled:opacity-60 dark:hover:bg-white/5"
+                      className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-canvas disabled:cursor-default disabled:opacity-60 dark:hover:bg-raised"
                     >
                       <div className="min-w-0">{renderItem(item)}</div>
                       {picked ? (
                         <Check className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
                       ) : (
-                        <Plus className="w-4 h-4 shrink-0 text-text-body dark:text-white/70" />
+                        <Plus className="w-4 h-4 shrink-0 text-text-body" />
                       )}
                     </button>
                   </li>
@@ -379,7 +380,7 @@ function SelectionHeader({
   onClear: () => void;
 }) {
   return (
-    <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm text-text-body dark:text-white/70">
+    <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm text-text-body">
       <span>
         {count === 0
           ? `Add 2–${MAX_ITEMS} ${noun}s to compare them side by side.`
@@ -391,7 +392,7 @@ function SelectionHeader({
         <button
           type="button"
           onClick={onClear}
-          className="text-text-body underline-offset-4 hover:underline dark:text-white/70"
+          className="text-text-body underline-offset-4 hover:underline"
         >
           Clear all
         </button>
@@ -412,11 +413,11 @@ function EmptyState({
   return (
     <Card className={`p-12 ${cardClass}`}>
       <div className="text-center">
-        <Icon className="w-14 h-14 text-text-body/75 mx-auto mb-4 dark:text-white/65" />
-        <h3 className="text-xl font-semibold text-text-heading dark:text-white mb-2">
+        <Icon className="w-14 h-14 text-text-muted mx-auto mb-4" />
+        <h3 className="text-xl font-medium text-text-heading mb-2">
           {title}
         </h3>
-        <p className="text-text-body dark:text-white/70 max-w-md mx-auto">
+        <p className="text-text-body max-w-md mx-auto">
           {body}
         </p>
       </div>
@@ -440,7 +441,7 @@ function Row({
     <>
       {label}
       {hint && (
-        <span className="mt-0.5 block text-xs font-normal text-text-body dark:text-white/60">
+        <span className="mt-0.5 block text-xs font-normal text-text-body dark:text-text-muted">
           {hint}
         </span>
       )}
@@ -449,21 +450,21 @@ function Row({
   return (
     <>
       {/* Phones: the label sits on its own line so the values get the full width. */}
-      <tr className="border-t border-border dark:border-white/10 sm:hidden">
+      <tr className="border-t border-border sm:hidden">
         <th
           scope="colgroup"
           colSpan={cells.length + 1}
           aria-hidden
-          className="px-3 pt-3 pb-0 text-left text-sm font-medium text-text-heading dark:text-white"
+          className="px-3 pt-3 pb-0 text-left text-sm font-medium text-text-heading"
         >
           <div className="sticky left-3 inline-block">{labelContent}</div>
         </th>
       </tr>
-      <tr className="align-top sm:border-t sm:border-border sm:dark:border-white/10">
+      <tr className="align-top sm:border-t sm:border-border sm:dark:border-border">
       {/* Stays in the grid on phones (zero width) so the value cells don't shift columns. */}
       <th
         scope="row"
-        className="sticky left-0 z-10 bg-card p-0 text-left text-sm font-medium text-text-heading dark:bg-neutral-950 dark:text-white sm:p-4"
+        className="sticky left-0 z-10 bg-card p-0 text-left text-sm font-medium text-text-heading sm:p-4"
       >
         <div className="sr-only sm:not-sr-only">{labelContent}</div>
       </th>
@@ -472,14 +473,14 @@ function Row({
         return (
           <td
             key={i}
-            className={`p-3 text-sm text-text-body dark:text-white/80 sm:p-4 ${
+            className={`p-3 text-sm text-text-body dark:text-text-body sm:p-4 ${
               isBest ? "bg-emerald-500/10" : ""
             }`}
           >
             <div className="flex flex-wrap items-start gap-x-2 gap-y-1">
               <div className="min-w-0 grow">{cell}</div>
               {isBest && (
-                <span className="shrink-0 rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white dark:bg-emerald-500 dark:text-black">
+                <span className="shrink-0 rounded-full bg-emerald-600 px-2 py-0.5 text-xs font-medium text-white dark:bg-emerald-500 dark:text-black">
                   Best
                 </span>
               )}
@@ -494,11 +495,11 @@ function Row({
 
 function SectionRow({ label, span }: { label: string; span: number }) {
   return (
-    <tr className="border-t border-border dark:border-white/10">
+    <tr className="border-t border-border">
       <th
         colSpan={span}
         scope="colgroup"
-        className="bg-canvas px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-text-body dark:bg-white/5 dark:text-white/60 sm:px-4"
+        className="bg-canvas px-3 py-2 text-left text-xs font-medium text-text-body dark:bg-raised dark:text-text-muted sm:px-4"
       >
         <div className="sticky left-3 inline-block sm:left-4">{label}</div>
       </th>
@@ -530,7 +531,7 @@ function ComparisonTable({
           </colgroup>
           <thead>
             <tr>
-              <th className="sticky left-0 z-10 bg-card p-0 dark:bg-neutral-950 sm:p-4">
+              <th className="sticky left-0 z-10 bg-card p-0 sm:p-4">
                 <span className="sr-only">Measure</span>
               </th>
               {columns.map((col, i) => (
@@ -567,13 +568,13 @@ function ColumnHeader({
       <div className="min-w-0">
         <Link
           href={href}
-          className="group inline-flex items-center gap-1 text-[15px] font-semibold text-text-heading hover:underline underline-offset-4 dark:text-white sm:text-base"
+          className="group inline-flex items-center gap-1 text-base font-medium text-text-heading hover:underline underline-offset-4 sm:text-base"
         >
           {title}
           <ExternalLink className="hidden w-3.5 h-3.5 opacity-50 group-hover:opacity-100 sm:block" />
         </Link>
         {subtitle && (
-          <p className="text-xs text-text-body line-clamp-2 break-words dark:text-white/70 sm:text-sm">
+          <p className="text-xs text-text-body line-clamp-2 break-words sm:text-sm">
             {subtitle}
           </p>
         )}
@@ -583,7 +584,7 @@ function ColumnHeader({
         variant="outline"
         onClick={onRemove}
         aria-label={`Remove ${title}`}
-        className="h-7 w-7 shrink-0 sm:h-8 sm:w-8 border-border hover:bg-button-hover dark:border-white/15 dark:bg-black/20 dark:text-white/80 dark:hover:bg-black/35"
+        className="h-7 w-7 shrink-0 sm:h-8 sm:w-8 border-border hover:bg-button-hover dark:bg-card dark:text-text-body dark:hover:bg-raised"
       >
         <X className="w-4 h-4" />
       </Button>
@@ -594,7 +595,7 @@ function ColumnHeader({
 function GradeBar({ distribution }: { distribution: GradeDistribution }) {
   return (
     <div>
-      <div className="flex h-3 w-full overflow-hidden rounded-full bg-canvas dark:bg-white/10">
+      <div className="flex h-3 w-full overflow-hidden rounded-full bg-canvas dark:bg-raised">
         {GRADES.map((g) =>
           distribution[g] > 0 ? (
             <div
@@ -610,7 +611,7 @@ function GradeBar({ distribution }: { distribution: GradeDistribution }) {
         {GRADES.map((g) => (
           <div key={g} className="flex items-center gap-1 whitespace-nowrap">
             <span className={`h-2 w-2 rounded-full ${GRADE_COLORS[g]}`} />
-            <span className="text-text-body dark:text-white/70">
+            <span className="text-text-body">
               {g} {distribution[g].toFixed(0)}%
             </span>
           </div>
@@ -630,12 +631,12 @@ function RatingValue({
   if (rating === null || rating === undefined) return <Muted>No reviews</Muted>;
   return (
     <span className="inline-flex items-center gap-1">
-      <Star className="w-4 h-4 text-[#FFCF3F] fill-current" />
-      <span className="font-semibold text-text-heading dark:text-white">
+      <Star className="w-4 h-4 text-text-muted" />
+      <span className="font-medium text-text-heading">
         {rating.toFixed(1)}
       </span>
       {reviews !== undefined && (
-        <span className="text-xs text-text-body dark:text-white/60">
+        <span className="text-xs text-text-body dark:text-text-muted">
           ({reviews} review{reviews === 1 ? "" : "s"})
         </span>
       )}
@@ -644,12 +645,12 @@ function RatingValue({
 }
 
 function Muted({ children }: { children: React.ReactNode }) {
-  return <span className="text-text-body/70 dark:text-white/45">{children}</span>;
+  return <span className="text-text-muted">{children}</span>;
 }
 
 function Strong({ children }: { children: React.ReactNode }) {
   return (
-    <span className="text-base font-semibold text-text-heading dark:text-white">
+    <span className="text-base font-medium text-text-heading">
       {children}
     </span>
   );
@@ -658,8 +659,8 @@ function Strong({ children }: { children: React.ReactNode }) {
 function SkeletonColumns({ count }: { count: number }) {
   return (
     <Card className={`p-8 ${cardClass}`}>
-      <div className="flex items-center justify-center gap-3 text-text-body dark:text-white/70">
-        <Loader2 className="w-5 h-5 animate-spin text-[#FFCF3F]" />
+      <div className="flex items-center justify-center gap-3 text-text-body">
+        <Loader2 className="w-5 h-5 animate-spin text-text-muted" />
         Loading {count} item{count === 1 ? "" : "s"}...
       </div>
     </Card>
@@ -735,13 +736,13 @@ function CourseComparison() {
           onPick={(c) => addCourse(c.id)}
           renderItem={(c) => (
             <>
-              <div className="font-medium text-text-heading dark:text-white">
+              <div className="font-medium text-text-heading">
                 {c.code}
-                <span className="ml-2 text-xs font-normal text-text-body dark:text-white/60">
+                <span className="ml-2 text-xs font-normal text-text-body dark:text-text-muted">
                   {c.avgGPA > 0 ? `GPA ${c.avgGPA.toFixed(2)}` : ""}
                 </span>
               </div>
-              <div className="text-sm text-text-body truncate dark:text-white/70">
+              <div className="text-sm text-text-body truncate">
                 {c.name}
               </div>
             </>
@@ -767,7 +768,7 @@ function CourseComparison() {
                 size="sm"
                 variant="outline"
                 onClick={() => removeCourse(id)}
-                className="h-7 border-border dark:border-white/15 dark:bg-black/20"
+                className="h-7 border-border dark:bg-card"
               >
                 Remove {id}
               </Button>
@@ -787,8 +788,8 @@ function CourseComparison() {
       ) : courses.length > 0 ? (
         <>
           {pending.length > 0 && (
-            <p className="flex items-center gap-2 text-sm text-text-body dark:text-white/70">
-              <Loader2 className="w-4 h-4 animate-spin text-[#FFCF3F]" />
+            <p className="flex items-center gap-2 text-sm text-text-body">
+              <Loader2 className="w-4 h-4 animate-spin text-text-muted" />
               Loading {pending.join(", ")}...
             </p>
           )}
@@ -882,18 +883,18 @@ function CourseComparison() {
                           {p.id ? (
                             <Link
                               href={`/professor/${p.id}`}
-                              className="font-medium text-text-heading hover:underline underline-offset-4 dark:text-white"
+                              className="font-medium text-text-heading hover:underline underline-offset-4"
                             >
                               {p.name}
                             </Link>
                           ) : (
-                            <span className="font-medium text-text-heading dark:text-white">
+                            <span className="font-medium text-text-heading">
                               {p.name}
                             </span>
                           )}
-                          <div className="flex flex-wrap items-center gap-x-3 text-xs text-text-body dark:text-white/65">
+                          <div className="flex flex-wrap items-center gap-x-3 text-xs text-text-body dark:text-text-muted">
                             <span className="inline-flex items-center gap-1">
-                              <Star className="w-3 h-3 text-[#FFCF3F] fill-current" />
+                              <Star className="w-3 h-3 text-text-muted" />
                               {p.rating !== null
                                 ? `${p.rating.toFixed(1)} (${p.reviews})`
                                 : "No reviews"}
@@ -907,7 +908,7 @@ function CourseComparison() {
                       <li>
                         <Link
                           href={`/course/${loadedIds[i]}`}
-                          className="text-xs text-text-body underline underline-offset-4 dark:text-white/65"
+                          className="text-xs text-text-body underline underline-offset-4 dark:text-text-muted"
                         >
                           +{s.professors.length - 5} more
                         </Link>
@@ -925,7 +926,7 @@ function CourseComparison() {
                 <>
                   <Strong>{c.credits}</Strong>
                   {Boolean(c.lectureHours || c.labHours) && (
-                    <span className="ml-2 text-xs text-text-body dark:text-white/60">
+                    <span className="ml-2 text-xs text-text-body dark:text-text-muted">
                       {[
                         c.lectureHours ? `${c.lectureHours} lecture` : null,
                         c.labHours ? `${c.labHours} lab` : null,
@@ -964,7 +965,7 @@ function CourseComparison() {
                   <>
                     <Strong>{c.enrollment.toLocaleString()}</Strong>
                     {c.enrollmentYear && (
-                      <span className="ml-2 text-xs text-text-body dark:text-white/60">
+                      <span className="ml-2 text-xs text-text-body dark:text-text-muted">
                         {c.enrollmentYear}
                       </span>
                     )}
@@ -996,7 +997,7 @@ function CourseComparison() {
                             <Link href={`/course/${code.replace(/\s+/g, "")}`}>
                               <Badge
                                 variant="outline"
-                                className="border-border bg-canvas text-text-body hover:border-text-body dark:border-white/15 dark:bg-black/20 dark:text-white/80"
+                                className="border-border bg-canvas text-text-body hover:border-text-body dark:bg-card"
                               >
                                 {code}
                               </Badge>
@@ -1116,11 +1117,11 @@ function ProfessorComparison() {
           onPick={(p) => addProfessor(p.id)}
           renderItem={(p) => (
             <>
-              <div className="font-medium text-text-heading truncate dark:text-white">
+              <div className="font-medium text-text-heading truncate">
                 {p.name.replace(/\s+/g, " ")}
               </div>
-              <div className="flex items-center gap-1 text-xs text-text-body dark:text-white/70">
-                <Star className="w-3 h-3 text-[#FFCF3F] fill-current" />
+              <div className="flex items-center gap-1 text-xs text-text-body">
+                <Star className="w-3 h-3 text-text-muted" />
                 {p.overall_rating ? p.overall_rating.toFixed(1) : "No rating"} ·{" "}
                 {p.total_reviews || 0} reviews
                 {p.departments?.filter(Boolean).length
@@ -1284,7 +1285,7 @@ function ProfessorComparison() {
                       <Link key={c.course_id} href={`/course/${c.course_id}`}>
                         <Badge
                           variant="outline"
-                          className="border-border bg-canvas text-text-body hover:border-text-body dark:border-white/15 dark:bg-black/20 dark:text-white/80"
+                          className="border-border bg-canvas text-text-body hover:border-text-body dark:bg-card"
                         >
                           {c.course_id.replace(/^([A-Z]+)(\d)/, "$1 $2")}
                           {c.avg_rating ? ` · ${c.avg_rating.toFixed(1)}` : ""}
@@ -1312,7 +1313,7 @@ function ProfessorComparison() {
                     <Badge
                       key={tag}
                       variant="outline"
-                      className="border-border bg-canvas text-text-body dark:border-white/15 dark:bg-black/20 dark:text-white/80"
+                      className="border-border bg-canvas text-text-body dark:bg-card"
                     >
                       {tag} ({n})
                     </Badge>
@@ -1330,11 +1331,11 @@ function ProfessorComparison() {
                   {p.recent_reviews.slice(0, 2).map((r) => (
                     <div
                       key={r.id}
-                      className="rounded-lg border border-border bg-canvas p-3 dark:border-white/10 dark:bg-black/30"
+                      className="rounded-lg border border-border bg-canvas p-3 dark:bg-card"
                     >
                       <div className="mb-1 flex flex-wrap items-center gap-x-2 text-xs">
-                        <span className="inline-flex items-center gap-1 font-medium text-text-heading dark:text-white">
-                          <Star className="w-3 h-3 text-[#FFCF3F] fill-current" />
+                        <span className="inline-flex items-center gap-1 font-medium text-text-heading">
+                          <Star className="w-3 h-3 text-text-muted" />
                           {r.overall_rating !== null
                             ? r.overall_rating.toFixed(1)
                             : "—"}
@@ -1393,30 +1394,18 @@ function ComparePageContent() {
 
       <Navigation variant="glass" />
 
-      <main className="pt-20 pb-20 relative z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-center gap-2 text-xs text-text-body mb-6 dark:text-white/70">
-            <Link href="/" className="hover:underline underline-offset-4">
-              Home
-            </Link>
-            <ChevronRight className="w-4 h-4 text-text-body/75 dark:text-white/65" />
-            <span className="text-text-heading dark:text-white/90">Compare</span>
-          </div>
+      <PageBanner
+          title="Compare side by side"
+          subtitle={<>{`Pick up to ${MAX_ITEMS} courses or professors. The best value in each row is highlighted.`}</>}
+        />
 
-          <div className="text-center mb-8">
-            <h1 className="text-text-heading dark:text-white text-[28px] sm:text-[34px] md:text-[40px] leading-tight font-semibold tracking-tight mb-3">
-              Compare side by side
-            </h1>
-            <p className="text-text-body dark:text-white/80 text-[13px] sm:text-[14px] md:text-[15px] max-w-2xl mx-auto leading-relaxed">
-              Pick up to {MAX_ITEMS} courses or professors. The best value in
-              each row is highlighted.
-            </p>
-          </div>
+        <main className="pt-10 pb-20 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
 
           <div
             role="tablist"
             aria-label="What to compare"
-            className="mx-auto mb-6 grid max-w-md grid-cols-2 gap-1 rounded-xl border border-border bg-card p-1 dark:bg-black/45 dark:border-white/15 dark:backdrop-blur-sm"
+            className="mx-auto mb-6 grid max-w-md grid-cols-2 gap-1 rounded-xl border border-border bg-card p-1"
           >
             {tabs.map(({ value, label, icon: Icon }) => {
               const active = tab === value;
@@ -1430,8 +1419,8 @@ function ComparePageContent() {
                   aria-selected={active}
                   className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                     active
-                      ? "bg-[#FFCF3F] text-[#0f0f0f] shadow-sm"
-                      : "text-text-body hover:bg-canvas dark:text-white/75 dark:hover:bg-white/5"
+                      ? "bg-raised text-text-heading shadow-none"
+                      : "text-text-body hover:bg-canvas dark:hover:bg-raised"
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -1460,7 +1449,7 @@ export default function ComparePage() {
         >
           <Navigation variant="glass" />
           <main className="pt-32 pb-20 relative z-10 flex justify-center">
-            <Loader2 className="w-8 h-8 animate-spin text-[#FFCF3F]" />
+            <Loader2 className="w-8 h-8 animate-spin text-text-muted" />
           </main>
           <Footer />
         </div>

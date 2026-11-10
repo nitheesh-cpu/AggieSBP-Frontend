@@ -63,14 +63,6 @@ function ProfileContent() {
       className="relative flex min-h-screen flex-col"
       style={{ background: "var(--app-bg-gradient)" }}
     >
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-        style={{ background: "var(--app-bg-ambient)" }}
-      />
 
       <Navigation variant="glass" />
 
@@ -82,13 +74,13 @@ function ProfileContent() {
             transition={{ duration: 0.35 }}
             className="space-y-2"
           >
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-text-body/70 dark:text-white/65">
+            <p className="text-xs font-medium tracking-[0.18em] text-text-muted">
               Account
             </p>
-            <h1 className="text-3xl font-bold tracking-tight text-text-heading dark:text-white sm:text-4xl">
+            <h1 className="text-[32px] leading-tight font-medium text-text-heading sm:text-4xl">
               Profile
             </h1>
-            <p className="max-w-2xl text-sm text-text-body dark:text-white/70">
+            <p className="max-w-2xl text-sm text-text-body">
               Manage your account and notification preferences.
             </p>
           </motion.div>
@@ -99,22 +91,22 @@ function ProfileContent() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.05 }}
           >
-            <Card className="overflow-hidden border-border/70 bg-white/70 shadow-md backdrop-blur-md dark:border-white/10 dark:bg-black/50">
+            <Card className="overflow-hidden border-border/70 bg-white/70 shadow-md backdrop-blur-md dark:border-border dark:bg-card">
               <CardContent className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
                 <div className="flex items-start gap-4 sm:gap-5">
-                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[#500000]/10 dark:bg-[#FFCF3F]/15 sm:h-20 sm:w-20">
-                    <User className="h-8 w-8 text-[#500000] dark:text-[#FFCF3F] sm:h-10 sm:w-10" />
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-border bg-raised">
+                    <User strokeWidth={1.5} className="h-6 w-6 text-text-muted" />
                   </div>
                   <div className="min-w-0 space-y-3">
                     <div className="space-y-1">
-                      <p className="text-xs font-medium uppercase tracking-wide text-text-body/80 dark:text-white/65">
+                      <p className="text-xs font-medium text-text-muted">
                         Email
                       </p>
                       <p
-                        className="flex items-center gap-2 truncate text-sm font-medium text-text-heading dark:text-white sm:text-base"
+                        className="flex items-center gap-2 truncate text-sm font-medium text-text-heading sm:text-base"
                         title={account?.primary_email ?? undefined}
                       >
-                        <Mail className="h-4 w-4 shrink-0 text-text-body/70 dark:text-white/65" />
+                        <Mail className="h-4 w-4 shrink-0 text-text-muted" />
                         <span className="truncate">
                           {accountPending
                             ? "Loading…"
@@ -123,12 +115,12 @@ function ProfileContent() {
                       </p>
                     </div>
                     <div className="space-y-1.5">
-                      <p className="text-xs font-medium uppercase tracking-wide text-text-body/80 dark:text-white/65">
+                      <p className="text-xs font-medium text-text-muted">
                         Sign-in methods
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {accountPending ? (
-                          <span className="text-xs text-text-body dark:text-white/65">
+                          <span className="text-xs text-text-body dark:text-text-muted">
                             Loading…
                           </span>
                         ) : account?.sign_in_methods?.length ? (
@@ -136,24 +128,24 @@ function ProfileContent() {
                             <Badge
                               key={`${m.recipe}-${m.label}-${m.provider ?? ""}`}
                               variant="outline"
-                              className="border-[#500000]/25 bg-[#500000]/5 text-xs font-normal text-[#500000] dark:border-[#FFCF3F]/40 dark:bg-[#FFCF3F]/10 dark:text-[#FFCF3F]"
+                              className="border-border bg-transparent font-mono text-xs font-normal text-text-body"
                             >
                               {m.label}
                             </Badge>
                           ))
                         ) : (
-                          <span className="text-xs text-text-body dark:text-white/65">
+                          <span className="text-xs text-text-body dark:text-text-muted">
                             —
                           </span>
                         )}
                       </div>
                     </div>
-                    <div className="space-y-0.5 border-t border-border/50 pt-3 dark:border-white/10">
-                      <p className="text-[10px] font-medium uppercase tracking-wide text-text-body/70 dark:text-white/65">
+                    <div className="space-y-0.5 border-t border-border/50 pt-3 dark:border-border">
+                      <p className="text-xs font-medium text-text-muted">
                         User id (support)
                       </p>
                       <p
-                        className="font-mono text-xs text-text-body dark:text-white/60"
+                        className="font-mono text-xs text-text-body dark:text-text-muted"
                         title={idDisplay.full}
                       >
                         {idDisplay.short}
@@ -164,14 +156,14 @@ function ProfileContent() {
                 <div className="flex shrink-0 flex-wrap gap-2 sm:flex-col sm:items-stretch">
                   <Button
                     asChild
-                    className="rounded-full bg-[#500000] text-white hover:bg-[#3d0000] dark:bg-[#FFCF3F] dark:text-black dark:hover:bg-[#FFD966]"
+                    className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
                   >
                     <Link href="/profile/alerts" className="gap-2">
                       <Bell className="h-4 w-4" />
                       My alerts
                     </Link>
                   </Button>
-                  <Button variant="outline" asChild className="rounded-full border-border dark:border-white/20">
+                  <Button variant="outline" asChild className="rounded-full border-border dark:border-border-strong">
                     <Link href="/dashboard">Open dashboard</Link>
                   </Button>
                 </div>

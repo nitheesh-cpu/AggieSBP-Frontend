@@ -141,7 +141,9 @@ export function useDegreePlan() {
         if (anon) {
           try {
             window.localStorage.removeItem(ANON_KEY);
-          } catch {}
+          } catch {
+            // Storage blocked: nothing to clear.
+          }
         }
         if (planKey(merged) !== planKey(remote)) void push();
         else setStatus("synced");
@@ -166,7 +168,9 @@ export function useDegreePlan() {
         const merged = mergePlans(planRef.current, other);
         planRef.current = merged;
         setPlanState(merged);
-      } catch {}
+      } catch {
+        // A malformed copy from another tab: keep ours.
+      }
     };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);

@@ -145,7 +145,9 @@ export function useAcademicRecord() {
         if (anon) {
           try {
             window.localStorage.removeItem(ANON_KEY);
-          } catch {}
+          } catch {
+            // Storage blocked: nothing to clear.
+          }
         }
         if (recordKey(merged) !== recordKey(state.record)) void push();
         else setStatus("synced");
@@ -169,7 +171,9 @@ export function useAcademicRecord() {
         const merged = mergeRecords(recordRef.current, other);
         recordRef.current = merged;
         setRecordState(merged);
-      } catch {}
+      } catch {
+        // A malformed copy from another tab: keep ours.
+      }
     };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);

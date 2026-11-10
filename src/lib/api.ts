@@ -919,6 +919,8 @@ export interface DiscoverFitSection {
   instructor?: string | null;
   /** e.g. "MWF 09:10 AM-10:00 AM"; several meetings joined with "; ". */
   meetings?: string | null;
+  /** This section's own title; special topics ("SPTP: COMPUTER VISION") differ by section. */
+  title?: string | null;
 }
 
 export type DiscoverFitSeatFilter = "any" | "open" | "full";
@@ -1272,4 +1274,81 @@ export async function savePlannerDoc<T>(
   }
   const saved = await handleResponse<{ rev: number }>(response);
   return saved.rev;
+}
+
+// Discover lists for the degree planner's Find Courses view
+export interface TermDepartment {
+  code: string;
+  name: string;
+}
+
+export async function getTermDepartments(termCode: string): Promise<TermDepartment[]> {
+  const response = await fetch(`${API_BASE_URL}/discover/${encodeURIComponent(termCode)}/departments`);
+  return handleResponse<TermDepartment[]>(response);
+}
+
+/** Rows are one per course and professor, with an easiness score (0-100). */
+export async function getDiscoverDeptCourses(
+  termCode: string,
+  dept: string,
+  opts: { campus?: string; includeGraduate?: boolean } = {},
+): Promise<import("./planner/find").DiscoverRow[]> {
+  const params = new URLSearchParams();
+  if (opts.campus) params.set("campus", opts.campus);
+  params.set("include_graduate", String(opts.includeGraduate ?? false));
+  const response = await fetch(
+    `${API_BASE_URL}/discover/${encodeURIComponent(termCode)}/${encodeURIComponent(dept)}?${params}`,
+  );
+  return handleResponse(response);
+}
+
+/**
+ * GPA boosters: undergraduate courses from any department offered in a term
+ * whose recent average GPA is high. Same row shape as a department's list.
+ */
+export async function getDiscoverGpaBoosters(
+  termCode: string,
+  opts: { campus?: string } = {},
+): Promise<import("./planner/find").DiscoverRow[]> {
+  const params = new URLSearchParams();
+  if (opts.campus) params.set("campus", opts.campus);
+  const response = await fetch(
+    `${API_BASE_URL}/discover/${encodeURIComponent(termCode)}/gpa-boosters${params.size ? `?${params}` : ""}`,
+  );
+  return handleResponse(response);
+}
+
+/**
+ * Every professor teaching these courses in a term, one row per course and
+ * professor with that professor's easiness. Keys are "DEPT-NUMBER".
+ */
+export async function getDiscoverCourseProfessors(
+  termCode: string,
+  courseKeys: string[],
+  opts: { campus?: string } = {},
+): Promise<import("./planner/find").DiscoverRow[]> {
+  const response = await fetch(
+    `${API_BASE_URL}/discover/${encodeURIComponent(termCode)}/course-professors`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        course_keys: courseKeys,
+        ...(opts.campus ? { campus: opts.campus } : {}),
+      }),
+    },
+  );
+  return handleResponse(response);
+}
+
+export async function getDiscoverUccCourses(
+  termCode: string,
+  opts: { campus?: string } = {},
+): Promise<{ category: string; courses: import("./planner/find").DiscoverRow[] }[]> {
+  const params = new URLSearchParams();
+  if (opts.campus) params.set("campus", opts.campus);
+  const response = await fetch(
+    `${API_BASE_URL}/discover/${encodeURIComponent(termCode)}/ucc${params.size ? `?${params}` : ""}`,
+  );
+  return handleResponse(response);
 }

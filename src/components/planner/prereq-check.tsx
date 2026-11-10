@@ -77,7 +77,7 @@ export function PrereqCheck({ record }: { record: AcademicRecord }) {
         <div className="flex-1">
           <CourseSearch onSelect={(code) => void pick(code)} placeholder="Which course? e.g. CSCE 411" />
         </div>
-        <div className="flex items-center gap-2 text-sm text-text-body dark:text-white/80">
+        <div className="flex items-center gap-2 text-sm text-text-body">
           <span>in</span>
           <TermSelect
             value={term}
@@ -120,23 +120,23 @@ function CheckResult({ course, ctx, term }: { course: CoursePrereqs; ctx: EvalCo
   const noTrees = !course.prereqTree && !course.coreqTree;
 
   return (
-    <div className="rounded-lg border border-border bg-white/60 p-4 dark:bg-white/5">
+    <div className="rounded-lg border border-border bg-white/60 p-4 dark:bg-raised">
       <div className="flex items-start gap-3">
         <Icon className={cn("mt-0.5 h-5 w-5 shrink-0", style.className)} />
         <div className="space-y-1">
-          <p className="font-semibold text-text-heading dark:text-white">{headline}</p>
-          <p className="text-sm text-text-body dark:text-white/70">
+          <p className="font-medium text-text-heading">{headline}</p>
+          <p className="text-sm text-text-body">
             <Link href={`/course/${courseId(course.code)}`} className="hover:underline">
               {course.code} · {course.name}
             </Link>
           </p>
           {result.status === "unmet" && "missing" in result && result.missing.length > 0 && (
-            <p className="text-sm text-text-body dark:text-white/80">
+            <p className="text-sm text-text-body">
               Still needed: <strong>{result.missing.join(", ")}</strong>
             </p>
           )}
           {"takeTogether" in result && result.takeTogether.length > 0 && (
-            <p className="text-sm text-text-body dark:text-white/80">
+            <p className="text-sm text-text-body">
               Counts only if you take {result.takeTogether.join(", ")} in the same term.
             </p>
           )}
@@ -146,17 +146,17 @@ function CheckResult({ course, ctx, term }: { course: CoursePrereqs; ctx: EvalCo
       {result.status !== "taken" && (
         <div className="mt-4 space-y-3 text-sm">
           {noTrees && !course.prereqText && (
-            <p className="text-text-body dark:text-white/70">No prerequisites listed.</p>
+            <p className="text-text-body">No prerequisites listed.</p>
           )}
           {course.prereqTree && (
             <div>
-              <div className="mb-1 font-medium text-text-heading dark:text-white">Prerequisites</div>
+              <div className="mb-1 font-medium text-text-heading">Prerequisites</div>
               <RequirementTree node={course.prereqTree} ctx={ctx} />
             </div>
           )}
           {course.coreqTree && (
             <div>
-              <div className="mb-1 font-medium text-text-heading dark:text-white">
+              <div className="mb-1 font-medium text-text-heading">
                 Corequisites (before or the same term)
               </div>
               <RequirementTree node={course.coreqTree} ctx={ctx} />
@@ -193,7 +193,7 @@ function RequirementTree({ node, ctx }: { node: PrereqNode; ctx: EvalContext }) 
   if (node.type === "and" || node.type === "or") {
     return (
       <div>
-        <div className="flex items-center gap-2 text-text-body dark:text-white/80">
+        <div className="flex items-center gap-2 text-text-body">
           <Icon className={cn("h-4 w-4 shrink-0", style.className)} />
           {node.type === "and" ? "All of:" : "One of:"}
         </div>
@@ -216,8 +216,8 @@ function RequirementTree({ node, ctx }: { node: PrereqNode; ctx: EvalContext }) 
           <Link href={`/course/${courseId(node.code)}`} className="font-medium hover:underline">
             {node.code}
           </Link>
-          {node.min_grade && <span className="text-text-body/80"> ({node.min_grade} or better)</span>}
-          {node.concurrent && <span className="text-text-body/80"> · can be taken the same term</span>}
+          {node.min_grade && <span className="text-text-muted"> ({node.min_grade} or better)</span>}
+          {node.concurrent && <span className="text-text-muted"> · can be taken the same term</span>}
         </>
       );
       break;
@@ -234,7 +234,7 @@ function RequirementTree({ node, ctx }: { node: PrereqNode; ctx: EvalContext }) 
       break;
   }
   return (
-    <div className="flex items-start gap-2 text-text-heading dark:text-white/90">
+    <div className="flex items-start gap-2 text-text-heading">
       <Icon className={cn("mt-0.5 h-4 w-4 shrink-0", style.className)} />
       <span>{label}</span>
     </div>

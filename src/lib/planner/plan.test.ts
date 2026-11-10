@@ -10,11 +10,15 @@ import {
   bucketProgress,
   emptyPlan,
   isValidPlan,
+  isWatchedIn,
+  importRequirements,
   mergePlans,
+  planProgress,
   planKey,
   removeBucket,
   removeFromWatchlist,
   updateBucket,
+  watchKey,
   type DegreePlan,
 } from "./plan.ts";
 
@@ -35,8 +39,10 @@ test("addBucket normalizes, assigns ids, clamps pick", () => {
   assert.equal(b.updatedAt, T1.toISOString());
   assert.deepEqual(b.options.map((o) => o.courses), [["STAT 211"], ["STAT 301"], ["STAT 303"]]);
   assert.equal(new Set(b.options.map((o) => o.id)).size, 3);
+  // Pick can be more than the options so far (more still to choose), up to 20.
   const big = addBucket(emptyPlan(), { name: "x", pick: 9, options: [["MATH 151"]] }, T1);
-  assert.equal(big.buckets[0].pick, 1);
+  assert.equal(big.buckets[0].pick, 9);
+  assert.equal(addBucket(emptyPlan(), { name: "x", pick: 99, options: [] }, T1).buckets[0].pick, 20);
   const low = addBucket(emptyPlan(), { name: "x", pick: 0, options: [["MATH 151"]] }, T1);
   assert.equal(low.buckets[0].pick, 1);
 });
@@ -56,7 +62,7 @@ test("updateBucket, removeBucket", () => {
   assert.equal(p.buckets[0].updatedAt, T2.toISOString());
   p = updateBucket(p, id, { options: [["csce121", "csce120"]] }, T2);
   assert.deepEqual(p.buckets[0].options[0].courses, ["CSCE 121", "CSCE 120"]);
-  assert.equal(p.buckets[0].pick, 1); // clamped to the single option
+  assert.equal(p.buckets[0].pick, 2); // kept: one more option still to add
   const same = updateBucket(p, "missing", { name: "x" }, T3);
   assert.equal(same, p);
 
@@ -225,4 +231,136 @@ test("isValidPlan", () => {
   const badDeleted = JSON.parse(JSON.stringify(base));
   badDeleted.watchlist[0].deleted = "yes";
   assert.equal(isValidPlan(badDeleted), false);
+});
+
+test("planProgress lets a course count toward at most two buckets", () => {
+  let p = emptyPlan();
+  p = addBucket(p, { name: "Major", pick: 1, options: [["CSCE 421"]] }, T1);
+  p = addBucket(p, { name: "Minor", pick: 1, options: [["CSCE 421"], ["STAT 404"]] }, T1);
+  p = addBucket(p, { name: "Third", pick: 1, options: [["CSCE 421"]] }, T1);
+  const [major, minor, third] = p.buckets;
+  const done = (c: string) => c === "CSCE 421";
+  const progress = planProgress(p.buckets, done);
+  // The two single-option groups have no other choice, so they claim it first.
+  assert.equal(progress.byBucket.get(major.id)?.complete, true);
+  assert.equal(progress.byBucket.get(third.id)?.complete, true);
+  assert.equal(progress.byBucket.get(minor.id)?.complete, false);
+  assert.ok(progress.blockedOptions.has(minor.options[0].id));
+
+  // Once STAT 404 is done, the flexible group uses it instead.
+  const both = planProgress(p.buckets, (c) => c === "CSCE 421" || c === "STAT 404");
+  assert.equal(both.byBucket.get(minor.id)?.complete, true);
+  assert.deepEqual(both.byBucket.get(minor.id)?.satisfiedOptions, [minor.options[1].id]);
+  assert.equal(both.blockedOptions.size, 0);
+});
+
+test("planProgress prefers options whose courses are used least", () => {
+  let p = emptyPlan();
+  p = addBucket(p, { name: "A", pick: 1, options: [["MATH 151"]] }, T1);
+  p = addBucket(p, { name: "B", pick: 1, options: [["MATH 151"], ["MATH 152"]] }, T1);
+  const [a, b] = p.buckets;
+  const progress = planProgress(p.buckets, () => true, 1);
+  assert.equal(progress.byBucket.get(a.id)?.complete, true);
+  assert.deepEqual(progress.byBucket.get(b.id)?.satisfiedOptions, [b.options[1].id]);
+});
+
+test("buckets can belong to an area", () => {
+  let p = addBucket(emptyPlan(), { name: "Elective (9 hrs)", pick: 1, options: [["STAT 315"]], area: " Statistics Minor " }, T1);
+  const id = p.buckets[0].id;
+  assert.equal(p.buckets[0].area, "Statistics Minor");
+  p = updateBucket(p, id, { pick: 1 }, T2);
+  assert.equal(p.buckets[0].area, "Statistics Minor"); // kept when not patched
+  p = updateBucket(p, id, { area: null }, T2);
+  assert.equal(p.buckets[0].area, null);
+  assert.equal(addBucket(emptyPlan(), { name: "x", pick: 1, options: [] }, T1).buckets[0].area, null);
+  assert.equal(isValidPlan(p), true);
+  assert.equal(isValidPlan({ ...p, buckets: [{ ...p.buckets[0], area: 5 }] }), false);
+});
+
+test("allowed courses are kept apart from the options", () => {
+  let p = addBucket(emptyPlan(), { name: "Elective", pick: 3, options: [["STAT 404"]], allowed: ["stat315", "STAT 404", "junk"] }, T1);
+  const b = p.buckets[0];
+  assert.deepEqual(b.allowed, ["STAT 315", "STAT 404"]);
+  assert.equal(b.pick, 3);
+  assert.equal(bucketProgress(b, () => true).remaining, 2); // only options count
+  p = updateBucket(p, b.id, { options: [["STAT 404"], ["STAT 315"]] }, T2);
+  assert.deepEqual(p.buckets[0].allowed, ["STAT 315", "STAT 404"]); // kept
+  assert.equal(isValidPlan(p), true);
+});
+
+test("importRequirements updates groups already imported instead of duplicating", () => {
+  const stats = { name: "Elective (9 hrs)", area: "Statistics Minor", pick: 3, options: [["STAT 404"]], allowed: ["STAT 315"] };
+  let p = importRequirements(emptyPlan(), [stats], T1);
+  const id = p.buckets[0].id;
+  p = importRequirements(p, [{ ...stats, options: [["STAT 404"], ["CSCE 421"]] }], T2);
+  const live = p.buckets.filter((b) => !b.deleted);
+  assert.equal(live.length, 1);
+  assert.equal(live[0].id, id); // same group, updated in place
+  assert.deepEqual(live[0].options.map((o) => o.courses), [["STAT 404"], ["CSCE 421"]]);
+});
+
+test("importRequirements folds old-style names and duplicates into one group", () => {
+  let p = emptyPlan();
+  // An older import put the area in the name, and it was imported twice.
+  p = addBucket(p, { name: "Statistics Minor · Elective (9 hrs)", pick: 3, options: [["STAT 315"], ["STAT 335"]] }, T1);
+  p = addBucket(p, { name: "Statistics Minor · Elective (9 hrs)", pick: 3, options: [["STAT 315"]] }, T1);
+  p = addBucket(p, { name: "Mine", pick: 1, options: [["MATH 151"]] }, T1);
+  p = importRequirements(p, [{ name: "Elective (9 hrs)", area: "Statistics Minor", pick: 3, options: [["STAT 404"]] }], T2);
+  const live = p.buckets.filter((b) => !b.deleted);
+  assert.deepEqual(
+    live.map((b) => [b.area ?? null, b.name, b.options.map((o) => o.courses.join("+"))]),
+    [
+      ["Statistics Minor", "Elective (9 hrs)", ["STAT 404"]],
+      [null, "Mine", ["MATH 151"]],
+    ],
+  );
+});
+
+test("watchlist stars two topics of one course independently", () => {
+  let p = addToWatchlist(emptyPlan(), "csce489", T1, "computer vision");
+  p = addToWatchlist(p, "CSCE 489", T1, "AGENTIC AI");
+  p = addToWatchlist(p, "CSCE 489", T1); // the plain code is its own item
+  assert.equal(activeWatchlist(p).length, 3);
+  assert.equal(addToWatchlist(p, "CSCE 489", T2, "COMPUTER VISION"), p); // already there
+  assert.equal(isWatchedIn(p, "CSCE 489", "COMPUTER VISION"), true);
+  assert.equal(isWatchedIn(p, "CSCE 489", "PHYSICAL COMPUTING"), false);
+  p = removeFromWatchlist(p, "CSCE 489", T2, "COMPUTER VISION");
+  assert.equal(isWatchedIn(p, "CSCE 489", "COMPUTER VISION"), false);
+  assert.equal(isWatchedIn(p, "CSCE 489", "AGENTIC AI"), true);
+  assert.equal(isWatchedIn(p, "CSCE 489"), true);
+  assert.equal(removeFromWatchlist(p, "CSCE 489", T3, "COMPUTER VISION"), p);
+  p = removeFromWatchlist(p, "CSCE 489", T3);
+  assert.equal(isWatchedIn(p, "CSCE 489"), false);
+  assert.equal(isWatchedIn(p, "CSCE 489", "AGENTIC AI"), true);
+  assert.deepEqual(
+    activeWatchlist(p).map((w) => watchKey(w)),
+    ["CSCE 489|AGENTIC AI"],
+  );
+});
+
+test("watch items saved before topics existed still load and work", () => {
+  const old = {
+    version: 1,
+    buckets: [],
+    watchlist: [{ code: "CSCE 121", addedAt: T1.toISOString(), updatedAt: T1.toISOString() }],
+  };
+  assert.equal(isValidPlan(old), true);
+  assert.equal(isValidPlan({ ...old, watchlist: [{ ...old.watchlist[0], topic: null }] }), true);
+  assert.equal(isValidPlan({ ...old, watchlist: [{ ...old.watchlist[0], topic: 3 }] }), false);
+  const p = old as DegreePlan;
+  assert.equal(isWatchedIn(p, "CSCE 121"), true);
+  assert.equal(removeFromWatchlist(p, "CSCE 121", T2).watchlist[0].deleted, true);
+});
+
+test("mergePlans keys watch items by topic", () => {
+  const a = addToWatchlist(emptyPlan(), "CSCE 489", T1, "COMPUTER VISION");
+  const b = addToWatchlist(emptyPlan(), "CSCE 489", T1, "AGENTIC AI");
+  const m = mergePlans(a, b, T3);
+  assert.deepEqual(activeWatchlist(m).map((w) => w.topic), ["AGENTIC AI", "COMPUTER VISION"]);
+  // Removing one topic on one device doesn't touch the other.
+  const removed = removeFromWatchlist(m, "CSCE 489", T2, "AGENTIC AI");
+  const merged = mergePlans(removed, m, T3);
+  assert.deepEqual(activeWatchlist(merged).map((w) => w.topic), ["COMPUTER VISION"]);
+  assert.equal(planKey(m), planKey(mergePlans(b, a, T3)));
+  assert.notEqual(planKey(m), planKey(removed));
 });

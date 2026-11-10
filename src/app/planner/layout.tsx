@@ -1,9 +1,9 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Degree Planner - Aggie Schedule Builder Plus",
+  title: "Schedule Builder - Aggie Schedule Builder Plus",
   description:
-    "Track the classes you've taken and check which Texas A&M courses you meet the prerequisites for.",
+    "Find Texas A&M electives you can actually take and build schedules that fit, easiest first.",
 };
 
 export default function PlannerLayout({ children }: { children: React.ReactNode }) {

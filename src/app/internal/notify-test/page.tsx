@@ -23,7 +23,7 @@ export default function NotifyTestPage() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-black text-white">
       <div className="max-w-md w-full p-6 border border-yellow-400/50 rounded-xl bg-black/80 space-y-4">
-        <h1 className="text-xl font-semibold">AggieSB+ Notification Test</h1>
+        <h1 className="text-xl font-medium">AggieSB+ Notification Test</h1>
         <p className="text-sm text-gray-300">
           This secret page lets you verify that push notifications are working on
           this specific device. Make sure you are logged in and have enabled

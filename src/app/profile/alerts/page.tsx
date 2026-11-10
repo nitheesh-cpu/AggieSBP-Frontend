@@ -325,14 +325,6 @@ function MyAlertsContent() {
       className="min-h-screen relative flex flex-col"
       style={{ background: "var(--app-bg-gradient)" }}
     >
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-        style={{ background: "var(--app-bg-ambient)" }}
-      />
 
       <Navigation variant="glass" />
 
@@ -343,16 +335,16 @@ function MyAlertsContent() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="bg-white/50 dark:bg-black/50 backdrop-blur-md border border-[#500000]/10 dark:border-[#FFCF3F]/10 rounded-2xl p-4 md:p-6 flex items-center gap-4 md:gap-6 shadow-sm"
+            className="bg-card border border-border rounded-2xl p-5 md:p-6 flex items-center gap-4 md:gap-6"
           >
-            <div className="h-16 w-16 rounded-full bg-[#500000]/5 dark:bg-[#FFCF3F]/10 flex items-center justify-center shrink-0">
-              <Bell className="h-8 w-8 text-[#500000] dark:text-[#FFCF3F]" />
+            <div className="h-10 w-10 flex items-center justify-center shrink-0">
+              <Bell strokeWidth={1.5} className="h-6 w-6 text-text-muted" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-heading dark:text-white mb-1">
+              <h1 className="text-2xl font-medium text-heading dark:text-text-heading mb-1">
                 Seat Alerts
               </h1>
-              <p className="text-body dark:text-gray-400 text-sm">
+              <p className="text-body dark:text-text-muted text-sm">
                 Get notified when a watched section opens up
               </p>
             </div>
@@ -372,13 +364,13 @@ function MyAlertsContent() {
                   .getElementById("watched-sections")
                   ?.scrollIntoView({ behavior: "smooth", block: "start" })
               }
-              className="rounded-2xl border border-[#500000]/10 bg-white/55 p-4 text-left shadow-sm backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white/75 dark:border-white/10 dark:bg-black/45 dark:hover:bg-black/65"
+              className="rounded-xl border border-border bg-card p-4 text-left transition-colors duration-150 hover:bg-raised"
             >
-              <BellRing className="h-5 w-5 text-[#500000] dark:text-[#FFCF3F]" />
-              <p className="mt-3 text-2xl font-semibold text-heading dark:text-white">
+              <BellRing strokeWidth={1.5} className="h-[18px] w-[18px] text-text-muted" />
+              <p className="mt-3 text-2xl font-medium text-heading dark:text-text-heading">
                 {trackedLoading ? "—" : tracked.length}
               </p>
-              <p className="text-xs text-body dark:text-white/65">
+              <p className="text-xs text-body dark:text-text-muted">
                 watched section{tracked.length === 1 ? "" : "s"}
               </p>
             </button>
@@ -389,30 +381,30 @@ function MyAlertsContent() {
                   .getElementById("notification-devices")
                   ?.scrollIntoView({ behavior: "smooth", block: "start" })
               }
-              className="rounded-2xl border border-[#500000]/10 bg-white/55 p-4 text-left shadow-sm backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white/75 dark:border-white/10 dark:bg-black/45 dark:hover:bg-black/65"
+              className="rounded-xl border border-border bg-card p-4 text-left transition-colors duration-150 hover:bg-raised"
             >
-              <MonitorSmartphone className="h-5 w-5 text-[#500000] dark:text-[#FFCF3F]" />
-              <p className="mt-3 text-2xl font-semibold text-heading dark:text-white">
+              <MonitorSmartphone strokeWidth={1.5} className="h-[18px] w-[18px] text-text-muted" />
+              <p className="mt-3 text-2xl font-medium text-heading dark:text-text-heading">
                 {devicesLoading ? "—" : devices.length}
               </p>
-              <p className="text-xs text-body dark:text-white/65">
+              <p className="text-xs text-body dark:text-text-muted">
                 notification device{devices.length === 1 ? "" : "s"}
               </p>
             </button>
             <button
               type="button"
               onClick={() => setSetupOpen(true)}
-              className="rounded-2xl border border-[#500000]/10 bg-white/55 p-4 text-left shadow-sm backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white/75 dark:border-white/10 dark:bg-black/45 dark:hover:bg-black/65"
+              className="rounded-xl border border-border bg-card p-4 text-left transition-colors duration-150 hover:bg-raised"
             >
               <CheckCircle2
                 className={`h-5 w-5 ${
                   hasDeviceSetup ? "text-emerald-500" : "text-amber-500"
                 }`}
               />
-              <p className="mt-3 text-sm font-semibold text-heading dark:text-white">
+              <p className="mt-3 text-sm font-medium text-heading dark:text-text-heading">
                 {hasDeviceSetup ? "Notifications ready" : "Finish notification setup"}
               </p>
-              <p className="mt-1 text-xs text-body dark:text-white/65">
+              <p className="mt-1 text-xs text-body dark:text-text-muted">
                 {hasDeviceSetup ? "This device can receive alerts" : "Required to receive seat alerts"}
               </p>
             </button>
@@ -423,18 +415,18 @@ function MyAlertsContent() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
-            className="bg-white/50 dark:bg-black/50 backdrop-blur-md border border-[#500000]/10 dark:border-[#FFCF3F]/10 rounded-2xl p-4 md:p-6 shadow-sm"
+            className="bg-card border border-border rounded-2xl p-5 md:p-6"
           >
             <Collapsible open={setupOpen} onOpenChange={setSetupOpen}>
               <div className="flex items-center justify-between gap-4">
-                <h2 className="text-lg font-semibold text-heading dark:text-white flex items-center gap-2">
+                <h2 className="text-lg font-medium text-heading dark:text-text-heading flex items-center gap-2">
                   <Smartphone className="h-5 w-5" />
                   Set up alerts on your phone
                 </h2>
                 <CollapsibleTrigger asChild>
                   <button
                     type="button"
-                    className="inline-flex items-center gap-2 text-sm font-medium text-[#500000] dark:text-[#FFCF3F] hover:opacity-90 transition-opacity"
+                    className="inline-flex items-center gap-2 text-sm font-medium text-text-heading underline-offset-4 hover:underline"
                     aria-label={setupOpen ? "Collapse setup steps" : "Expand setup steps"}
                   >
                     {setupOpen ? "Hide" : "Show"}
@@ -449,17 +441,17 @@ function MyAlertsContent() {
                 {/* Step 1: Add to Home Screen */}
                 <div className="space-y-3">
                   <div className="flex items-start gap-4">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#500000]/10 dark:bg-[#FFCF3F]/10 text-[#500000] dark:text-[#FFCF3F] font-semibold text-sm">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-border font-mono text-xs text-text-body">
                       1
                     </span>
                     <div>
-                      <h3 className="font-medium text-heading dark:text-white mb-2">
+                      <h3 className="font-medium text-heading dark:text-text-heading mb-2">
                         Add AggieSB+ to your home screen
                       </h3>
-                      <p className="text-sm text-body dark:text-gray-400 mb-3">
+                      <p className="text-sm text-body dark:text-text-muted mb-3">
                         Push notifications work best when the app is installed as a shortcut.
                       </p>
-                      <ul className="text-sm text-body dark:text-gray-400 space-y-2 list-disc list-inside">
+                      <ul className="text-sm text-body dark:text-text-muted space-y-2 list-disc list-inside">
                         <li>
                           <strong>iPhone (Safari):</strong> Tap the{" "}
                           <Share2 className="inline h-4 w-4 align-middle mx-0.5" /> Share
@@ -488,14 +480,14 @@ function MyAlertsContent() {
                 {/* Step 2: Enable notifications */}
                 <div className="space-y-3">
                   <div className="flex items-start gap-4">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#500000]/10 dark:bg-[#FFCF3F]/10 text-[#500000] dark:text-[#FFCF3F] font-semibold text-sm">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-border font-mono text-xs text-text-body">
                       2
                     </span>
                     <div className="flex-1">
-                      <h3 className="font-medium text-heading dark:text-white mb-2">
+                      <h3 className="font-medium text-heading dark:text-text-heading mb-2">
                         Enable notifications
                       </h3>
-                      <p className="text-sm text-body dark:text-gray-400 mb-4">
+                      <p className="text-sm text-body dark:text-text-muted mb-4">
                         Allow AggieSB+ to send you alerts when a section you&apos;re
                         watching opens up. We&apos;ll verify this device with the server
                         and retry automatically if the first save does not stick.
@@ -504,7 +496,7 @@ function MyAlertsContent() {
                         <Button
                           onClick={handleEnable}
                           disabled={loading || hasDeviceSetup}
-                          className="bg-[#500000] text-white hover:bg-[#330000] dark:bg-[#FFCF3F] dark:text-black dark:hover:bg-[#FFD966]"
+                          className="bg-primary text-primary-foreground hover:bg-[#330000] dark:hover:bg-primary/90"
                         >
                           {loading
                             ? "Checking connection..."
@@ -532,14 +524,14 @@ function MyAlertsContent() {
                 {/* Step 3: Watch sections */}
                 <div className="space-y-3">
                   <div className="flex items-start gap-4">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#500000]/10 dark:bg-[#FFCF3F]/10 text-[#500000] dark:text-[#FFCF3F] font-semibold text-sm">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-border font-mono text-xs text-text-body">
                       3
                     </span>
                     <div>
-                      <h3 className="font-medium text-heading dark:text-white mb-2">
+                      <h3 className="font-medium text-heading dark:text-text-heading mb-2">
                         Watch sections
                       </h3>
-                      <p className="text-sm text-body dark:text-gray-400">
+                      <p className="text-sm text-body dark:text-text-muted">
                         When browsing courses, tap &quot;Watch&quot; on any section you want
                         to get notified about. We&apos;ll alert you as soon as a seat opens.
                       </p>
@@ -554,14 +546,14 @@ function MyAlertsContent() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
-            className="bg-white/50 dark:bg-black/50 backdrop-blur-md border border-[#500000]/10 dark:border-[#FFCF3F]/10 rounded-2xl p-4 md:p-6 shadow-sm"
+            className="bg-card border border-border rounded-2xl p-5 md:p-6"
           >
             {/* Test buttons */}
-            <div className="pt-6 border-t border-[#500000]/10 dark:border-[#FFCF3F]/10">
-              <h3 className="font-medium text-heading dark:text-white mb-2">
+            <div className="pt-6 border-t border-border">
+              <h3 className="font-medium text-heading dark:text-text-heading mb-2">
                 Test your setup
               </h3>
-              <p className="text-sm text-body dark:text-gray-400 mb-4">
+              <p className="text-sm text-body dark:text-text-muted mb-4">
                 Send a test notification to this device to verify alerts are working.
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
@@ -569,7 +561,7 @@ function MyAlertsContent() {
                   onClick={sendTestNow}
                   disabled={testLoading || !hasDeviceSetup}
                   variant="outline"
-                  className="border-[#500000] dark:border-[#FFCF3F] text-[#500000] dark:text-[#FFCF3F] hover:bg-[#500000]/10 dark:hover:bg-[#FFCF3F]/10"
+                  
                 >
                   {testLoading ? "Sending..." : "Send test now"}
                 </Button>
@@ -587,16 +579,16 @@ function MyAlertsContent() {
             </div>
 
             {/* Notification devices */}
-            <div id="notification-devices" className="scroll-mt-24 pt-6 border-t border-[#500000]/10 dark:border-[#FFCF3F]/10 mt-6">
+            <div id="notification-devices" className="scroll-mt-24 pt-6 border-t border-border mt-6">
               <Collapsible open={devicesOpen} onOpenChange={setDevicesOpen}>
                 <div className="flex items-center justify-between gap-4 mb-2">
-                  <h3 className="text-lg font-semibold text-heading dark:text-white">
+                  <h3 className="text-lg font-medium text-heading dark:text-text-heading">
                     Connected devices
                   </h3>
                   <CollapsibleTrigger asChild>
                     <button
                       type="button"
-                      className="inline-flex items-center gap-2 text-sm font-medium text-[#500000] dark:text-[#FFCF3F] hover:opacity-90 transition-opacity"
+                      className="inline-flex items-center gap-2 text-sm font-medium text-text-heading underline-offset-4 hover:underline"
                       aria-label={devicesOpen ? "Collapse connected devices" : "Expand connected devices"}
                     >
                       {devicesOpen ? "Hide" : "Show"}
@@ -606,12 +598,12 @@ function MyAlertsContent() {
                     </button>
                   </CollapsibleTrigger>
                 </div>
-                <p className="text-sm text-body dark:text-gray-400 mb-3">
+                <p className="text-sm text-body dark:text-text-muted mb-3">
                   Devices below are currently registered to receive push alerts.
                 </p>
                 <CollapsibleContent className="space-y-2 mb-6">
                   {devicesLoading && (
-                    <p className="text-sm text-body dark:text-gray-400">
+                    <p className="text-sm text-body dark:text-text-muted">
                       Loading connected devices...
                     </p>
                   )}
@@ -621,7 +613,7 @@ function MyAlertsContent() {
                     </p>
                   )}
                   {!devicesLoading && !devicesError && devices.length === 0 && (
-                    <p className="text-sm text-body dark:text-gray-400">
+                    <p className="text-sm text-body dark:text-text-muted">
                       No devices are currently enabled for notifications.
                     </p>
                   )}
@@ -644,10 +636,10 @@ function MyAlertsContent() {
                         return (
                         <div
                           key={device.id}
-                          className="rounded-xl border border-border/60 bg-white/60 p-4 dark:border-white/10 dark:bg-black/40"
+                          className="rounded-xl border border-border/60 bg-white/60 p-4 dark:border-border dark:bg-card"
                         >
                           <div className="flex items-start gap-3">
-                            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#500000]/10 text-[#500000] dark:bg-[#FFCF3F]/10 dark:text-[#FFCF3F]">
+                            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-border text-text-muted">
                               {/iPhone|iPad|Android|Mobile/i.test(device.user_agent ?? "") ? (
                                 <Smartphone className="h-5 w-5" />
                               ) : (
@@ -656,21 +648,21 @@ function MyAlertsContent() {
                             </span>
                             <div className="min-w-0 flex-1">
                               <div className="flex flex-wrap items-center gap-2">
-                                <p className="font-medium text-heading dark:text-white">
+                                <p className="font-medium text-heading dark:text-text-heading">
                                   {getDeviceDisplayName(device)}
                                 </p>
                                 {isCurrentDevice && (
-                                  <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
+                                  <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:text-emerald-300">
                                     This device
                                   </span>
                                 )}
                               </div>
-                              <p className="mt-0.5 text-xs text-body dark:text-gray-400">
+                              <p className="mt-0.5 text-xs text-body dark:text-text-muted">
                                 {[getDeviceBrowser(device), system]
                                   .filter(Boolean)
                                   .join(" · ")}
                               </p>
-                              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-body dark:text-gray-400">
+                              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-body dark:text-text-muted">
                                 {lastActive && <span>Active {lastActive}</span>}
                                 {connectedAt && <span>Connected {connectedAt}</span>}
                               </div>
@@ -680,7 +672,7 @@ function MyAlertsContent() {
                             <Button
                               size="sm"
                               variant="outline"
-                              className="text-[#500000] dark:text-[#FFCF3F] border-[#500000]/40 dark:border-[#FFCF3F]/40"
+                              className="border-border text-text-body"
                               onClick={async () => {
                                 try {
                                   await removePushSubscription(device.endpoint);
@@ -708,12 +700,12 @@ function MyAlertsContent() {
               </Collapsible>
             </div>
 
-            <div id="watched-sections" className="scroll-mt-24 pt-6 border-t border-[#500000]/10 dark:border-[#FFCF3F]/10 mt-6">
-              <h3 className="text-lg font-semibold text-heading dark:text-white mb-2">
+            <div id="watched-sections" className="scroll-mt-24 pt-6 border-t border-border mt-6">
+              <h3 className="text-lg font-medium text-heading dark:text-text-heading mb-2">
                 Watched classes
               </h3>
               {trackedLoading && (
-                <p className="text-sm text-body dark:text-gray-400">
+                <p className="text-sm text-body dark:text-text-muted">
                   Loading watched sections...
                 </p>
               )}
@@ -723,7 +715,7 @@ function MyAlertsContent() {
                 </p>
               )}
               {!trackedLoading && !trackedError && tracked.length === 0 && (
-                <p className="text-sm text-body dark:text-gray-400">
+                <p className="text-sm text-body dark:text-text-muted">
                   You&apos;re not watching any sections yet. Go to a course page
                   and tap &quot;Watch&quot; on a section to start.
                 </p>
@@ -734,13 +726,13 @@ function MyAlertsContent() {
                     return (
                       <div
                         key={courseCode}
-                        className="rounded-xl border border-border dark:border-white/10 bg-white/40 dark:bg-black/40 p-4"
+                        className="rounded-xl border border-border bg-white/40 dark:bg-card p-4"
                       >
                         <div className="mb-3">
-                          <h4 className="text-base font-semibold text-heading dark:text-white">
+                          <h4 className="text-base font-medium text-heading dark:text-text-heading">
                             {courseCode}
                           </h4>
-                          <p className="text-xs text-body dark:text-gray-400">
+                          <p className="text-xs text-body dark:text-text-muted">
                             {sections.length} watched section{sections.length === 1 ? "" : "s"}
                           </p>
                         </div>
@@ -753,20 +745,20 @@ function MyAlertsContent() {
                             return (
                               <div
                                 key={item.id}
-                                className="flex items-center justify-between gap-3 rounded-md border border-border/60 dark:border-white/10 bg-white/70 dark:bg-black/50 px-3 py-2"
+                                className="flex items-center justify-between gap-3 rounded-md border border-border/60 dark:border-border bg-white/70 dark:bg-card px-3 py-2"
                               >
                                 <div className="flex flex-col">
-                                  <span className="font-medium text-heading dark:text-white">
+                                  <span className="font-medium text-heading dark:text-text-heading">
                                     Section {sectionNumber}
                                   </span>
-                                  <span className="text-xs text-body dark:text-gray-400">
+                                  <span className="text-xs text-body dark:text-text-muted">
                                     Term {item.term_code} • CRN {crn}
                                   </span>
                                 </div>
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="text-[#500000] dark:text-[#FFCF3F] border-[#500000]/40 dark:border-[#FFCF3F]/40"
+                                  className="border-border text-text-body"
                                   onClick={async () => {
                                     try {
                                       await untrackSection(item.section_id);

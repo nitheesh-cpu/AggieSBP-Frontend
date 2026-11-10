@@ -1,14 +1,18 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
+import { track } from "@/lib/analytics";
 
-type FooterLink = { label: string; href: string; external?: boolean };
+/** `item` is the nav-click slug reported to analytics. */
+type FooterLink = { label: string; href: string; item: string; external?: boolean };
 
 const COLUMNS: { title: string; links: FooterLink[] }[] = [
   {
     title: "Support",
     links: [
-      { label: "Report a bug", href: "https://tally.so/r/nWb6re", external: true },
-      { label: "Request a feature", href: "https://tally.so/r/nWb6re", external: true },
+      { label: "Report a bug", href: "https://tally.so/r/nWb6re", item: "report-a-bug", external: true },
+      { label: "Request a feature", href: "https://tally.so/r/nWb6re", item: "request-a-feature", external: true },
     ],
   },
   {
@@ -17,16 +21,17 @@ const COLUMNS: { title: string; links: FooterLink[] }[] = [
       {
         label: "Chrome extension",
         href: "https://chromewebstore.google.com/detail/aggie-schedule-builder-pl/glckdcnecomhlmlegmjdceblibmaljpm",
+        item: "chrome-extension",
         external: true,
       },
-      { label: "API docs", href: "https://api-aggiesbp.nitheeshk.com/docs", external: true },
+      { label: "API docs", href: "https://api-aggiesbp.nitheeshk.com/docs", item: "api-docs", external: true },
     ],
   },
   {
     title: "Website",
     links: [
-      { label: "About", href: "/about" },
-      { label: "Terms", href: "/terms" },
+      { label: "About", href: "/about", item: "about" },
+      { label: "Terms", href: "/terms", item: "terms" },
     ],
   },
 ];
@@ -60,6 +65,7 @@ export const Footer = () => {
                       {...(link.external
                         ? { target: "_blank", rel: "noopener noreferrer" }
                         : {})}
+                      onClick={() => track("nav-click", { item: link.item, from: "footer" })}
                       className="text-sm text-white/75 transition-colors duration-150 hover:text-white"
                     >
                       {link.label}

@@ -34,6 +34,8 @@ import {
 } from "lucide-react";
 import { useComparison } from "@/contexts/ComparisonContext";
 import { useProfessorComparison } from "@/contexts/ProfessorComparisonContext";
+import { track, type SearchFrom } from "@/lib/analytics";
+import { useSearchTracking } from "@/lib/analytics-hooks";
 
 const MAX_ITEMS = 4;
 const GRADES = ["A", "B", "C", "D", "F"] as const;
@@ -230,6 +232,7 @@ function formatTermCode(code?: string | null): string | null {
 // ---------------------------------------------------------------------------
 
 interface SearchPickerProps<T> {
+  from: SearchFrom;
   placeholder: string;
   search: (term: string) => Promise<T[]>;
   getKey: (item: T) => string;
@@ -240,6 +243,7 @@ interface SearchPickerProps<T> {
 }
 
 function SearchPicker<T>({
+  from,
   placeholder,
   search,
   getKey,
@@ -292,8 +296,16 @@ function SearchPicker<T>({
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
+  useSearchTracking(
+    from,
+    term,
+    results.length,
+    loading || !!error || term.trim() !== debounced,
+  );
+
   const pick = (item: T) => {
     if (full || isSelected(getKey(item))) return;
+    track("search-pick", { from, position: results.indexOf(item) + 1 });
     onPick(item);
     setTerm("");
     setResults([]);
@@ -728,6 +740,7 @@ function CourseComparison() {
     <div className="space-y-6">
       <div>
         <SearchPicker<Course>
+          from="compare-courses"
           placeholder="Search courses by code or name, e.g. CSCE 310 or Database"
           search={searchCourses}
           getKey={(c) => c.id}
@@ -1109,6 +1122,7 @@ function ProfessorComparison() {
     <div className="space-y-6">
       <div>
         <SearchPicker<Professor>
+          from="compare-professors"
           placeholder="Search professors by name"
           search={searchProfessors}
           getKey={(p) => p.id}

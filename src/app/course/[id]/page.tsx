@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect, useRef, use } from "react";
 import { BackButton } from "@/components/back-button";
 import { TermSelect } from "@/components/term-select";
 import { WatchSectionButton } from "@/components/watch-section-button";
@@ -58,6 +58,8 @@ import { useProfessorComparison } from "@/contexts/ProfessorComparisonContext";
 import { ComparisonWidget } from "@/components/comparison-widget";
 import { ProfessorComparisonWidget } from "@/components/professor-comparison-widget";
 import { professorNamesMatch } from "@/lib/name-matching";
+import { track } from "@/lib/analytics";
+import { useTrackInView } from "@/lib/analytics-hooks";
 import {
   ReviewStatsRow,
   SummaryTips,
@@ -576,6 +578,17 @@ export default function CoursePage({ params }: CoursePageProps) {
     [courseData?.professors],
   );
 
+  const ready = !loading && !error && !!courseData;
+  const sectionsRef = useRef<HTMLDivElement>(null);
+  const professorsRef = useRef<HTMLDivElement>(null);
+  useTrackInView(
+    sectionsRef,
+    "course-section-view",
+    { section: "sections" },
+    ready && !!selectedTerm && !loadingTermData,
+  );
+  useTrackInView(professorsRef, "course-section-view", { section: "professors" }, ready);
+
   if (loading) {
     return (
       <MotionConfig
@@ -927,6 +940,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                                                       )}
                                                       <Link
                                                         href={`/course/${prereq.replace(/\s+/g, "")}`}
+                                                        onClick={() => track("course-link", { kind: "prereq" })}
                                                       >
                                                         <Badge
                                                           variant="outline"
@@ -973,6 +987,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                                               )}
                                               <Link
                                                 href={`/course/${prereq.replace(/\s+/g, "")}`}
+                                                onClick={() => track("course-link", { kind: "prereq" })}
                                               >
                                                 <Badge
                                                   variant="outline"
@@ -1093,6 +1108,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                                         <Link
                                           key={index}
                                           href={`/course/${coreq.replace(/\s+/g, "")}`}
+                                          onClick={() => track("course-link", { kind: "coreq" })}
                                         >
                                           <Badge
                                             variant="outline"
@@ -1135,6 +1151,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                                 <Link
                                   key={index}
                                   href={`/course/${crossList.replace(/\s+/g, "")}`}
+                                  onClick={() => track("course-link", { kind: "cross-list" })}
                                 >
                                   <Badge
                                     variant="outline"
@@ -1186,7 +1203,7 @@ export default function CoursePage({ params }: CoursePageProps) {
 
                 {/* Sections for the chosen term, with seat alerts */}
                 {selectedTerm && !loadingTermData && (
-                  <Card className="p-4 rounded-2xl shadow-none bg-card border-border">
+                  <Card ref={sectionsRef} className="p-4 rounded-2xl shadow-none bg-card border-border">
                     <h3 className="text-xl font-medium text-text-heading">
                       Sections in {shortTermName(terms.find((t) => t.termCode === selectedTerm)) || selectedTerm}
                     </h3>
@@ -1294,7 +1311,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                 )}
 
                 {/* Professors Section */}
-                <Card className="p-4 rounded-2xl shadow-none bg-card border-border">
+                <Card ref={professorsRef} className="p-4 rounded-2xl shadow-none bg-card border-border">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                     <h3 className="text-xl font-medium text-text-heading">
                       Professors
@@ -1754,7 +1771,10 @@ export default function CoursePage({ params }: CoursePageProps) {
                                 </div>
                                 <button
                                   type="button"
-                                  onClick={() => toggleProf(key)}
+                                  onClick={() => {
+                                    if (!expanded) track("course-prof-expand");
+                                    toggleProf(key);
+                                  }}
                                   aria-expanded={expanded}
                                   className="mt-2 text-xs font-medium text-text-heading underline underline-offset-2"
                                 >
@@ -1912,6 +1932,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                                 </Link>
                                 <Link
                                   href={`/professor/${prof.id}/reviews`}
+                                  onClick={() => track("professor-reviews-open", { from: "course" })}
                                   className="flex-1"
                                 >
                                   <Button variant="outline" size="sm" className="w-full">
@@ -2003,6 +2024,7 @@ export default function CoursePage({ params }: CoursePageProps) {
                             <Link
                               key={index}
                               href={`/course/${course.code.replace(/\s+/g, "")}`}
+                              onClick={() => track("course-link", { kind: "related" })}
                               className="block"
                             >
                             <Card

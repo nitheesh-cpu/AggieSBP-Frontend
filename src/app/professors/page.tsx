@@ -14,6 +14,8 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { getProfessors, type Professor } from "@/lib/api";
 import { useOfficialSubjects } from "@/hooks/use-official-subjects";
+import { track } from "@/lib/analytics";
+import { useSearchTracking } from "@/lib/analytics-hooks";
 import {
   Search,
   Star,
@@ -99,9 +101,25 @@ export default function ProfessorsPage() {
     };
   }, [searchTerm, departmentFilter, minRating, currentPage, itemsPerPage]);
 
+  // The API has no total, so this is a lower bound when there's a next page.
+  useSearchTracking(
+    "professors",
+    searchInput,
+    (currentPage - 1) * itemsPerPage + professors.length,
+    loading || searchInput.trim() !== searchTerm || !!error,
+  );
+
   const goToPage = (page: number) => {
     setCurrentPage(Math.max(1, page));
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const trackPick = (index: number) => {
+    if (!searchTerm) return;
+    track("search-pick", {
+      from: "professors",
+      position: (currentPage - 1) * itemsPerPage + index + 1,
+    });
   };
 
   const realDepartments = (prof: Professor) =>
@@ -235,7 +253,7 @@ export default function ProfessorsPage() {
                   },
                 }}
               >
-                {professors.map((professor) => {
+                {professors.map((professor, i) => {
                   const depts = realDepartments(professor);
                   const courses = realCourses(professor);
                   return (
@@ -259,6 +277,7 @@ export default function ProfessorsPage() {
                           <div className="min-w-0 flex-1">
                             <Link
                               href={`/professor/${professor.id}`}
+                              onClick={() => trackPick(i)}
                               className="group/name"
                             >
                               <h3 className="line-clamp-1 text-base font-medium leading-6 text-text-heading underline-offset-4 group-hover/name:underline">
@@ -346,6 +365,7 @@ export default function ProfessorsPage() {
                         <div className="relative mt-auto border-t border-border pt-3">
                           <Link
                             href={`/professor/${professor.id}`}
+                            onClick={() => trackPick(i)}
                             className="inline-flex items-center gap-1 text-sm text-text-body transition-colors duration-150 hover:text-text-heading"
                           >
                             View profile

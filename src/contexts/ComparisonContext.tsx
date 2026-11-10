@@ -7,6 +7,7 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
+import { pageFrom, track } from "@/lib/analytics";
 
 interface ComparisonState {
   selectedCourses: string[]; // course IDs
@@ -59,6 +60,11 @@ export function ComparisonProvider({ children }: ComparisonProviderProps) {
       return false;
     }
     setSelectedCourses((prev) => [...prev, courseId]);
+    track("compare-add", {
+      type: "course",
+      from: pageFrom(window.location.pathname),
+      count: selectedCourses.length + 1,
+    });
     return true;
   };
 

@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 
 import { getCourses, getDepartments, getProfessors } from "@/lib/api";
+import { track, type SearchFrom } from "@/lib/analytics";
+import { useSearchTracking } from "@/lib/analytics-hooks";
 
 type SearchResult = {
   id: string;
@@ -48,7 +50,10 @@ type SearchResponse = {
   incomplete: boolean;
 };
 
-export function GlobalOmnibar() {
+/** `analyticsFrom` turns on search reporting; without it nothing is tracked. */
+export function GlobalOmnibar({
+  analyticsFrom,
+}: { analyticsFrom?: SearchFrom } = {}) {
   const router = useRouter();
   const listId = React.useId();
   const [query, setQuery] = React.useState("");
@@ -64,6 +69,17 @@ export function GlobalOmnibar() {
   const showPopup = open && normalizedQuery.length >= 2;
   const expanded = showPopup && results.length > 0;
   const activeResult = expanded ? results[activeIndex] : undefined;
+
+  useSearchTracking(
+    analyticsFrom ?? "home",
+    analyticsFrom ? query : "",
+    results.length,
+    loading,
+  );
+
+  const trackPick = (index: number) => {
+    if (analyticsFrom) track("search-pick", { from: analyticsFrom, position: index + 1 });
+  };
 
   React.useEffect(() => {
     if (normalizedQuery.length < 2) return;
@@ -161,6 +177,12 @@ export function GlobalOmnibar() {
       }}
       onSubmit={(event) => {
         event.preventDefault();
+        const pickIndex = activeResult ? activeIndex : expanded && results[0] ? 0 : -1;
+        if (pickIndex >= 0) {
+          trackPick(pickIndex);
+        } else if (analyticsFrom === "home") {
+          track("home-cta", { cta: "hero-search" });
+        }
         navigate(
           activeResult?.href ??
             (expanded ? results[0]?.href : undefined) ??
@@ -241,7 +263,10 @@ export function GlobalOmnibar() {
                     aria-selected={index === activeIndex}
                     className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-lg px-3 py-2 ${index === activeIndex ? "bg-raised" : "hover:bg-raised"}`}
                     onMouseDown={(event) => event.preventDefault()}
-                    onClick={() => navigate(result.href)}
+                    onClick={() => {
+                      trackPick(index);
+                      navigate(result.href);
+                    }}
                   >
                     <Icon
                       className="h-4 w-4 shrink-0 text-text-muted"

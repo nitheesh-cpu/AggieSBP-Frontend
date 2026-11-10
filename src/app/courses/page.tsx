@@ -54,6 +54,8 @@ import {
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
+import { track } from "@/lib/analytics";
+import { useSearchTracking } from "@/lib/analytics-hooks";
 
 const quickFilters = [
   {
@@ -296,6 +298,10 @@ function CoursesPageContent() {
   // Toggle functions for filters
   const toggleQuickFilter = (filterId: string) => {
     console.log("Toggling quick filter:", filterId);
+    track("courses-filter", {
+      filter: filterId,
+      value: selectedQuickFilters.includes(filterId) ? "off" : "on",
+    });
     setSelectedQuickFilters((prev) => {
       const newFilters = prev.includes(filterId)
         ? prev.filter((id) => id !== filterId)
@@ -307,6 +313,10 @@ function CoursesPageContent() {
 
   const toggleSectionAttribute = (attributeId: string) => {
     console.log("Toggling section attribute:", attributeId);
+    track("courses-filter", {
+      filter: `attribute:${attributeId}`,
+      value: selectedSectionAttributes.includes(attributeId) ? "off" : "on",
+    });
     setSelectedSectionAttributes((prev) => {
       const newAttributes = prev.includes(attributeId)
         ? prev.filter((id) => id !== attributeId)
@@ -612,6 +622,13 @@ function CoursesPageContent() {
     sortBy,
   ]);
 
+  useSearchTracking(
+    "courses",
+    searchTerm,
+    filteredAndSearchedCourses.length,
+    searchTerm !== debouncedSearchTerm || isLoadingAll || !!error,
+  );
+
   // Update filtered courses when dependencies change
   useEffect(() => {
     setFilteredCourses(filteredAndSearchedCourses);
@@ -628,6 +645,11 @@ function CoursesPageContent() {
     (currentPage - 1) * coursesPerPage,
     currentPage * coursesPerPage
   );
+
+  const goToPage = (page: number) => {
+    setCurrentPage(page);
+    track("courses-page", { page });
+  };
 
   const getDepartmentColor = (deptName: string) => {
     if (deptName === "All") return "bg-raised text-text-body";
@@ -1009,7 +1031,13 @@ function CoursesPageContent() {
                 variant="outline"
                 aria-expanded={filtersExpanded}
                 aria-controls="catalog-filters"
-                onClick={() => setFiltersExpanded(!filtersExpanded)}
+                onClick={() => {
+                  setFiltersExpanded(!filtersExpanded);
+                  track("courses-filter", {
+                    filter: "panel",
+                    value: filtersExpanded ? "closed" : "open",
+                  });
+                }}
               >
                 <Filter strokeWidth={1.5} className="h-4 w-4" aria-hidden />
                 Filters
@@ -1022,7 +1050,13 @@ function CoursesPageContent() {
               </Button>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-text-muted">Sort</span>
-                <Select value={sortBy} onValueChange={setSortBy}>
+                <Select
+                  value={sortBy}
+                  onValueChange={(value) => {
+                    setSortBy(value);
+                    track("courses-filter", { filter: "sort", value });
+                  }}
+                >
                   <SelectTrigger aria-label="Sort courses" className="w-36 sm:w-48 bg-canvas border-border text-text-body dark:bg-card dark:text-text-heading">
                     <SelectValue />
                   </SelectTrigger>
@@ -1113,7 +1147,13 @@ function CoursesPageContent() {
                           ? "border-transparent bg-maroon-band text-on-maroon"
                           : "border-border hover:bg-button-hover dark:bg-card dark:text-text-heading dark:hover:bg-raised"
                       }`}
-                      onClick={() => setSelectedDepartment(deptName)}
+                      onClick={() => {
+                        setSelectedDepartment(deptName);
+                        track("courses-filter", {
+                          filter: "department",
+                          value: deptName.split(" - ")[0],
+                        });
+                      }}
                     >
                       {deptName}
                     </Button>
@@ -1147,7 +1187,7 @@ function CoursesPageContent() {
                 }}
                 layout
               >
-                {paginatedCourses.map((course) => (
+                {paginatedCourses.map((course, i) => (
                   <motion.div
                     key={course.id}
                     layout
@@ -1221,6 +1261,14 @@ function CoursesPageContent() {
                         <div className="mt-auto border-t border-border pt-3">
                             <Link
                               href={`/course/${course.code.replace(/\s+/g, "")}`}
+                              onClick={() => {
+                                if (debouncedSearchTerm.trim()) {
+                                  track("search-pick", {
+                                    from: "courses",
+                                    position: (currentPage - 1) * coursesPerPage + i + 1,
+                                  });
+                                }
+                              }}
                               className="inline-flex items-center gap-1 text-sm text-text-body transition-colors duration-150 after:absolute after:inset-0 after:rounded-xl group-hover:text-text-heading"
                             >
                               View details
@@ -1240,9 +1288,7 @@ function CoursesPageContent() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.max(prev - 1, 1))
-                  }
+                  onClick={() => goToPage(Math.max(currentPage - 1, 1))}
                   disabled={currentPage === 1}
                   className="border-border bg-canvas text-text-body hover:bg-button-hover dark:bg-card dark:hover:bg-raised"
                 >
@@ -1275,7 +1321,7 @@ function CoursesPageContent() {
                           key={1}
                           variant="outline"
                           size="sm"
-                          onClick={() => setCurrentPage(1)}
+                          onClick={() => goToPage(1)}
                           className="border-border bg-canvas text-text-body hover:bg-button-hover dark:bg-card dark:hover:bg-raised"
                         >
                           1
@@ -1300,7 +1346,7 @@ function CoursesPageContent() {
                           key={page}
                           variant={currentPage === page ? "default" : "outline"}
                           size="sm"
-                          onClick={() => setCurrentPage(page)}
+                          onClick={() => goToPage(page)}
                           className={
                             currentPage === page
                               ? "bg-maroon-band text-on-maroon"
@@ -1329,7 +1375,7 @@ function CoursesPageContent() {
                           key={totalPages}
                           variant="outline"
                           size="sm"
-                          onClick={() => setCurrentPage(totalPages)}
+                          onClick={() => goToPage(totalPages)}
                           className="border-border bg-canvas text-text-body hover:bg-button-hover dark:bg-card dark:hover:bg-raised"
                         >
                           {totalPages}
@@ -1344,9 +1390,7 @@ function CoursesPageContent() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                  }
+                  onClick={() => goToPage(Math.min(currentPage + 1, totalPages))}
                   disabled={currentPage === totalPages}
                   className="border-border bg-canvas text-text-body hover:bg-button-hover dark:bg-card dark:hover:bg-raised"
                 >

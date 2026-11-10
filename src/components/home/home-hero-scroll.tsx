@@ -13,6 +13,7 @@ import {
   useExampleCourse,
   useExtensionLink,
 } from "@/components/home/home-shared";
+import { track } from "@/lib/analytics";
 
 const EXAMPLE_CODE = "CSCE 120";
 const EXAMPLE_PATH = "/course/CSCE120";
@@ -87,11 +88,11 @@ export function HomeHeroScroll() {
             alerts when a seat opens.
           </p>
           <div className="relative z-10 mt-5 max-w-[35rem] sm:mt-7">
-            <GlobalOmnibar />
+            <GlobalOmnibar analyticsFrom="home" />
           </div>
           {/* Extensions only install on desktop browsers, so touch devices skip this */}
           <div className="mt-5 hidden flex-wrap items-center gap-x-4 gap-y-2 pointer-fine:flex">
-            <ExtensionButton link={extension} />
+            <ExtensionButton link={extension} cta="hero-extension" />
             <p className="text-sm text-text-body">
               Ratings and grades inside College Scheduler
             </p>
@@ -104,6 +105,7 @@ export function HomeHeroScroll() {
           onMouseLeave={() => setPaused(false)}
           onFocus={() => setPaused(true)}
           onBlur={() => setPaused(false)}
+          onClick={() => track("home-cta", { cta: "hero-example-course" })}
           className="group hidden min-w-0 max-w-[35rem] rounded-2xl lg:block border border-border-strong bg-card p-4 transition-[transform,border-color] hover:-translate-y-0.5 hover:border-accent focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent active:translate-y-0 motion-reduce:transform-none sm:p-6 lg:max-w-none"
         >
           <div className="flex items-center justify-between gap-3">

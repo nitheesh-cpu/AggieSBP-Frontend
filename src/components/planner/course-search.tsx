@@ -5,6 +5,8 @@ import { Loader2, Search } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { getCourses, type Course } from "@/lib/api";
+import { track } from "@/lib/analytics";
+import { useSearchTracking } from "@/lib/analytics-hooks";
 import { cn } from "@/lib/utils";
 
 interface CourseSearchProps {
@@ -58,7 +60,10 @@ export function CourseSearch({ onSelect, placeholder, existing, autoFocus }: Cou
     return () => document.removeEventListener("mousedown", close);
   }, []);
 
+  useSearchTracking("planner", query, results.length, loading);
+
   const choose = (course: Course) => {
+    track("search-pick", { from: "planner", position: results.indexOf(course) + 1 });
     onSelect(course.code, course.name);
     setQuery("");
     setResults([]);

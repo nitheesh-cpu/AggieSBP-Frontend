@@ -7,6 +7,7 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
+import { pageFrom, track } from "@/lib/analytics";
 
 interface ProfessorComparisonContextType {
   selectedProfessors: string[]; // professor IDs
@@ -64,6 +65,11 @@ export function ProfessorComparisonProvider({
       return false;
     }
     setSelectedProfessors((prev) => [...prev, professorId]);
+    track("compare-add", {
+      type: "professor",
+      from: pageFrom(window.location.pathname),
+      count: selectedProfessors.length + 1,
+    });
     return true;
   };
 

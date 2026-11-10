@@ -22,13 +22,17 @@ import {
   type ExtensionLink,
 } from "@/components/home/home-shared";
 import { cn } from "@/lib/utils";
+import { track } from "@/lib/analytics";
 
 /** The gold install button, also used in the hero. */
 export function ExtensionButton({
   link,
+  cta,
   className,
 }: {
   link: ExtensionLink | null;
+  /** home-cta slug reported on click. */
+  cta: string;
   className?: string;
 }) {
   const classes = cn(
@@ -52,6 +56,7 @@ export function ExtensionButton({
       href={link.href}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={() => track("home-cta", { cta })}
       className={classes}
     >
       <Icon className="h-4 w-4" strokeWidth={2} aria-hidden />
@@ -139,11 +144,12 @@ export function ExtensionFeature() {
 
           {/* Extensions only install on desktop browsers */}
           <div className="mt-9 hidden flex-wrap items-center gap-x-5 gap-y-3 pointer-fine:flex">
-            <ExtensionButton link={link} />
+            <ExtensionButton link={link} cta="extension" />
             <a
               href={other.href}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => track("home-cta", { cta: "extension-other-browser" })}
               className={cn(
                 "text-sm text-text-body underline-offset-4 hover:text-text-heading hover:underline",
                 !link && "invisible",
@@ -322,6 +328,7 @@ export function SeatAlertsFeature() {
 
           <Link
             href="/alerts"
+            onClick={() => track("home-cta", { cta: "alerts" })}
             className="mt-9 inline-flex h-11 items-center gap-2 rounded-lg border border-border-strong bg-card px-5 text-sm font-medium text-text-heading transition-colors duration-150 hover:border-accent hover:bg-raised"
           >
             Set up seat alerts
@@ -463,18 +470,21 @@ const MORE_TOOLS = [
   {
     name: "Easiest courses",
     href: "/discover/dept",
+    cta: "easiest",
     description: "Highest-GPA courses in each department",
     graphic: RankedGraphic,
   },
   {
     name: "Core curriculum",
     href: "/discover/ucc",
+    cta: "ucc",
     description: "UCC courses ranked by GPA and difficulty",
     graphic: CoreGraphic,
   },
   {
     name: "Compare",
     href: "/compare",
+    cta: "compare",
     description: "Courses or professors side by side",
     graphic: CompareGraphic,
   },
@@ -498,10 +508,11 @@ export function MoreTools() {
           </h2>
         </div>
         <ul className="mt-6 grid gap-3 sm:grid-cols-3">
-          {MORE_TOOLS.map(({ name, href, description, graphic: Graphic }) => (
+          {MORE_TOOLS.map(({ name, href, cta, description, graphic: Graphic }) => (
             <li key={name}>
               <Link
                 href={href}
+                onClick={() => track("home-cta", { cta })}
                 className="group flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card transition-colors duration-150 hover:border-border-strong lg:hover:bg-card max-lg:hover:bg-raised"
               >
                 <div

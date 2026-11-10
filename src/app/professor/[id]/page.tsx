@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { professorNamesMatch } from "@/lib/name-matching";
+import { track } from "@/lib/analytics";
 import {
   RatingTrend,
   ReviewStatsRow,
@@ -755,7 +756,10 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
 
                     {/* Action Button */}
                     <div className="lg:ml-auto">
-                      <Link href={`/professor/${professor.id}/reviews`}>
+                      <Link
+                        href={`/professor/${professor.id}/reviews`}
+                        onClick={() => track("professor-reviews-open", { from: "professor" })}
+                      >
                         <Button>
                           <Eye strokeWidth={1.5} className="w-4 h-4" />
                           Read all reviews
@@ -1032,7 +1036,10 @@ export default function ProfessorPage({ params }: ProfessorPageProps) {
                     <h2 className="text-2xl font-medium text-text-heading">
                       Recent reviews
                     </h2>
-                    <Link href={`/professor/${professor.id}/reviews`}>
+                    <Link
+                      href={`/professor/${professor.id}/reviews`}
+                      onClick={() => track("professor-reviews-open", { from: "professor" })}
+                    >
                       <Button variant="outline" size="sm">
                         All reviews
                       </Button>

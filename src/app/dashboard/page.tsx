@@ -201,7 +201,7 @@ export default function DashboardPage() {
               </>
             }
           >
-            <GlobalOmnibar />
+            <GlobalOmnibar analyticsFrom="dashboard" />
           </PageBanner>
 
           <div className="mx-auto max-w-7xl px-4 pt-10 sm:px-6">

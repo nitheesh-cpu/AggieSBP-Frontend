@@ -17,6 +17,11 @@ import {
 } from "lucide-react";
 import { UserMenu } from "@/components/user-menu";
 import { MOBILE_APP_QUICK_LINKS } from "@/lib/nav-quick-links";
+import { track, type NavFrom } from "@/lib/analytics";
+
+/** "/discover/fit" → "discover/fit", "/" → "home", so every menu reports the same item. */
+const trackNav = (href: string, from: NavFrom) =>
+  track("nav-click", { item: href.replace(/^\/+/, "") || "home", from });
 
 interface NavigationProps {
   className?: string;
@@ -115,7 +120,13 @@ export const Navigation = ({
             data-oid="l4-iau1"
           >
             {/* Logo */}
-            <Link href="/" prefetch={false} className="flex items-center" data-oid="h31:j-4">
+            <Link
+              href="/"
+              prefetch={false}
+              onClick={() => trackNav("/", "logo")}
+              className="flex items-center"
+              data-oid="h31:j-4"
+            >
               <span
                 className="text-[17px] font-medium leading-none text-white"
                 data-oid="riswfct"
@@ -139,6 +150,7 @@ export const Navigation = ({
                     href={item.href}
                     prefetch={false}
                     aria-current={isActive ? "page" : undefined}
+                    onClick={() => trackNav(item.href, "header")}
                     className={`${linkClassName} ${
                       isActive ? "bg-white/15 text-white" : ""
                     }`}
@@ -165,6 +177,7 @@ export const Navigation = ({
                         prefetch={false}
                         aria-current={isActive ? "page" : undefined}
                         aria-describedby={tipId}
+                        onClick={() => trackNav(item.href, "header")}
                         className={`${linkClassName} ${
                           isActive ? "bg-white/15 text-white" : ""
                         }`}
@@ -228,7 +241,10 @@ export const Navigation = ({
                               key={item.name}
                               href={item.href}
                               prefetch={false}
-                              onClick={() => setIsDiscoverOpen(false)}
+                              onClick={() => {
+                                trackNav(item.href, "discover-menu");
+                                setIsDiscoverOpen(false);
+                              }}
                               className={`flex items-start gap-3 rounded-lg px-3 py-2 transition-colors duration-150 hover:bg-raised ${
                                 item.promoted ? "xl:hidden" : ""
                               }`}
@@ -259,7 +275,11 @@ export const Navigation = ({
             >
               <ThemeToggle />
               <UserMenu />
-              <Link href="/alerts" prefetch={false}>
+              <Link
+                href="/alerts"
+                prefetch={false}
+                onClick={() => trackNav("/alerts", "header")}
+              >
                 <Button size="sm" className="ml-1 bg-accent-gold text-[#1d1305] hover:bg-accent-gold/90 dark:bg-accent-gold dark:text-[#1d1305]">
                   Seat alerts
                 </Button>
@@ -345,7 +365,10 @@ export const Navigation = ({
                       key={`${item.href}-${item.name}`}
                       href={item.href}
                       prefetch={false}
-                      onClick={() => setIsMobileMenuOpen(false)}
+                      onClick={() => {
+                        trackNav(item.href, "mobile");
+                        setIsMobileMenuOpen(false);
+                      }}
                       className={
                         item.emphasis
                           ? "col-span-2 flex items-center justify-center gap-2 h-11 rounded-lg px-4 text-sm font-medium text-center transition-colors bg-primary text-primary-foreground hover:bg-primary/90"

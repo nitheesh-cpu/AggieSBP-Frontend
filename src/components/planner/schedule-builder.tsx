@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Term } from "@/lib/api";
+import { track } from "@/lib/analytics";
 import { activeWatchlist, removeFromWatchlist, watchKey, type DegreePlan } from "@/lib/planner/plan";
 import {
   activeCourses,
@@ -163,6 +164,13 @@ export function ScheduleBuilder({
         },
       );
       setResult({ ...generated, notOffered });
+      track("schedule-builder-run", {
+        term,
+        set_classes: fixed.length,
+        starred: starred.length,
+        options: generated.options.length,
+        impossible: generated.impossible.length,
+      });
     } catch {
       setFailed(true);
     } finally {
@@ -508,6 +516,7 @@ function OptionCard({ option, rank }: { option: Option; rank: number }) {
           className="gap-1"
           onClick={() => {
             void navigator.clipboard?.writeText(crns).then(() => {
+              track("schedule-copy-crns");
               setCopied(true);
               window.setTimeout(() => setCopied(false), 1500);
             });

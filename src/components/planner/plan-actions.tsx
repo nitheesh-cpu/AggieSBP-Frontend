@@ -20,6 +20,7 @@ import {
   type DegreePlan,
 } from "@/lib/planner/plan";
 import { topicLabel } from "@/lib/planner/topics";
+import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 export type PlanUpdate = (edit: (plan: DegreePlan) => DegreePlan) => void;
@@ -47,13 +48,14 @@ export function WatchButton({
       variant="ghost"
       size="icon"
       className="h-8 w-8"
-      onClick={() =>
+      onClick={() => {
+        track(watched ? "course-unstar" : "course-star", { course: label });
         update((p) =>
           watched
             ? removeFromWatchlist(p, code, new Date(), topic)
             : addToWatchlist(p, code, new Date(), topic),
-        )
-      }
+        );
+      }}
       aria-pressed={watched}
       aria-label={watched ? `Remove ${label} from watchlist` : `Add ${label} to watchlist`}
       title={watched ? `${label} is on your watchlist` : `Add ${label} to watchlist`}

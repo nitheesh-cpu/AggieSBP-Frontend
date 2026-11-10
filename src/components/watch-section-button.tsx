@@ -7,6 +7,7 @@ import { redirectToAuth } from "supertokens-auth-react";
 import { Bell, BellRing, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { trackSection } from "@/lib/api";
+import { track } from "@/lib/analytics";
 
 /** Same id format the extension uses, so alerts list and dedupe the same way. */
 export function seatAlertSectionId(s: {
@@ -60,6 +61,7 @@ export function WatchSectionButton({
         termCode,
       );
       setState("done");
+      track("seat-watch", { course: `${dept} ${courseNumber}`, term: termCode });
     } catch (err) {
       setState("error");
       setMessage(err instanceof Error ? err.message : "Couldn't save the alert.");

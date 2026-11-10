@@ -35,6 +35,7 @@ import {
   type Term,
   type TermDepartment,
 } from "@/lib/api";
+import { track } from "@/lib/analytics";
 import { collapseRows, type Candidate, type CourseState } from "@/lib/planner/find";
 import { activeWatchlist, watchKey, type DegreePlan } from "@/lib/planner/plan";
 import {
@@ -348,7 +349,13 @@ export function FindCourses({
           </Select>
         </Field>
         <Field label="Look in">
-          <Select value={source} onValueChange={(v) => setSource(v as Source)}>
+          <Select
+            value={source}
+            onValueChange={(v) => {
+              setSource(v as Source);
+              track("find-electives-source", { source: v });
+            }}
+          >
             <SelectTrigger className="h-9 w-[11rem]" aria-label="Where to look">
               <SelectValue />
             </SelectTrigger>

@@ -36,6 +36,7 @@ import {
   type DiscoverFitSection,
   type Term as ApiTerm,
 } from "@/lib/api";
+import { track } from "@/lib/analytics";
 import { pickDefaultTerm, sortTermsForMenu } from "@/lib/terms";
 import { EasinessBadge, EasinessLegend } from "@/components/easiness";
 import { WatchSectionButton } from "@/components/watch-section-button";
@@ -709,6 +710,7 @@ export default function DiscoverFitPage() {
     setCampusOptions([]);
     hasCompletedFitOnceRef.current = false;
     setFitReady(false);
+    track("fit-search", { mode, busy_blocks: blocks.length });
     try {
       const candidates = await fetchCandidates();
       setCourses(candidates);

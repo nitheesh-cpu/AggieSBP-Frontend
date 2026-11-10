@@ -6,6 +6,7 @@ import { ProfessorComparisonProvider } from "@/contexts/ProfessorComparisonConte
 import { ThemeProvider } from "@/components/theme-provider";
 import { IBM_Plex_Mono, IBM_Plex_Sans, Press_Start_2P } from "next/font/google";
 import { SWRegister } from "@/components/sw-register";
+import { UmamiRecorder } from "@/components/umami-recorder";
 import { SITE_URL } from "@/lib/site-url";
 
 const ibmPlexSans = IBM_Plex_Sans({
@@ -99,6 +100,7 @@ export default function RootLayout({
           </ComparisonProvider>
         </ThemeProvider>
         <SWRegister />
+        <UmamiRecorder host={new URL(SITE_URL).hostname} />
       </body>
     </html>
   );

@@ -71,30 +71,35 @@ export const Navigation = ({
       description: "Find electives you can take and schedules that fit",
       href: "/planner",
       icon: GraduationCap,
+      promoted: true,
     },
     {
       name: "Fit my schedule",
       description: "Find sections that work with your availability",
       href: "/discover/fit",
       icon: CalendarClock,
+      promoted: true,
     },
     {
       name: "Core curriculum",
       description: "Compare options for every UCC requirement",
       href: "/discover/ucc",
       icon: BookOpenCheck,
+      promoted: false,
     },
     {
       name: "Easiest courses",
       description: "Highest GPA, lowest difficulty in each department",
       href: "/discover/dept",
       icon: Gauge,
+      promoted: false,
     },
     {
       name: "Departments",
       description: "Course counts, GPA, and ratings for every department",
       href: "/departments",
       icon: Building2,
+      promoted: false,
     },
   ] as const;
 
@@ -144,6 +149,39 @@ export const Navigation = ({
                 );
               })}
 
+              {/* Main tools get their own links on wide screens (xl+), with a
+                  hover description for mouse users. Below xl they stay in the
+                  Discover menu so the bar doesn't overflow. */}
+              {discoverItems
+                .filter((item) => item.promoted)
+                .map((item) => {
+                  const isActive =
+                    pathname === item.href || pathname.startsWith(`${item.href}/`);
+                  const tipId = `nav-tip-${item.href.replace(/\W/g, "")}`;
+                  return (
+                    <div key={item.name} className="group relative hidden xl:block">
+                      <Link
+                        href={item.href}
+                        prefetch={false}
+                        aria-current={isActive ? "page" : undefined}
+                        aria-describedby={tipId}
+                        className={`${linkClassName} ${
+                          isActive ? "bg-white/15 text-white" : ""
+                        }`}
+                      >
+                        {item.name}
+                      </Link>
+                      <span
+                        id={tipId}
+                        role="tooltip"
+                        className="pointer-events-none invisible absolute left-1/2 top-full z-10 mt-2 w-max max-w-60 -translate-x-1/2 rounded-lg border border-border bg-popover px-3 py-2 text-xs leading-4 text-text-body opacity-0 shadow-lg transition-opacity duration-150 pointer-fine:group-hover:visible pointer-fine:group-hover:opacity-100 pointer-fine:group-hover:delay-300 group-has-[:focus-visible]:visible group-has-[:focus-visible]:opacity-100"
+                      >
+                        {item.description}
+                      </span>
+                    </div>
+                  );
+                })}
+
               {/* Discover Dropdown */}
               <div
                 className="relative"
@@ -155,11 +193,15 @@ export const Navigation = ({
                   aria-expanded={isDiscoverOpen}
                   aria-haspopup="menu"
                   className={`${linkClassName} gap-1 ${
-                    pathname.startsWith("/discover") ||
                     pathname.startsWith("/planner") ||
-                    pathname.startsWith("/departments")
-                      ? "bg-white/15 text-white"
-                      : ""
+                    pathname.startsWith("/discover/fit")
+                      ? // These have their own links at xl, so Discover is only
+                        // highlighted for them below xl.
+                        "bg-white/15 text-white xl:bg-transparent xl:text-white/80"
+                      : pathname.startsWith("/discover") ||
+                          pathname.startsWith("/departments")
+                        ? "bg-white/15 text-white"
+                        : ""
                   }`}
                   onClick={() => setIsDiscoverOpen(!isDiscoverOpen)}
                 >
@@ -187,7 +229,9 @@ export const Navigation = ({
                               href={item.href}
                               prefetch={false}
                               onClick={() => setIsDiscoverOpen(false)}
-                              className="flex items-start gap-3 rounded-lg px-3 py-2 transition-colors duration-150 hover:bg-raised"
+                              className={`flex items-start gap-3 rounded-lg px-3 py-2 transition-colors duration-150 hover:bg-raised ${
+                                item.promoted ? "xl:hidden" : ""
+                              }`}
                             >
                               <Icon strokeWidth={1.5} className="mt-0.5 h-4 w-4 shrink-0 text-text-muted" aria-hidden />
                               <span>

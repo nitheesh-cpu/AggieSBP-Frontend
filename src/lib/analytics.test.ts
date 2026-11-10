@@ -2,7 +2,18 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { endpointTemplate, normalizeQuery, pageFrom } from "./analytics.ts";
+import { appPlatform, endpointTemplate, normalizeQuery, pageFrom } from "./analytics.ts";
+
+test("appPlatform tells iOS (including iPadOS), Android and desktop apart", () => {
+  const iphone = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15";
+  const ipadOs = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15";
+  const android = "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 Chrome/140 Mobile";
+  assert.equal(appPlatform(iphone, "iPhone", 5), "ios");
+  assert.equal(appPlatform(ipadOs, "MacIntel", 5), "ios");
+  assert.equal(appPlatform(ipadOs, "MacIntel", 0), "desktop");
+  assert.equal(appPlatform(android, "Linux armv81", 5), "android");
+  assert.equal(appPlatform("Mozilla/5.0 (Windows NT 10.0; Win64; x64)", "Win32", 0), "desktop");
+});
 
 test("endpointTemplate replaces IDs and drops host and query", () => {
   assert.equal(endpointTemplate("https://api.example.com/courses?limit=5"), "/courses");

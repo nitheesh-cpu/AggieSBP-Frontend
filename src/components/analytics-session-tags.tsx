@@ -2,9 +2,22 @@
 
 import { useEffect } from "react";
 import Session from "supertokens-auth-react/recipe/session";
-import { identify } from "@/lib/analytics";
+import { appPlatform, identify, track } from "@/lib/analytics";
 
 const PLANNER_RECORD_PREFIX = "aggiesbp:planner:record:";
+/** Set once this device has opened the site from its home screen. */
+const FIRST_LAUNCH_KEY = "aggiesbp:app-first-launch";
+
+function isStandalone(): boolean {
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (navigator as Navigator & { standalone?: boolean }).standalone === true
+  );
+}
+
+function platform() {
+  return appPlatform(navigator.userAgent, navigator.platform, navigator.maxTouchPoints);
+}
 
 function hasPlan(): boolean {
   try {
@@ -48,6 +61,7 @@ export function AnalyticsSessionTags() {
         signed_in: signedIn,
         has_plan: hasPlan(),
         theme: document.documentElement.classList.contains("dark") ? "dark" : "light",
+        installed: isStandalone(),
       });
     };
 
@@ -56,6 +70,25 @@ export function AnalyticsSessionTags() {
       cancelled = true;
       window.clearTimeout(timer);
     };
+  }, []);
+
+  useEffect(() => {
+    // Chromium (Android, desktop Chrome/Edge) only; iOS never fires this.
+    const onInstalled = () => track("app-installed", { platform: platform() });
+    window.addEventListener("appinstalled", onInstalled);
+
+    if (isStandalone()) {
+      try {
+        if (!localStorage.getItem(FIRST_LAUNCH_KEY)) {
+          localStorage.setItem(FIRST_LAUNCH_KEY, "1");
+          track("app-first-launch", { platform: platform() });
+        }
+      } catch {
+        // Storage blocked: can't tell first launch from later ones, so skip.
+      }
+    }
+
+    return () => window.removeEventListener("appinstalled", onInstalled);
   }, []);
 
   return null;

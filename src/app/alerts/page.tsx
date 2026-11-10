@@ -81,6 +81,7 @@ export default function SeatAlertsPage() {
   const beginSetup = () => {
     if (isIos && !isStandalone) {
       window.localStorage.setItem("aggiesbp:alerts-onboarding", "pending");
+      if (!showInstallGuide) track("install-guide-open", { from: "alerts" });
       setShowInstallGuide(true);
       window.requestAnimationFrame(() => {
         document

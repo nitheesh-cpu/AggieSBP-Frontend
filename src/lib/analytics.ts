@@ -95,7 +95,25 @@ export type AnalyticsEvents = {
   // Phase 3: health
   "api-error": { endpoint: string; status: number };
   "empty-state": { page: string };
+
+  // Home screen app. Chromium fires `appinstalled`; iOS has no install event,
+  // so `app-first-launch` (first open from the home screen on this device)
+  // is the signal that works everywhere.
+  "app-installed": { platform: AppPlatform };
+  "app-first-launch": { platform: AppPlatform };
+  "install-guide-open": { from: string };
 };
+
+export type AppPlatform = "ios" | "android" | "desktop";
+
+/** Coarse platform for install events. iPadOS reports as a Mac with touch. */
+export function appPlatform(userAgent: string, platform: string, maxTouchPoints: number): AppPlatform {
+  if (/iPhone|iPad|iPod/i.test(userAgent) || (platform === "MacIntel" && maxTouchPoints > 1)) {
+    return "ios";
+  }
+  if (/Android/i.test(userAgent)) return "android";
+  return "desktop";
+}
 
 /**
  * How a course got onto the planner: picked in the "Add courses" search, or
@@ -245,6 +263,8 @@ export type SessionTags = {
   signed_in: boolean;
   has_plan: boolean;
   theme: "light" | "dark";
+  /** Opened as the home screen app (standalone display mode). */
+  installed: boolean;
 };
 
 /**

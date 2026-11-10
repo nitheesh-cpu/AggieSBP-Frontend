@@ -27,6 +27,7 @@ import { useAcademicRecord, type RecordSyncStatus } from "@/hooks/use-academic-r
 import { useCoursePrereqs } from "@/hooks/use-course-prereqs";
 import { useDegreePlan } from "@/hooks/use-degree-plan";
 import { getTerms, type Term } from "@/lib/api";
+import { track } from "@/lib/analytics";
 import { pickDefaultTerm } from "@/lib/terms";
 import {
   parseHowdyFragment,
@@ -185,7 +186,8 @@ export default function PlannerPage() {
                   </div>
                   <PasteImportDialog
                     existing={existing}
-                    onImport={(inputs) =>
+                    onImport={(inputs) => {
+                      track("courses-import", { source: "paste", courses: inputs.length });
                       update((r) =>
                         upsertCourses(
                           r,
@@ -198,8 +200,8 @@ export default function PlannerPage() {
                             };
                           }),
                         ),
-                      )
-                    }
+                      );
+                    }}
                   />
                   <Button variant="outline" className="gap-2" onClick={() => setHowdyOpen(true)}>
                     <School className="h-4 w-4" />
@@ -216,6 +218,7 @@ export default function PlannerPage() {
                   existingRequirements={noRequirements}
                   onImport={(inputs) => {
                     if (inputs.length > 0) update((r) => upsertCourses(r, inputs));
+                    track("courses-import", { source: "howdy", courses: inputs.length });
                     clearHowdy();
                   }}
                   onDiscard={clearHowdy}

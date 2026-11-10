@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { Partytown } from "@qwik.dev/partytown/react";
 import "./globals.css";
 import { SupertokensProvider } from "@/components/providers/SupertokensProvider";
 import { ComparisonProvider } from "@/contexts/ComparisonContext";
@@ -63,7 +62,6 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={`${pressStart2P.variable} ${ibmPlexSans.variable} ${ibmPlexMono.variable}`}>
       <head>
-        <Partytown debug={false} forward={["dataLayer.push"]} />
         <link
           rel="apple-touch-icon"
           href="/icon-192x192.png"
@@ -78,21 +76,13 @@ export default function RootLayout({
           sizes="180x180"
           href="/icon-180x180.png"
         />
+        {/* Umami (self-hosted). Only counts the production host, so local
+            and preview deploys stay out of the stats. */}
         <script
-          async
-          type="text/partytown"
-          src="https://www.googletagmanager.com/gtag/js?id=G-Q61ZEHN416"
-        />
-        <script
-          type="text/partytown"
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', 'G-Q61ZEHN416');
-            `,
-          }}
+          defer
+          src="https://stats.nitheeshk.com/n.js"
+          data-website-id="7efa90af-63b9-4c90-9287-510bd8e41d2e"
+          data-domains={new URL(SITE_URL).hostname}
         />
       </head>
       <body className="font-sans antialiased">

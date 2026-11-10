@@ -28,11 +28,14 @@ import { track } from "@/lib/analytics";
 export function ExtensionButton({
   link,
   cta,
+  from,
   className,
 }: {
   link: ExtensionLink | null;
   /** home-cta slug reported on click. */
   cta: string;
+  /** extension-click `from` slug reported on click. */
+  from: string;
   className?: string;
 }) {
   const classes = cn(
@@ -56,7 +59,10 @@ export function ExtensionButton({
       href={link.href}
       target="_blank"
       rel="noopener noreferrer"
-      onClick={() => track("home-cta", { cta })}
+      onClick={() => {
+        track("home-cta", { cta });
+        track("extension-click", { from, browser: link.browser });
+      }}
       className={classes}
     >
       <Icon className="h-4 w-4" strokeWidth={2} aria-hidden />
@@ -144,12 +150,15 @@ export function ExtensionFeature() {
 
           {/* Extensions only install on desktop browsers */}
           <div className="mt-9 hidden flex-wrap items-center gap-x-5 gap-y-3 pointer-fine:flex">
-            <ExtensionButton link={link} cta="extension" />
+            <ExtensionButton link={link} cta="extension" from="home-extension" />
             <a
               href={other.href}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() => track("home-cta", { cta: "extension-other-browser" })}
+              onClick={() => {
+                track("home-cta", { cta: "extension-other-browser" });
+                track("extension-click", { from: "home-extension", browser: other.browser });
+              }}
               className={cn(
                 "text-sm text-text-body underline-offset-4 hover:text-text-heading hover:underline",
                 !link && "invisible",

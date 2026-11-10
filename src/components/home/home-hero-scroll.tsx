@@ -92,7 +92,7 @@ export function HomeHeroScroll() {
           </div>
           {/* Extensions only install on desktop browsers, so touch devices skip this */}
           <div className="mt-5 hidden flex-wrap items-center gap-x-4 gap-y-2 pointer-fine:flex">
-            <ExtensionButton link={extension} cta="hero-extension" />
+            <ExtensionButton link={extension} cta="hero-extension" from="home-hero" />
             <p className="text-sm text-text-body">
               Ratings and grades inside College Scheduler
             </p>

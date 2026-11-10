@@ -65,7 +65,12 @@ export const Footer = () => {
                       {...(link.external
                         ? { target: "_blank", rel: "noopener noreferrer" }
                         : {})}
-                      onClick={() => track("nav-click", { item: link.item, from: "footer" })}
+                      onClick={() => {
+                        track("nav-click", { item: link.item, from: "footer" });
+                        if (link.item === "chrome-extension") {
+                          track("extension-click", { from: "footer", browser: "chrome" });
+                        }
+                      }}
                       className="text-sm text-white/75 transition-colors duration-150 hover:text-white"
                     >
                       {link.label}

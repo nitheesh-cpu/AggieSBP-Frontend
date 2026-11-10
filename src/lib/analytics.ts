@@ -85,6 +85,16 @@ export type AnalyticsEvents = {
   // Phase 2: discover. The result cards there don't link anywhere, so there's
   // no result-click event yet.
   "discover-filter": { page: DiscoverPage; filter: string };
+
+  // Phase 3: accounts and alerts
+  "signin-start": { from: string };
+  "signin-complete": { method: "email" | "google"; new_user: boolean };
+  "notifications-prompt": { result: "granted" | "denied" | "dismissed" | "unsupported" };
+  "extension-click": { from: string; browser: "chrome" | "firefox" };
+
+  // Phase 3: health
+  "api-error": { endpoint: string; status: number };
+  "empty-state": { page: string };
 };
 
 /**
@@ -106,8 +116,76 @@ type EventArgs<E extends AnalyticsEvent> = AnalyticsEvents[E] extends undefined
 
 declare global {
   interface Window {
-    umami?: { track: (event: string, data?: Record<string, unknown>) => void };
+    umami?: {
+      track: (event: string, data?: Record<string, unknown>) => void;
+      identify?: (data: Record<string, unknown>) => void;
+    };
   }
+}
+
+/** Tags this visit's session. Safe to call before the tracker has loaded (no-op). */
+export function identify(tags: SessionTags): boolean {
+  if (typeof window === "undefined" || !window.umami?.identify) return false;
+  try {
+    window.umami.identify(tags);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * `fetch` that reports failed responses and network errors as `api-error`.
+ * Behaves exactly like `fetch` otherwise: same return value, same throws.
+ */
+export async function trackedFetch(
+  input: string | URL,
+  init?: RequestInit,
+): Promise<Response> {
+  const url = input.toString();
+  try {
+    const res = await fetch(input, init);
+    if (!res.ok) track("api-error", { endpoint: endpointTemplate(url), status: res.status });
+    return res;
+  } catch (err) {
+    if (!(err instanceof DOMException && err.name === "AbortError")) {
+      track("api-error", { endpoint: endpointTemplate(url), status: 0 });
+    }
+    throw err;
+  }
+}
+
+/**
+ * Events sent before the deferred tracker script has loaded (e.g. sign-in
+ * finishing on the OAuth callback page) wait here briefly instead of being
+ * dropped. Gives up after ~10s, e.g. when an ad blocker stops the script.
+ */
+const pending: Array<[string, Record<string, unknown> | undefined]> = [];
+let flushTimer: ReturnType<typeof setTimeout> | undefined;
+const FLUSH_INTERVAL_MS = 250;
+const FLUSH_ATTEMPTS = 40;
+
+function send(event: string, data?: Record<string, unknown>): void {
+  try {
+    if (data) window.umami!.track(event, data);
+    else window.umami!.track(event);
+  } catch {
+    // Analytics must never break the page.
+  }
+}
+
+function flushWhenReady(attempt = 0): void {
+  if (window.umami) {
+    flushTimer = undefined;
+    for (const [event, data] of pending.splice(0)) send(event, data);
+    return;
+  }
+  if (attempt >= FLUSH_ATTEMPTS) {
+    flushTimer = undefined;
+    pending.length = 0;
+    return;
+  }
+  flushTimer = setTimeout(() => flushWhenReady(attempt + 1), FLUSH_INTERVAL_MS);
 }
 
 export function track<E extends AnalyticsEvent>(
@@ -115,19 +193,16 @@ export function track<E extends AnalyticsEvent>(
   ...args: EventArgs<E>
 ): void {
   if (typeof window === "undefined") return;
-  try {
-    const data = args[0] as Record<string, unknown> | undefined;
-    if (data) {
-      const clean = Object.fromEntries(
-        Object.entries(data).filter(([, v]) => v !== undefined && v !== null),
-      );
-      window.umami?.track(event, clean);
-    } else {
-      window.umami?.track(event);
-    }
-  } catch {
-    // Analytics must never break the page.
+  const raw = args[0] as Record<string, unknown> | undefined;
+  const data = raw
+    ? Object.fromEntries(Object.entries(raw).filter(([, v]) => v !== undefined && v !== null))
+    : undefined;
+  if (window.umami) {
+    send(event, data);
+    return;
   }
+  pending.push([event, data]);
+  if (flushTimer === undefined) flushWhenReady();
 }
 
 /** Shortest query worth reporting; one letter is still typing, not a search. */
@@ -142,6 +217,35 @@ export function normalizeQuery(q: string): string | null {
   const out = q.trim().toLowerCase().replace(/\s+/g, " ").slice(0, MAX_MISS_LENGTH);
   return out.length >= MIN_SEARCH_LENGTH ? out : null;
 }
+
+/**
+ * An API path with IDs replaced, so errors group by endpoint:
+ * "https://api.../course/CSCE221?x=1" → "/course/:id". A segment counts as
+ * an ID if it has a digit, base64 padding, or is over 20 characters.
+ */
+export function endpointTemplate(url: string): string {
+  let path: string;
+  try {
+    path = new URL(url, "http://x").pathname;
+  } catch {
+    return "unknown";
+  }
+  const parts = path
+    .split("/")
+    .filter(Boolean)
+    .map((seg) => (/\d|=|%3D/i.test(seg) || seg.length > 20 ? ":id" : seg));
+  return `/${parts.join("/")}`;
+}
+
+/**
+ * Session tags for `umami.identify`. Deliberately no user ID: only coarse
+ * flags so reports can be split by signed-in vs anonymous and so on.
+ */
+export type SessionTags = {
+  signed_in: boolean;
+  has_plan: boolean;
+  theme: "light" | "dark";
+};
 
 /**
  * The page type for a path, for `from` fields: "/course/CSCE221" → "course",

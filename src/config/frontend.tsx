@@ -2,6 +2,7 @@ import EmailPassword from "supertokens-auth-react/recipe/emailpassword";
 import ThirdParty, { Google } from "supertokens-auth-react/recipe/thirdparty";
 import Session from "supertokens-auth-react/recipe/session";
 import { SuperTokensConfig } from "supertokens-auth-react/lib/build/types";
+import { track } from "@/lib/analytics";
 
 /**
  * websiteDomain MUST match the URL the user actually sees (same origin).
@@ -35,10 +36,21 @@ export const frontendConfig: () => SuperTokensConfig = () => {
       websiteBasePath: "/auth",
     },
     recipeList: [
-      EmailPassword.init(),
+      EmailPassword.init({
+        onHandleEvent: (context) => {
+          if (context.action === "SUCCESS" && context.createdNewSession) {
+            track("signin-complete", { method: "email", new_user: context.isNewRecipeUser });
+          }
+        },
+      }),
       ThirdParty.init({
         signInAndUpFeature: {
           providers: [Google.init()],
+        },
+        onHandleEvent: (context) => {
+          if (context.action === "SUCCESS" && context.createdNewSession) {
+            track("signin-complete", { method: "google", new_user: context.isNewRecipeUser });
+          }
         },
       }),
       Session.init({ tokenTransferMethod: "header" }),

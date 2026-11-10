@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useCoursePrereqs } from "@/hooks/use-course-prereqs";
+import { track } from "@/lib/analytics";
 import {
   howdyToInputs,
   requirementKey,
@@ -88,6 +89,7 @@ function Instructions() {
             href={EXTENSION_URL}
             target="_blank"
             rel="noreferrer"
+            onClick={() => track("extension-click", { from: "planner-howdy", browser: "chrome" })}
             className="font-medium underline"
           >
             AggieSB+ extension
@@ -241,7 +243,10 @@ function Review({
           </p>
           <div className="flex gap-2">
             <Button asChild>
-              <Link href="/auth?redirectToPath=%2Fplanner">
+              <Link
+                href="/auth?redirectToPath=%2Fplanner"
+                onClick={() => track("signin-start", { from: "howdy-import" })}
+              >
                 Sign in to import
               </Link>
             </Button>

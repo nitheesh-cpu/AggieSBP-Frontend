@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useSessionContext } from "supertokens-auth-react/recipe/session";
+import { track } from "@/lib/analytics";
 
 function base64ToUint8Array(base64String: string) {
     const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -36,9 +37,17 @@ export function usePushNotifications() {
 
     const requestPermission = useCallback(async () => {
         if (!("Notification" in window)) {
+            track("notifications-prompt", { result: "unsupported" });
             throw new Error("Notifications not supported in this browser");
         }
+        const asked = Notification.permission === "default";
         const result = await Notification.requestPermission();
+        // Only count real prompts; re-requesting an answered permission shows nothing.
+        if (asked) {
+            track("notifications-prompt", {
+                result: result === "default" ? "dismissed" : result,
+            });
+        }
         setPermission(result);
         return result;
     }, []);

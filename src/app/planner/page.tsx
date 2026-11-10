@@ -387,7 +387,11 @@ function SyncBadge({
   return (
     <span className={base}>
       <HardDrive className="h-3.5 w-3.5" /> Saved on this device.{" "}
-      <Link href="/auth" className="font-medium underline">
+      <Link
+        href="/auth"
+        onClick={() => track("signin-start", { from: "planner" })}
+        className="font-medium underline"
+      >
         Sign in
       </Link>{" "}
       to keep it everywhere

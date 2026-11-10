@@ -37,6 +37,7 @@ import {
   type Term as ApiTerm,
 } from "@/lib/api";
 import { track } from "@/lib/analytics";
+import { useEmptyStateTracking } from "@/lib/use-empty-state-tracking";
 import { pickDefaultTerm, sortTermsForMenu } from "@/lib/terms";
 import { EasinessBadge, EasinessLegend } from "@/components/easiness";
 import { WatchSectionButton } from "@/components/watch-section-button";
@@ -522,6 +523,17 @@ export default function DiscoverFitPage() {
       eligibility,
     };
   }, [fitResults, hasRecord, record, termCode, prereqInfo, prereqUnknown, prereqError, hideTaken, hideUnmet]);
+
+  useEmptyStateTracking(
+    "fit",
+    fitReady &&
+      !loadingCandidates &&
+      !loadingFit &&
+      !filteringFit &&
+      !error &&
+      courses.length > 0 &&
+      visibleResults.length === 0,
+  );
 
   // Easiest first by the professors of the sections that fit, not the course's
   // best professor overall (whose section may be filtered out). Courses whose

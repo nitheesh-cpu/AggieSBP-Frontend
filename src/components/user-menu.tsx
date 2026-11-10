@@ -16,6 +16,7 @@ import { User, LogOut, Bell } from "lucide-react";
 import Link from "next/link";
 import { redirectToAuth } from "supertokens-auth-react";
 import { removePushSubscription } from "@/lib/api";
+import { pageFrom, track } from "@/lib/analytics";
 
 export const UserMenu = () => {
     const session = useSessionContext();
@@ -28,7 +29,10 @@ export const UserMenu = () => {
     if (!session.doesSessionExist) {
         return (
             <Button
-                onClick={() => redirectToAuth()}
+                onClick={() => {
+                    track("signin-start", { from: pageFrom(window.location.pathname) });
+                    redirectToAuth();
+                }}
                 variant="ghost"
                 size="sm"
                 className="text-current opacity-85 hover:opacity-100 hover:bg-current/10 hover:text-current transition-[opacity,background-color] duration-150"

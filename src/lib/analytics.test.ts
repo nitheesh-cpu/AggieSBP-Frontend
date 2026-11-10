@@ -2,7 +2,17 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { normalizeQuery, pageFrom } from "./analytics.ts";
+import { endpointTemplate, normalizeQuery, pageFrom } from "./analytics.ts";
+
+test("endpointTemplate replaces IDs and drops host and query", () => {
+  assert.equal(endpointTemplate("https://api.example.com/courses?limit=5"), "/courses");
+  assert.equal(endpointTemplate("https://api.example.com/course/CSCE221"), "/course/:id");
+  assert.equal(
+    endpointTemplate("https://api.example.com/professor/VGVhY2hlci02MDkxMDE=/reviews"),
+    "/professor/:id/reviews",
+  );
+  assert.equal(endpointTemplate("/courses/compare"), "/courses/compare");
+});
 
 test("normalizeQuery lowercases, trims and collapses spaces", () => {
   assert.equal(normalizeQuery("  CSCE   221 "), "csce 221");

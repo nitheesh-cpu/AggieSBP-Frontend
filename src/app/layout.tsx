@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { IBM_Plex_Mono, IBM_Plex_Sans, Press_Start_2P } from "next/font/google";
 import { SWRegister } from "@/components/sw-register";
 import { UmamiRecorder } from "@/components/umami-recorder";
+import { AnalyticsSessionTags } from "@/components/analytics-session-tags";
 import { SITE_URL } from "@/lib/site-url";
 
 const ibmPlexSans = IBM_Plex_Sans({
@@ -95,7 +96,10 @@ export default function RootLayout({
         >
           <ComparisonProvider>
             <ProfessorComparisonProvider>
-              <SupertokensProvider>{children}</SupertokensProvider>
+              <SupertokensProvider>
+                {children}
+                <AnalyticsSessionTags />
+              </SupertokensProvider>
             </ProfessorComparisonProvider>
           </ComparisonProvider>
         </ThemeProvider>

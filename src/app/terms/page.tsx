@@ -1,5 +1,6 @@
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
+import { AnalyticsOptOut } from "@/components/analytics-opt-out";
 
 export default function TermsPage() {
   return (
@@ -80,6 +81,31 @@ export default function TermsPage() {
                 </p>
               </section>
 
+              <section id="analytics" className="mb-8">
+                <h2 className="text-2xl font-medium text-text-heading mb-4">
+                  Analytics
+                </h2>
+                <p className="text-text-body mb-4">
+                  We use Umami, self-hosted on our own server, to see which pages and
+                  features get used so we can make the site easier to use. It sets no
+                  cookies and doesn&apos;t identify you.
+                </p>
+                <p className="text-text-body mb-4">
+                  It records page views, your browser, device type and country, and
+                  actions like searches, filters, and clicks on tools. For searches
+                  that find nothing, it records the first 40 characters of what you
+                  typed so we can fix missing courses. For a small share of visits it
+                  also records clicks, scrolling and the page layout to build heatmaps.
+                  Anything you type into a form is hidden in those recordings, and so
+                  is the list of courses you&apos;ve taken in the schedule builder.
+                  Analytics never receives your name, email, or account ID.
+                </p>
+                <p className="text-text-body mb-4">
+                  You can turn it off for this browser:
+                </p>
+                <AnalyticsOptOut />
+              </section>
+
               <section className="mb-8">
                 <h2 className="text-2xl font-medium text-text-heading mb-4">
                   Contact
@@ -92,7 +118,7 @@ export default function TermsPage() {
 
               <div className="mt-8 pt-6 border-t border-border">
                 <p className="text-text-muted text-sm">
-                  Last updated: June 2025
+                  Last updated: November 2026
                 </p>
               </div>
             </div>

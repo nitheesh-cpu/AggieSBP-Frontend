@@ -3,6 +3,7 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
+import { useSessionContext } from "supertokens-auth-react/recipe/session";
 import {
   ArrowRight,
   BellRing,
@@ -18,6 +19,7 @@ import {
 import { Footer } from "@/components/footer";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
+import { track } from "@/lib/analytics";
 
 const CHROME_EXTENSION_URL =
   "https://chromewebstore.google.com/detail/aggie-schedule-builder-pl/glckdcnecomhlmlegmjdceblibmaljpm";
@@ -48,6 +50,7 @@ const steps = [
 
 export default function SeatAlertsPage() {
   const router = useRouter();
+  const session = useSessionContext();
   const [isIos, setIsIos] = React.useState(false);
   const [isStandalone, setIsStandalone] = React.useState(false);
   const [showInstallGuide, setShowInstallGuide] = React.useState(false);
@@ -86,6 +89,9 @@ export default function SeatAlertsPage() {
       });
       return;
     }
+    if (!session.loading && !session.doesSessionExist) {
+      track("signin-start", { from: "alerts" });
+    }
     router.push("/profile/alerts");
   };
 
@@ -116,7 +122,12 @@ export default function SeatAlertsPage() {
                 </Button>
                 {!isIos && (
                   <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
-                    <a href={CHROME_EXTENSION_URL} target="_blank" rel="noreferrer">
+                    <a
+                      href={CHROME_EXTENSION_URL}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => track("extension-click", { from: "alerts", browser: "chrome" })}
+                    >
                       <Chrome strokeWidth={1.5} className="h-4 w-4" />
                       Get the extension
                     </a>

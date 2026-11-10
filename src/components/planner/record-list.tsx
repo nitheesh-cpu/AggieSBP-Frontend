@@ -26,8 +26,10 @@ const STATUS_ORDER: CourseStatus[] = ["in_progress", "planned", "completed"];
 
 /** Courses grouped by status, then by term (planned soonest first, completed newest first). */
 export function RecordList({ courses, info, onEdit, onRemove }: RecordListProps) {
+  // rr-mask: Umami's heatmap recorder blanks this text, so a student's course
+  // history never ends up in a replay.
   return (
-    <div className="space-y-6">
+    <div className="rr-mask space-y-6">
       {STATUS_ORDER.map((status) => {
         const inStatus = courses.filter((c) => c.status === status);
         if (inStatus.length === 0) return null;

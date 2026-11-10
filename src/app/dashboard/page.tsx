@@ -23,6 +23,7 @@ import {
 import { MOBILE_APP_QUICK_LINKS } from "@/lib/nav-quick-links";
 import { GlobalOmnibar } from "@/components/home/global-omnibar";
 import { PageBanner } from "@/components/page-banner";
+import { track } from "@/lib/analytics";
 import {
   ComparePreview,
   CoursesPreview,
@@ -234,6 +235,7 @@ export default function DashboardPage() {
                 href={EXTENSION_URL}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => track("extension-click", { from: "dashboard", browser: "chrome" })}
                 className="group flex flex-col rounded-2xl border border-border bg-card p-6 transition-colors duration-150 hover:border-border-strong"
               >
                 <div className="flex items-center gap-2">

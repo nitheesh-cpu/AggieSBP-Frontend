@@ -56,6 +56,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { track } from "@/lib/analytics";
 import { useSearchTracking } from "@/lib/analytics-hooks";
+import { useEmptyStateTracking } from "@/lib/use-empty-state-tracking";
 
 const quickFilters = [
   {
@@ -627,6 +628,15 @@ function CoursesPageContent() {
     searchTerm,
     filteredAndSearchedCourses.length,
     searchTerm !== debouncedSearchTerm || isLoadingAll || !!error,
+  );
+
+  useEmptyStateTracking(
+    "courses",
+    !loading &&
+      !isLoadingAll &&
+      !error &&
+      searchTerm === debouncedSearchTerm &&
+      filteredAndSearchedCourses.length === 0,
   );
 
   // Update filtered courses when dependencies change

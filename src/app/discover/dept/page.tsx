@@ -34,6 +34,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { track } from "@/lib/analytics";
+import { useEmptyStateTracking } from "@/lib/use-empty-state-tracking";
 import { Search, Loader2, GraduationCap, Star, ChevronDown, Building2, MapPin, ArrowUpDown, Check, ChevronsUpDown } from "lucide-react";
 
 const API_BASE_URL =
@@ -109,11 +110,17 @@ export default function DiscoverDeptPage() {
 
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [fetchingTerms, setFetchingTerms] = useState(true);
   const [fetchingDepts, setFetchingDepts] = useState(false);
   const [shownCount, setShownCount] = useState(INITIAL_SHOWN);
 
   useEffect(() => { setHasMounted(true); }, []);
+
+  useEmptyStateTracking(
+    "dept",
+    !loading && !loadFailed && !!selectedTerm && !!selectedDept && courses.length === 0,
+  );
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
@@ -174,6 +181,7 @@ export default function DiscoverDeptPage() {
   ) => {
     if (!term || !dept) return;
     setLoading(true);
+    setLoadFailed(false);
     setCourses([]);
     setShownCount(INITIAL_SHOWN);
     try {
@@ -187,6 +195,7 @@ export default function DiscoverDeptPage() {
       setCourses(data);
     } catch (err) {
       console.error(err);
+      setLoadFailed(true);
     } finally {
       setLoading(false);
     }

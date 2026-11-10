@@ -50,6 +50,7 @@ export function WatchSectionButton({
 
   const watch = async () => {
     if (!signedIn) {
+      track("signin-start", { from: "seat-watch" });
       void redirectToAuth({ redirectBack: true });
       return;
     }

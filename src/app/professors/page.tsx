@@ -16,6 +16,7 @@ import { getProfessors, type Professor } from "@/lib/api";
 import { useOfficialSubjects } from "@/hooks/use-official-subjects";
 import { track } from "@/lib/analytics";
 import { useSearchTracking } from "@/lib/analytics-hooks";
+import { useEmptyStateTracking } from "@/lib/use-empty-state-tracking";
 import {
   Search,
   Star,
@@ -108,6 +109,8 @@ export default function ProfessorsPage() {
     (currentPage - 1) * itemsPerPage + professors.length,
     loading || searchInput.trim() !== searchTerm || !!error,
   );
+
+  useEmptyStateTracking("professors", !loading && !error && professors.length === 0);
 
   const goToPage = (page: number) => {
     setCurrentPage(Math.max(1, page));

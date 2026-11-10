@@ -1,3 +1,5 @@
+import { trackedFetch } from "@/lib/analytics";
+
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL?.trim() || "http://localhost:8000";
 
@@ -370,13 +372,13 @@ export async function getDepartments(params?: {
   if (params?.limit) url.searchParams.append("limit", params.limit.toString());
   if (params?.skip) url.searchParams.append("skip", params.skip.toString());
 
-  const response = await fetch(url.toString());
+  const response = await trackedFetch(url.toString());
   return handleResponse<Department[]>(response);
 }
 
 // Departments Info API
 export async function getDepartmentsInfo(): Promise<DepartmentsInfo> {
-  const response = await fetch(`${API_BASE_URL}/departments_info`);
+  const response = await trackedFetch(`${API_BASE_URL}/departments_info`);
   return handleResponse<DepartmentsInfo>(response);
 }
 
@@ -393,7 +395,7 @@ export async function getCourses(
   });
 
   const url = `${API_BASE_URL}/courses${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
-  const response = await fetch(url);
+  const response = await trackedFetch(url);
 
   if (!response.ok) {
     throw new Error(`Failed to fetch courses: ${response.statusText}`);
@@ -404,7 +406,7 @@ export async function getCourses(
 
 // Course Detail API
 export async function getCourseDetail(courseId: string): Promise<CourseDetail> {
-  const response = await fetch(`${API_BASE_URL}/course/${courseId}`);
+  const response = await trackedFetch(`${API_BASE_URL}/course/${courseId}`);
   return handleResponse<CourseDetail>(response);
 }
 
@@ -424,7 +426,7 @@ export async function getCourseReviews(
   if (params?.limit) url.searchParams.append("limit", params.limit.toString());
   if (params?.skip) url.searchParams.append("skip", params.skip.toString());
 
-  const response = await fetch(url.toString());
+  const response = await trackedFetch(url.toString());
   return handleResponse<CourseReviews>(response);
 }
 
@@ -435,7 +437,7 @@ export async function getHealthCheck(): Promise<{
   api_version: string;
 }> {
   try {
-    const response = await fetch(`${API_BASE_URL}/health`, {
+    const response = await trackedFetch(`${API_BASE_URL}/health`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -464,7 +466,7 @@ export async function compareCourses(
     return [];
   }
 
-  const response = await fetch(`${API_BASE_URL}/courses/compare`, {
+  const response = await trackedFetch(`${API_BASE_URL}/courses/compare`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -486,7 +488,7 @@ export async function compareProfessors(
   const params = new URLSearchParams();
   params.append("ids", professorIds.join(","));
 
-  const response = await fetch(`${API_BASE_URL}/professors/compare?${params}`);
+  const response = await trackedFetch(`${API_BASE_URL}/professors/compare?${params}`);
   return handleResponse<ProfessorDetail[]>(response);
 }
 
@@ -508,7 +510,7 @@ export async function getProfessors(params?: {
   if (params?.limit) url.searchParams.append("limit", params.limit.toString());
   if (params?.skip) url.searchParams.append("skip", params.skip.toString());
 
-  const response = await fetch(url.toString());
+  const response = await trackedFetch(url.toString());
   return handleResponse<Professor[]>(response);
 }
 
@@ -521,7 +523,7 @@ export async function getProfessor(
       "Fetching professor from URL:",
       `${API_BASE_URL}/professor/${professorId}`,
     );
-    const response = await fetch(`${API_BASE_URL}/professor/${professorId}`);
+    const response = await trackedFetch(`${API_BASE_URL}/professor/${professorId}`);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -579,7 +581,7 @@ export async function getProfessorReviews(
       url.searchParams.append("max_rating", params.max_rating.toString());
 
     console.log("Fetching professor reviews from URL:", url.toString());
-    const response = await fetch(url.toString());
+    const response = await trackedFetch(url.toString());
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -735,14 +737,14 @@ export async function searchProfessors(params: {
   if (params.limit) url.searchParams.append("limit", params.limit.toString());
   if (params.skip) url.searchParams.append("skip", params.skip.toString());
 
-  const response = await fetch(url.toString());
+  const response = await trackedFetch(url.toString());
   return handleResponse<Professor[]>(response);
 }
 
 // Sitemap-specific API functions for efficient bulk data fetching
 export async function getAllDepartmentIds(): Promise<SitemapEntry[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/departments?limit=1000`, {
+    const response = await trackedFetch(`${API_BASE_URL}/departments?limit=1000`, {
       headers: {
         "Content-Type": "application/json",
       },
@@ -761,7 +763,7 @@ export async function getAllDepartmentIds(): Promise<SitemapEntry[]> {
 
 export async function getAllCourseIds(): Promise<SitemapEntry[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/courses?limit=50000`, {
+    const response = await trackedFetch(`${API_BASE_URL}/courses?limit=50000`, {
       headers: {
         "Content-Type": "application/json",
       },
@@ -780,7 +782,7 @@ export async function getAllCourseIds(): Promise<SitemapEntry[]> {
 
 export async function getAllProfessorIds(): Promise<SitemapEntry[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/professors?limit=10000`, {
+    const response = await trackedFetch(`${API_BASE_URL}/professors?limit=10000`, {
       headers: {
         "Content-Type": "application/json",
       },
@@ -831,7 +833,7 @@ export interface DataStats {
 }
 
 export async function getDataStats(): Promise<DataStats> {
-  const response = await fetch(`${API_BASE_URL}/data_stats`);
+  const response = await trackedFetch(`${API_BASE_URL}/data_stats`);
   return handleResponse<DataStats>(response);
 }
 
@@ -845,7 +847,7 @@ export interface Term {
 }
 
 export async function getTerms(): Promise<Term[]> {
-  const response = await fetch(`${API_BASE_URL}/terms`);
+  const response = await trackedFetch(`${API_BASE_URL}/terms`);
   return handleResponse<Term[]>(response);
 }
 
@@ -940,7 +942,7 @@ export async function getDiscoverFitMatches(
 ): Promise<DiscoverFitCourseMatch[]> {
   const attrs = (filters?.sectionAttributeDescs ?? []).map((a) => a.trim()).filter(Boolean);
   const campus = filters?.sectionCampus?.trim();
-  const response = await fetch(`${API_BASE_URL}/discover/${termCode}/fit-sections`, {
+  const response = await trackedFetch(`${API_BASE_URL}/discover/${termCode}/fit-sections`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -960,7 +962,7 @@ export async function postDiscoverFitSectionAttributeOptions(
   termCode: string,
   courseKeys: string[],
 ): Promise<string[]> {
-  const response = await fetch(
+  const response = await trackedFetch(
     `${API_BASE_URL}/discover/${termCode}/fit-section-attribute-options`,
     {
       method: "POST",
@@ -975,7 +977,7 @@ export async function postDiscoverFitSectionCampusOptions(
   termCode: string,
   courseKeys: string[],
 ): Promise<string[]> {
-  const response = await fetch(
+  const response = await trackedFetch(
     `${API_BASE_URL}/discover/${termCode}/fit-section-campus-options`,
     {
       method: "POST",
@@ -990,7 +992,7 @@ export async function getCourseSectionsForTerm(
   termCode: string,
   courseId: string,
 ): Promise<CourseSection[]> {
-  const response = await fetch(
+  const response = await trackedFetch(
     `${API_BASE_URL}/sections/${termCode}/course/${courseId}`,
   );
   return handleResponse<CourseSection[]>(response);
@@ -1001,7 +1003,7 @@ export async function getCourseProfessorsForTerm(
   termCode: string,
   courseId: string,
 ): Promise<CourseDetail["professors"]> {
-  const response = await fetch(
+  const response = await trackedFetch(
     `${API_BASE_URL}/sections/${termCode}/course/${courseId}/professors`,
   );
   return handleResponse<CourseDetail["professors"]>(response);
@@ -1012,7 +1014,7 @@ export async function getCourseProfessorsWithDetailsForTerm(
   termCode: string,
   courseId: string,
 ): Promise<CourseDetail["professors"]> {
-  const response = await fetch(
+  const response = await trackedFetch(
     `${API_BASE_URL}/sections/${termCode}/course/${courseId}/professors/details`,
   );
   const data = await handleResponse<{ professors: CourseDetail["professors"] }>(
@@ -1050,14 +1052,14 @@ export interface AccountSummary {
 }
 
 export async function getAccountSummary(): Promise<AccountSummary> {
-  const response = await fetch(`${API_BASE_URL}/users/me`, {
+  const response = await trackedFetch(`${API_BASE_URL}/users/me`, {
     headers: await authHeaders({ "Content-Type": "application/json" }),
   });
   return handleResponse<AccountSummary>(response);
 }
 
 export async function saveSchedule(schedule: ScheduleData): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/users/schedules`, {
+  const response = await trackedFetch(`${API_BASE_URL}/users/schedules`, {
     method: "POST",
     headers: await authHeaders(),
     body: JSON.stringify(schedule),
@@ -1066,7 +1068,7 @@ export async function saveSchedule(schedule: ScheduleData): Promise<void> {
 }
 
 export async function getSchedules(): Promise<Schedule[]> {
-  const response = await fetch(`${API_BASE_URL}/users/schedules`, {
+  const response = await trackedFetch(`${API_BASE_URL}/users/schedules`, {
     headers: await authHeaders({ "Content-Type": "application/json" }),
   });
   return handleResponse<Schedule[]>(response);
@@ -1085,7 +1087,7 @@ export async function trackSection(
   sectionId: string,
   termCode: string,
 ): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/users/tracking`, {
+  const response = await trackedFetch(`${API_BASE_URL}/users/tracking`, {
     method: "POST",
     headers: await authHeaders(),
     body: JSON.stringify({
@@ -1097,7 +1099,7 @@ export async function trackSection(
 }
 
 export async function untrackSection(sectionId: string): Promise<void> {
-  const response = await fetch(
+  const response = await trackedFetch(
     `${API_BASE_URL}/users/tracking/${sectionId}`,
     {
       method: "DELETE",
@@ -1108,7 +1110,7 @@ export async function untrackSection(sectionId: string): Promise<void> {
 }
 
 export async function getTrackedSections(): Promise<TrackedSection[]> {
-  const response = await fetch(`${API_BASE_URL}/users/tracking`, {
+  const response = await trackedFetch(`${API_BASE_URL}/users/tracking`, {
     headers: await authHeaders({ "Content-Type": "application/json" }),
   });
   return handleResponse<TrackedSection[]>(response);
@@ -1123,7 +1125,7 @@ export async function savePushSubscription(subscription: {
 }): Promise<void> {
   const p256dh = subscription.keys?.p256dh ?? "";
   const authKey = subscription.keys?.auth ?? "";
-  const response = await fetch(`${API_BASE_URL}/users/push-subscription`, {
+  const response = await trackedFetch(`${API_BASE_URL}/users/push-subscription`, {
     method: "POST",
     headers: await authHeaders(),
     body: JSON.stringify({
@@ -1139,7 +1141,7 @@ export async function savePushSubscription(subscription: {
 
 /** Triggers a test push for the current user (requires auth). */
 export async function sendTestNotification(): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/users/test-notification`, {
+  const response = await trackedFetch(`${API_BASE_URL}/users/test-notification`, {
     method: "POST",
     headers: await authHeaders({ "Content-Type": "application/json" }),
   });
@@ -1147,7 +1149,7 @@ export async function sendTestNotification(): Promise<void> {
 }
 
 export async function removePushSubscription(endpoint: string): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/users/push-subscription`, {
+  const response = await trackedFetch(`${API_BASE_URL}/users/push-subscription`, {
     method: "DELETE",
     headers: await authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify({ endpoint }),
@@ -1165,7 +1167,7 @@ export interface PushSubscriptionDevice {
 }
 
 export async function getPushSubscriptions(): Promise<PushSubscriptionDevice[]> {
-  const response = await fetch(`${API_BASE_URL}/users/push-subscriptions`, {
+  const response = await trackedFetch(`${API_BASE_URL}/users/push-subscriptions`, {
     headers: await authHeaders({ "Content-Type": "application/json" }),
   });
   return handleResponse<PushSubscriptionDevice[]>(response);
@@ -1175,7 +1177,7 @@ export async function subscribeToSectionPush(
   courseSectionId: string,
   subscription: PushSubscriptionJSON
 ): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/users/push/subscribe`, {
+  const response = await trackedFetch(`${API_BASE_URL}/users/push/subscribe`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -1224,7 +1226,7 @@ export async function getCoursePrereqs(codes: string[], depth = 0): Promise<Prer
       codes: unique.slice(i, i + 100).join(","),
       depth: String(depth),
     });
-    const response = await fetch(`${API_BASE_URL}/courses/prereqs?${params}`);
+    const response = await trackedFetch(`${API_BASE_URL}/courses/prereqs?${params}`);
     const part = await handleResponse<PrereqGraph>(response);
     Object.assign(merged.courses, part.courses);
     merged.missing.push(...part.missing);
@@ -1251,7 +1253,7 @@ export class PlannerConflictError<T> extends Error {
 }
 
 export async function getPlannerState(): Promise<PlannerState> {
-  const response = await fetch(`${API_BASE_URL}/users/me/planner`, {
+  const response = await trackedFetch(`${API_BASE_URL}/users/me/planner`, {
     headers: await authHeaders(),
   });
   return handleResponse<PlannerState>(response);
@@ -1263,7 +1265,7 @@ export async function savePlannerDoc<T>(
   value: T,
   baseRev: number,
 ): Promise<number> {
-  const response = await fetch(`${API_BASE_URL}/users/me/planner/${doc}`, {
+  const response = await trackedFetch(`${API_BASE_URL}/users/me/planner/${doc}`, {
     method: "PUT",
     headers: await authHeaders(),
     body: JSON.stringify({ [doc]: value, base_rev: baseRev }),
@@ -1283,7 +1285,7 @@ export interface TermDepartment {
 }
 
 export async function getTermDepartments(termCode: string): Promise<TermDepartment[]> {
-  const response = await fetch(`${API_BASE_URL}/discover/${encodeURIComponent(termCode)}/departments`);
+  const response = await trackedFetch(`${API_BASE_URL}/discover/${encodeURIComponent(termCode)}/departments`);
   return handleResponse<TermDepartment[]>(response);
 }
 
@@ -1296,7 +1298,7 @@ export async function getDiscoverDeptCourses(
   const params = new URLSearchParams();
   if (opts.campus) params.set("campus", opts.campus);
   params.set("include_graduate", String(opts.includeGraduate ?? false));
-  const response = await fetch(
+  const response = await trackedFetch(
     `${API_BASE_URL}/discover/${encodeURIComponent(termCode)}/${encodeURIComponent(dept)}?${params}`,
   );
   return handleResponse(response);
@@ -1312,7 +1314,7 @@ export async function getDiscoverGpaBoosters(
 ): Promise<import("./planner/find").DiscoverRow[]> {
   const params = new URLSearchParams();
   if (opts.campus) params.set("campus", opts.campus);
-  const response = await fetch(
+  const response = await trackedFetch(
     `${API_BASE_URL}/discover/${encodeURIComponent(termCode)}/gpa-boosters${params.size ? `?${params}` : ""}`,
   );
   return handleResponse(response);
@@ -1327,7 +1329,7 @@ export async function getDiscoverCourseProfessors(
   courseKeys: string[],
   opts: { campus?: string } = {},
 ): Promise<import("./planner/find").DiscoverRow[]> {
-  const response = await fetch(
+  const response = await trackedFetch(
     `${API_BASE_URL}/discover/${encodeURIComponent(termCode)}/course-professors`,
     {
       method: "POST",
@@ -1347,7 +1349,7 @@ export async function getDiscoverUccCourses(
 ): Promise<{ category: string; courses: import("./planner/find").DiscoverRow[] }[]> {
   const params = new URLSearchParams();
   if (opts.campus) params.set("campus", opts.campus);
-  const response = await fetch(
+  const response = await trackedFetch(
     `${API_BASE_URL}/discover/${encodeURIComponent(termCode)}/ucc${params.size ? `?${params}` : ""}`,
   );
   return handleResponse(response);

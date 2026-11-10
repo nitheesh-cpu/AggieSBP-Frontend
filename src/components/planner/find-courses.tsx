@@ -36,6 +36,7 @@ import {
   type TermDepartment,
 } from "@/lib/api";
 import { track } from "@/lib/analytics";
+import { useEmptyStateTracking } from "@/lib/use-empty-state-tracking";
 import { collapseRows, type Candidate, type CourseState } from "@/lib/planner/find";
 import { activeWatchlist, watchKey, type DegreePlan } from "@/lib/planner/plan";
 import {
@@ -266,6 +267,16 @@ export function FindCourses({
       else hiddenSeats++;
     }
   }
+
+  useEmptyStateTracking(
+    "planner-find",
+    !!term &&
+      !loading &&
+      !failed &&
+      !(source === "dept" && !dept) &&
+      seatsPending === 0 &&
+      visible.length === 0,
+  );
 
   // One batched request per chunk. Without a seat filter only the page on
   // screen is fetched; with one, every eligible candidate is.

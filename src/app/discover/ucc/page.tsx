@@ -42,6 +42,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { track } from "@/lib/analytics";
+import { useEmptyStateTracking } from "@/lib/use-empty-state-tracking";
 
 interface Term {
   termCode: string;
@@ -124,6 +125,7 @@ function UCCDiscoveryContent() {
   const [selectedTerm, setSelectedTerm] = useState<string>("");
   const [uccData, setUccData] = useState<UCCCategory[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [fetchingTerms, setFetchingTerms] = useState<boolean>(true);
   const [expandedState, setExpandedState] = useState<ExpandedState>({});
   const [sortKey, setSortKey] = useState<SortKey>("easiness");
@@ -143,6 +145,11 @@ function UCCDiscoveryContent() {
   useEffect(() => {
     setHasMounted(true);
   }, []);
+
+  useEmptyStateTracking(
+    "ucc",
+    !loading && !loadFailed && !!selectedTerm && visibleCategories.length === 0,
+  );
 
   const filteredSectionTypeOptions = useMemo(() => {
     const q = sectionTypeSearch.trim().toLowerCase();
@@ -224,6 +231,7 @@ function UCCDiscoveryContent() {
     const query = params.toString();
 
     setLoading(true);
+    setLoadFailed(false);
     setUccData([]);
     setExpandedState({});
 
@@ -247,6 +255,7 @@ function UCCDiscoveryContent() {
       .catch((error) => {
         if (controller.signal.aborted) return;
         console.error("Error fetching UCC data:", error);
+        setLoadFailed(true);
         setLoading(false);
       });
     return () => controller.abort();

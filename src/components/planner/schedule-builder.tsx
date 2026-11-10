@@ -314,6 +314,11 @@ export function ScheduleBuilder({
         {!canRun && (
           <span className="text-sm text-text-body">Add a class or star some electives first.</span>
         )}
+        {canRun && !result && !running && !failed && (
+          <span className="text-sm text-text-body">
+            Ready. Find schedules to see every way these fit together.
+          </span>
+        )}
       </div>
 
       {failed && (
@@ -389,6 +394,12 @@ function Results({ result }: { result: GenerateResult & { notOffered: string[] }
   return (
     <div className="space-y-4">
       <div className="space-y-1 text-sm text-text-body">
+        {result.options.length > 0 && (
+          <p className="font-medium text-text-heading">
+            Pick an option, then use Copy CRNs to paste its section numbers into Howdy
+            registration.
+          </p>
+        )}
         <p>
           {result.found === 0
             ? "No combination fits. Try fewer electives, more starred options, or looser times."

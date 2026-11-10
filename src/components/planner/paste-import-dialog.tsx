@@ -48,11 +48,21 @@ CSCE 222  DISCRETE STRUC COMPUTING  3.000  A`;
 export function PasteImportDialog({
   existing,
   onImport,
+  open: controlledOpen,
+  onOpenChange,
 }: {
   existing: ReadonlySet<string>;
   onImport: (courses: CourseInput[]) => void;
+  /** Optional: lets the page open the dialog from elsewhere. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [innerOpen, setInnerOpen] = useState(false);
+  const open = controlledOpen ?? innerOpen;
+  const setOpen = (o: boolean) => {
+    setInnerOpen(o);
+    onOpenChange?.(o);
+  };
   const [text, setText] = useState("");
   // Per-code edits on top of what was parsed.
   const [edits, setEdits] = useState<Record<string, Partial<Row>>>({});

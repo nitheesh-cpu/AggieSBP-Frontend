@@ -72,6 +72,8 @@ export type AnalyticsEvents = {
   // schedules were found (`options`), so there's no separate result event.
   "planner-import-open": { source: "paste" | "howdy" };
   "planner-course-add": { from: PlannerAddFrom };
+  "planner-empty-action": { action: "search" | "paste" | "howdy" | "electives" };
+  "planner-next-step": { to: "build" };
 
   // Phase 2: fit my schedule
   "fit-results": { count: number; zero: boolean };

@@ -1,24 +1,18 @@
 "use client";
 
-import React from "react";
 import { getImageProps } from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import { AnimatePresence, MotionConfig, motion } from "motion/react";
+import { ArrowRight, BellRing, CheckCircle2 } from "lucide-react";
 
 import { GlobalOmnibar } from "@/components/home/global-omnibar";
 import { ExtensionButton } from "@/components/home/home-features";
-import {
-  gradedProfessors,
-  useExampleCourse,
-  useExtensionLink,
-} from "@/components/home/home-shared";
+import { useExtensionLink } from "@/components/home/home-shared";
 import { track } from "@/lib/analytics";
 
-const EXAMPLE_CODE = "CSCE 120";
-const EXAMPLE_PATH = "/course/CSCE120";
-const GRADES = ["A", "B", "C", "D", "F"] as const;
-const ROTATE_MS = 4000;
+const WATCHING = [
+  { code: "CSCE 313", section: "Section 502" },
+  { code: "MATH 251", section: "Section 201" },
+];
 
 const imageProps = {
   alt: "",
@@ -38,28 +32,6 @@ const { props: portraitImage } = getImageProps({
 
 export function HomeHeroScroll() {
   const extension = useExtensionLink();
-  const course = useExampleCourse();
-  const [index, setIndex] = React.useState(0);
-  const [paused, setPaused] = React.useState(false);
-
-  // Rotate through every CSCE 120 professor with grade data.
-  const professors = React.useMemo(() => gradedProfessors(course), [course]);
-  const professor = professors.length
-    ? professors[index % professors.length]
-    : undefined;
-  const distribution = professor?.gradeDistribution;
-  const rating = professor?.overallRating;
-
-  // Advance to the next professor every few seconds; hold while the card is
-  // hovered or focused so it doesn't change under the reader.
-  React.useEffect(() => {
-    if (professors.length < 2 || paused) return;
-    const id = window.setInterval(
-      () => setIndex((i) => (i + 1) % professors.length),
-      ROTATE_MS,
-    );
-    return () => window.clearInterval(id);
-  }, [professors.length, paused]);
 
   return (
     <section className="relative isolate min-h-[min(100svh,1100px)] bg-canvas">
@@ -99,86 +71,74 @@ export function HomeHeroScroll() {
           </div>
         </div>
 
-        <Link
-          href={EXAMPLE_PATH}
-          onMouseEnter={() => setPaused(true)}
-          onMouseLeave={() => setPaused(false)}
-          onFocus={() => setPaused(true)}
-          onBlur={() => setPaused(false)}
-          onClick={() => track("home-cta", { cta: "hero-example-course" })}
-          className="group hidden min-w-0 max-w-[35rem] rounded-2xl lg:block border border-border-strong bg-card p-4 transition-[transform,border-color] hover:-translate-y-0.5 hover:border-accent focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent active:translate-y-0 motion-reduce:transform-none sm:p-6 lg:max-w-none"
-        >
-          <div className="flex items-center justify-between gap-3">
-            <span className="code-tag">{EXAMPLE_CODE}</span>
-            <ArrowRight className="h-5 w-5 shrink-0 text-accent" aria-hidden />
-          </div>
-          <h2 className="mt-2 text-lg font-medium leading-tight text-text-heading">
-            {course?.name || "Program Design and Concepts"}
-          </h2>
-          <div className="mt-3 min-h-20">
-            {distribution && professor ? (
-              <MotionConfig reducedMotion="user">
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.div
-                    key={professor.name}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2, ease: "easeOut" }}
-                  >
-                    <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-sm text-text-body">
-                      <span>{professor.name}</span>
-                      {rating != null && (
-                        <span className="font-medium text-text-heading">
-                          {rating.toFixed(1)}/5 professor rating
-                        </span>
-                      )}
-                    </div>
-                    <p className="mt-3 flex justify-between gap-3 text-xs text-text-muted">
-                      <span>Grade distribution</span>
-                      {professors.length > 1 && (
-                        <span className="font-mono" aria-hidden>
-                          {(index % professors.length) + 1}/{professors.length}{" "}
-                          profs
-                        </span>
-                      )}
+        <div className="w-full min-w-0 max-w-[35rem] lg:max-w-none">
+          <div className="rounded-2xl border border-border-strong bg-card p-4 sm:p-5">
+            <div className="mb-4 flex items-center justify-between gap-3 border-b border-border pb-4">
+              <div className="flex items-center gap-3">
+                <BellRing
+                  strokeWidth={1.5}
+                  className="h-[18px] w-[18px] shrink-0 text-text-muted"
+                  aria-hidden
+                />
+                <div>
+                  <p className="text-sm font-medium text-text-heading">
+                    Seat alerts
+                  </p>
+                  <p className="text-xs text-text-muted">3 sections watched</p>
+                </div>
+              </div>
+              <span className="flex items-center gap-2 font-mono text-xs text-text-muted">
+                <span className="h-2 w-2 rounded-full bg-positive" aria-hidden />
+                Checking
+              </span>
+            </div>
+
+            <div className="space-y-2" aria-label="Example seat alerts">
+              <div className="rounded-xl border border-positive/30 bg-positive/10 p-4">
+                <div className="flex items-start gap-3">
+                  <CheckCircle2
+                    strokeWidth={1.5}
+                    className="mt-0.5 h-[18px] w-[18px] shrink-0 text-positive"
+                    aria-hidden
+                  />
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-text-heading">
+                      A seat just opened
                     </p>
-                    <ul
-                      aria-label="Grade percentages"
-                      className="mt-2 grid grid-cols-5 gap-2"
-                    >
-                      {GRADES.map((grade) => (
-                        <li key={grade} className="min-w-0">
-                          <div
-                            className="h-1.5 overflow-hidden rounded-full bg-raised"
-                            aria-hidden
-                          >
-                            <div
-                              className="h-full rounded-full bg-accent"
-                              style={{ width: `${distribution[grade]}%` }}
-                            />
-                          </div>
-                          <div className="mt-1 flex flex-wrap items-baseline gap-x-1 text-xs">
-                            <span className="text-text-body">{grade}</span>
-                            <span className="font-mono text-text-heading">
-                              {distribution[grade]}%
-                            </span>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </motion.div>
-                </AnimatePresence>
-              </MotionConfig>
-            ) : (
-              <p className="text-sm text-text-body">
-                {course === undefined
-                  ? "Loading grade data…"
-                  : "View grade data and professors"}
-              </p>
-            )}
+                    <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-text-body">
+                      <span className="code-tag">STAT 211</span>
+                      Section 503 · CRN 48213
+                    </p>
+                  </div>
+                </div>
+              </div>
+              {WATCHING.map((row) => (
+                <div
+                  key={row.code}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-border bg-canvas px-4 py-3"
+                >
+                  <div className="flex flex-wrap items-center gap-2 text-sm text-text-body">
+                    <span className="code-tag">{row.code}</span>
+                    {row.section}
+                  </div>
+                  <span className="text-xs text-text-muted">Watching</span>
+                </div>
+              ))}
+            </div>
+
+            <Link
+              href="/alerts"
+              onClick={() => track("home-cta", { cta: "hero-alerts" })}
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 py-3 text-sm font-medium text-accent-foreground transition-colors hover:bg-accent/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent active:translate-y-px"
+            >
+              Set up seat alerts
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+            <p className="mt-3 text-center text-xs text-text-muted">
+              Get notified the moment a seat opens
+            </p>
           </div>
-        </Link>
+        </div>
       </div>
     </section>
   );

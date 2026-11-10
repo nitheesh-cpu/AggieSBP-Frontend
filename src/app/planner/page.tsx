@@ -1,8 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Cloud, CloudOff, HardDrive, Loader2, RefreshCw, School } from "lucide-react";
+import {
+  ArrowRight,
+  ClipboardPaste,
+  Cloud,
+  CloudOff,
+  HardDrive,
+  Loader2,
+  RefreshCw,
+  School,
+  Search,
+  Star,
+} from "lucide-react";
 
 import { Footer } from "@/components/footer";
 import { Navigation } from "@/components/navigation";
@@ -68,6 +79,19 @@ export default function PlannerPage() {
   const { info } = useCoursePrereqs(codes);
   const degreePlan = useDegreePlan();
   const [tab, setTab] = useState("courses");
+  const [pasteOpen, setPasteOpen] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const emptyAction = (action: "search" | "paste" | "howdy" | "electives") => {
+    track("planner-empty-action", { action });
+    if (action === "paste") setPasteOpen(true);
+    else if (action === "howdy") setHowdyOpen(true);
+    else if (action === "electives") setTab("find");
+    else {
+      const input = searchRef.current?.querySelector("input");
+      input?.scrollIntoView({ block: "center", behavior: "smooth" });
+      input?.focus({ preventScroll: true });
+    }
+  };
   const syncStatus = combineStatus(status, degreePlan.status);
   const existingByCode = useMemo(() => new Map(courses.map((c) => [c.code, c])), [courses]);
   const noRequirements = useMemo(() => new Set<string>(), []);
@@ -172,6 +196,44 @@ export default function PlannerPage() {
           </TabsList>
 
           <TabsContent value="courses" className="space-y-6">
+            {loaded && courses.length === 0 && (
+              <Card className={CARD}>
+                <CardContent className="space-y-4 p-6">
+                  <div>
+                    <h2 className="text-lg font-medium text-text-heading">
+                      Start with a course you&apos;ve taken
+                    </h2>
+                    <p className="text-sm text-text-body">
+                      Add what you&apos;ve completed so we can skip it and check prerequisites.
+                      Pick whichever is quickest.
+                    </p>
+                  </div>
+                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                    <Button className="gap-2" onClick={() => emptyAction("search")}>
+                      <Search className="h-4 w-4" strokeWidth={1.5} />
+                      Search for a course
+                    </Button>
+                    <Button variant="outline" className="gap-2" onClick={() => emptyAction("paste")}>
+                      <ClipboardPaste className="h-4 w-4" strokeWidth={1.5} />
+                      Paste a list
+                    </Button>
+                    <Button variant="outline" className="gap-2" onClick={() => emptyAction("howdy")}>
+                      <School className="h-4 w-4" strokeWidth={1.5} />
+                      Import from Howdy
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="gap-2"
+                      onClick={() => emptyAction("electives")}
+                    >
+                      <Star className="h-4 w-4" strokeWidth={1.5} />
+                      Find electives
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <Card className={CARD}>
               <CardContent className="space-y-4 p-6">
                 <div className="flex flex-wrap items-end justify-between gap-4">
@@ -189,7 +251,7 @@ export default function PlannerPage() {
                   />
                 </div>
                 <div className="flex flex-col gap-3 sm:flex-row">
-                  <div className="flex-1">
+                  <div className="flex-1" ref={searchRef}>
                     <CourseSearch
                       existing={existing}
                       onSelect={(code) => {
@@ -201,6 +263,8 @@ export default function PlannerPage() {
                     />
                   </div>
                   <PasteImportDialog
+                    open={pasteOpen}
+                    onOpenChange={setPasteOpen}
                     existing={existing}
                     onImport={(inputs) => {
                       track("courses-import", { source: "paste", courses: inputs.length });
@@ -246,6 +310,25 @@ export default function PlannerPage() {
               </CardContent>
             </Card>
 
+            {loaded && courses.length > 0 && (
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4">
+                <p className="text-sm text-text-body">
+                  <span className="font-medium text-text-heading">Next step:</span> build
+                  schedules from your classes and starred electives.
+                </p>
+                <Button
+                  className="gap-2"
+                  onClick={() => {
+                    track("planner-next-step", { to: "build" });
+                    setTab("build");
+                  }}
+                >
+                  Build schedules
+                  <ArrowRight className="h-4 w-4" strokeWidth={1.5} />
+                </Button>
+              </div>
+            )}
+
             <Card className={CARD}>
               <CardContent className="p-6">
                 {!loaded ? (
@@ -253,12 +336,7 @@ export default function PlannerPage() {
                     <Loader2 className="h-4 w-4 animate-spin" /> Loading your courses…
                   </p>
                 ) : courses.length === 0 ? (
-                  <div className="py-8 text-center">
-                    <p className="font-medium text-text-heading">No courses yet</p>
-                    <p className="mt-1 text-sm text-text-body">
-                      Search above or paste a list to get started.
-                    </p>
-                  </div>
+                  <p className="py-4 text-center text-sm text-text-body">No courses yet.</p>
                 ) : (
                   <RecordList
                     courses={courses}

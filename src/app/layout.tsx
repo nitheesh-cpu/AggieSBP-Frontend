@@ -78,6 +78,15 @@ export default function RootLayout({
           sizes="180x180"
           href="/icon-180x180.png"
         />
+        {/* The extension's Howdy import arrives as #howdy=<courses and
+            grades>. Move it to sessionStorage and drop it from the URL before
+            any tracker or session replay can record the address. The planner
+            reads it back from HOWDY_HASH_KEY. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var h=location.hash;if(h.indexOf("#howdy=")===0){sessionStorage.setItem("aggiesbp:planner:howdy-hash",h);history.replaceState(history.state,"",location.pathname+location.search)}}catch(e){}`,
+          }}
+        />
         {/* Umami (self-hosted). Only counts the production host, so local
             and preview deploys stay out of the stats. */}
         <script
@@ -85,6 +94,7 @@ export default function RootLayout({
           src="https://stats.nitheeshk.com/n.js"
           data-website-id="7efa90af-63b9-4c90-9287-510bd8e41d2e"
           data-domains={new URL(SITE_URL).hostname}
+          data-exclude-hash="true"
         />
       </head>
       <body className="font-sans antialiased">

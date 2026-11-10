@@ -48,6 +48,8 @@ import {
 const CARD = "bg-white/55 dark:bg-card backdrop-blur-md border-border";
 const NO_CLASSIFICATION = "__none__";
 const HOWDY_PENDING_KEY = "aggiesbp:planner:howdy-import";
+/** Raw #howdy=... hash, stashed by the inline script in the root layout. */
+const HOWDY_HASH_KEY = "aggiesbp:planner:howdy-hash";
 
 function readPendingHowdy(): HowdyImport | null {
   try {
@@ -88,7 +90,16 @@ export default function PlannerPage() {
   const [howdyOpen, setHowdyOpen] = useState(false);
   useEffect(() => {
     const read = () => {
-      const fromHash = parseHowdyFragment(window.location.hash);
+      // The root layout moves #howdy=... out of the URL before analytics load
+      // (see HOWDY_HASH_KEY); a hash still here means it arrived later.
+      let stashed: string | null = null;
+      try {
+        stashed = window.sessionStorage.getItem(HOWDY_HASH_KEY);
+        window.sessionStorage.removeItem(HOWDY_HASH_KEY);
+      } catch {
+        // Storage blocked: the layout couldn't stash it either.
+      }
+      const fromHash = parseHowdyFragment(stashed ?? window.location.hash);
       if (fromHash) {
         try {
           window.sessionStorage.setItem(HOWDY_PENDING_KEY, serializeHowdy(fromHash));

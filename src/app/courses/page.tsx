@@ -484,13 +484,9 @@ function CoursesPageContent() {
     const filtered = dataToFilter.filter((course) => {
       const notNull = course !== null;
 
-      const matchesSearch =
-        !debouncedSearchTerm ||
-        course.code.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-        course.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-        course.description
-          .toLowerCase()
-          .includes(debouncedSearchTerm.toLowerCase());
+      // Text search happens on the server (serverSearchMode), which also
+      // matches codes typed without a space ("ACCT327"). Re-checking the text
+      // here would drop those results, since codes are stored as "ACCT 327".
 
       const matchesDepartment =
         !selectedDepartment ||
@@ -565,7 +561,6 @@ function CoursesPageContent() {
 
       return (
         notNull &&
-        matchesSearch &&
         matchesDepartment &&
         matchesDifficulty &&
         matchesMinGpa &&

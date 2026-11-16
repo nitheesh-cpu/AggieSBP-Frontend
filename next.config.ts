@@ -26,6 +26,9 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/courses/compare", destination: "/compare", permanent: true },
+      // The registrar renamed PSYC to PBSI; old links still point at PSYC.
+      { source: "/course/PSYC:num(\\d+)", destination: "/course/PBSI:num", permanent: true },
+      { source: "/course/psyc:num(\\d+)", destination: "/course/PBSI:num", permanent: true },
     ];
   },
 };

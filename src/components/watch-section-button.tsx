@@ -107,7 +107,15 @@ export function WatchSectionButton({
         {signedIn ? label : `${label} (sign in)`}
       </Button>
       {state === "error" && message && (
-        <span className="text-xs text-red-700 dark:text-red-300">{message}</span>
+        <span className="text-xs text-red-700 dark:text-red-300">
+          {message}{" "}
+          <Link
+            href="/profile/alerts"
+            className="font-medium underline underline-offset-2"
+          >
+            Manage alerts
+          </Link>
+        </span>
       )}
     </span>
   );

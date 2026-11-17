@@ -12,6 +12,23 @@
  * `keepalive`, so they survive the navigation.
  */
 
+/** The self-hosted Umami server. */
+export const UMAMI_ORIGIN = "https://stats.nitheeshk.com";
+
+/**
+ * Same-origin path that proxies the Umami scripts and endpoints (rewrites in
+ * next.config.ts), so blockers that block the stats host miss them.
+ */
+export const UMAMI_PROXY_PATH = "/a";
+
+/**
+ * Where the tracker and recorder load from. Off unless
+ * NEXT_PUBLIC_UMAMI_PROXY=1 at build time. Both scripts send events to the
+ * folder they were loaded from (`<base>/api/...`), so the base sets both.
+ */
+export const UMAMI_BASE =
+  process.env.NEXT_PUBLIC_UMAMI_PROXY === "1" ? UMAMI_PROXY_PATH : UMAMI_ORIGIN;
+
 /** Where a search box lives. */
 export type SearchFrom =
   | "home"
@@ -54,7 +71,9 @@ export type AnalyticsEvents = {
 
   // Phase 1: search
   search: { from: SearchFrom; results: number; zero: boolean };
-  "search-miss": { from: SearchFrom; q: string };
+  // `kind` groups misses by cause: a course code, a CRN, a person's name, or
+  // other text (see classifyQuery).
+  "search-miss": { from: SearchFrom; q: string; kind: SearchMissKind };
   "search-pick": { from: SearchFrom; position: number };
 
   // Phase 1: courses list
@@ -62,7 +81,12 @@ export type AnalyticsEvents = {
   "courses-page": { page: number };
 
   // Phase 1: course and professor pages
-  "course-section-view": { section: CourseSection };
+  // For section "professors", how many listed instructors were matched to a
+  // review profile, so identity-matching coverage can be watched over time.
+  "course-section-view": { section: CourseSection; matched?: number; unmatched?: number };
+  // A course page whose course isn't in the catalog (missing data, a renamed
+  // subject, or a bad link). Kept out of api-error so data gaps are their own report.
+  "course-missing": { code: string };
   "course-prof-expand": undefined;
   "course-link": { kind: "prereq" | "coreq" | "cross-list" | "related" };
   "compare-add": { type: "course" | "professor"; from: string; count: number };
@@ -107,6 +131,8 @@ export type AnalyticsEvents = {
 };
 
 export type AppPlatform = "ios" | "android" | "desktop";
+
+export type SearchMissKind = "code" | "crn" | "name" | "text";
 
 /** Coarse platform for install events. iPadOS reports as a Mac with touch. */
 export function appPlatform(userAgent: string, platform: string, maxTouchPoints: number): AppPlatform {
@@ -155,8 +181,27 @@ export function identify(tags: SessionTags): boolean {
 }
 
 /**
- * `fetch` that reports failed responses and network errors as `api-error`.
- * Behaves exactly like `fetch` otherwise: same return value, same throws.
+ * Endpoints where a 404 is an expected answer, not a failure. The sections
+ * endpoints 404 when the course isn't offered that term (most api-errors used
+ * to be these). A missing course on /course/:id is reported by the course
+ * page as `course-missing` instead.
+ */
+const EXPECTED_404_ENDPOINTS = new Set([
+  "/sections/:id/course/:id",
+  "/sections/:id/course/:id/professors",
+  "/sections/:id/course/:id/professors/details",
+  "/course/:id",
+]);
+
+/** Whether a failed response is worth an `api-error` event. */
+export function isReportableApiError(endpoint: string, status: number): boolean {
+  return !(status === 404 && EXPECTED_404_ENDPOINTS.has(endpoint));
+}
+
+/**
+ * `fetch` that reports failed responses and network errors as `api-error`
+ * (except expected 404s, see isReportableApiError). Behaves exactly like
+ * `fetch` otherwise: same return value, same throws.
  */
 export async function trackedFetch(
   input: string | URL,
@@ -165,7 +210,12 @@ export async function trackedFetch(
   const url = input.toString();
   try {
     const res = await fetch(input, init);
-    if (!res.ok) track("api-error", { endpoint: endpointTemplate(url), status: res.status });
+    if (!res.ok) {
+      const endpoint = endpointTemplate(url);
+      if (isReportableApiError(endpoint, res.status)) {
+        track("api-error", { endpoint, status: res.status });
+      }
+    }
     return res;
   } catch (err) {
     if (!(err instanceof DOMException && err.name === "AbortError")) {
@@ -236,6 +286,77 @@ const MAX_MISS_LENGTH = 40;
 export function normalizeQuery(q: string): string | null {
   const out = q.trim().toLowerCase().replace(/\s+/g, " ").slice(0, MAX_MISS_LENGTH);
   return out.length >= MIN_SEARCH_LENGTH ? out : null;
+}
+
+/**
+ * Words that mark a query as a topic or course search rather than a person's
+ * name. Only needs the words people actually type next to each other ("bryan
+ * kim" is a name, "computer science" isn't); one hit is enough.
+ */
+const TOPIC_WORDS = new Set([
+  // filler
+  "an", "and", "the", "of", "for", "in", "to", "with", "on", "ii", "iii",
+  // course-search words
+  "intro", "introduction", "class", "classes", "course", "courses", "professor", "prof",
+  "easy", "easiest", "online", "honors", "lab", "section", "elective", "electives", "core",
+  "ucc", "seminar", "principles", "fundamentals", "advanced", "applied", "general",
+  "fall", "spring", "summer",
+  // subjects
+  "science", "sciences", "history", "engineering", "calculus", "calc", "chemistry", "chem",
+  "biology", "bio", "physics", "english", "math", "mathematics", "art", "arts", "music",
+  "psychology", "psych", "accounting", "computer", "computing", "design", "management",
+  "economics", "econ", "writing", "data", "creative", "business", "finance", "marketing",
+  "statistics", "stats", "political", "government", "philosophy", "sociology", "anatomy",
+  "physiology", "nutrition", "kinesiology", "health", "communication", "communications",
+  "language", "literature", "spanish", "french", "german", "chinese", "japanese", "film",
+  "theatre", "theater", "dance", "architecture", "agriculture", "animal", "plant", "soil",
+  "environmental", "geology", "geography", "ocean", "space", "aerospace", "mechanical",
+  "electrical", "civil", "chemical", "industrial", "nuclear", "petroleum", "materials",
+  "software", "programming", "algorithms", "systems", "analysis", "theory", "ethics",
+  "public", "policy", "international", "studies", "culture", "world", "american",
+  "texas", "religion", "law", "medicine", "medical", "veterinary", "nursing", "education",
+  "sport", "sports", "fitness", "speech", "visualization",
+]);
+
+/**
+ * Sorts a search into the `search-miss` kinds, so misses can be grouped by
+ * cause. Rules, first match wins:
+ * - "crn": exactly 5 digits ("12345").
+ * - "code": a subject of 2-5 letters and a 1-3 digit number, in either order
+ *   and with or without a space or dash ("acct 327", "acct327", "327 acct",
+ *   "acct-327", "csce 3", "cs 121"). A full subject name with a 3-digit
+ *   number ("accounting 327") is also "code": the person wants one course by
+ *   number, the search just doesn't know the subject name. A longer word with
+ *   a 1-2 digit number ("calculus 2") is "text".
+ * - "name": has a comma ("hanik, bruce walter"), or is 2-4 alphabetic words
+ *   with none in TOPIC_WORDS ("bryan kim", "nana yobo").
+ * - "text": anything else ("computer science", "creative arts", "smith").
+ */
+export function classifyQuery(q: string): SearchMissKind {
+  const s = q.trim().toLowerCase().replace(/\s+/g, " ");
+  if (/^\d{5}$/.test(s)) return "crn";
+  if (
+    /^[a-z]{2,5} ?[-_.]? ?\d{1,3}$/.test(s) ||
+    /^\d{1,3} ?[-_.]? ?[a-z]{2,5}$/.test(s) ||
+    /^[a-z]{6,} ?-? ?\d{3}$/.test(s)
+  ) {
+    return "code";
+  }
+  const nameWord = /^[a-z][a-z.'-]*$/;
+  if (s.includes(",")) {
+    const words = s.split(/[ ,]+/).filter(Boolean);
+    if (words.length >= 2 && words.every((w) => nameWord.test(w))) return "name";
+    return "text";
+  }
+  const words = s.split(" ");
+  if (
+    words.length >= 2 &&
+    words.length <= 4 &&
+    words.every((w) => nameWord.test(w) && !TOPIC_WORDS.has(w.replace(/[.'-]/g, "")))
+  ) {
+    return "name";
+  }
+  return "text";
 }
 
 /**

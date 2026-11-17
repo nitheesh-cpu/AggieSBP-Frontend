@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
+import { UMAMI_BASE } from "@/lib/analytics";
 
-const RECORDER_SRC = "https://stats.nitheeshk.com/recorder.js";
+// Same-origin /a/recorder.js when NEXT_PUBLIC_UMAMI_PROXY=1; it then sends
+// recordings through the proxy too (see UMAMI_BASE).
+const RECORDER_SRC = `${UMAMI_BASE}/recorder.js`;
 const WEBSITE_ID = "7efa90af-63b9-4c90-9287-510bd8e41d2e";
 
 /**

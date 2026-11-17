@@ -2,7 +2,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { appPlatform, endpointTemplate, normalizeQuery, pageFrom } from "./analytics.ts";
+import {
+  appPlatform,
+  classifyQuery,
+  endpointTemplate,
+  isReportableApiError,
+  normalizeQuery,
+  pageFrom,
+} from "./analytics.ts";
 
 test("appPlatform tells iOS (including iPadOS), Android and desktop apart", () => {
   const iphone = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15";
@@ -45,4 +52,44 @@ test("pageFrom returns the first path segment without IDs", () => {
   assert.equal(pageFrom("/course/CSCE221"), "course");
   assert.equal(pageFrom("/professor/abc/reviews"), "professor");
   assert.equal(pageFrom("/compare?tab=professors"), "compare");
+});
+
+test("classifyQuery: 5 digits is a CRN", () => {
+  assert.equal(classifyQuery("12345"), "crn");
+  assert.equal(classifyQuery(" 54321 "), "crn");
+  assert.equal(classifyQuery("1234"), "text");
+});
+
+test("classifyQuery: course codes in any common form", () => {
+  for (const q of ["acct 327", "acct327", "327 acct", "acct-327", "csce 3", "cs 121", "CSCE 221", "accounting 327"]) {
+    assert.equal(classifyQuery(q), "code", q);
+  }
+});
+
+test("classifyQuery: people's names", () => {
+  for (const q of ["hanik, bruce walter", "bryan kim", "nana yobo", "sviercoski, rosangela", "j. smith"]) {
+    assert.equal(classifyQuery(q), "name", q);
+  }
+});
+
+test("classifyQuery: topics and everything else are text", () => {
+  for (const q of ["computer science", "creative arts", "calculus 2", "intro to psychology", "smith", "easy ucc classes", "csce 221 222"]) {
+    assert.equal(classifyQuery(q), "text", q);
+  }
+});
+
+test("isReportableApiError skips expected 404s only", () => {
+  const sections = endpointTemplate("https://api.example.com/sections/202611/course/CSCE221");
+  const profs = endpointTemplate("https://api.example.com/sections/202611/course/CSCE221/professors");
+  const details = endpointTemplate("https://api.example.com/sections/202611/course/CSCE221/professors/details");
+  const course = endpointTemplate("https://api.example.com/course/CSCE221");
+  for (const endpoint of [sections, profs, details, course]) {
+    assert.equal(isReportableApiError(endpoint, 404), false, endpoint);
+    assert.equal(isReportableApiError(endpoint, 500), true, endpoint);
+    assert.equal(isReportableApiError(endpoint, 0), true, endpoint);
+  }
+  const reviews = endpointTemplate("https://api.example.com/course/CSCE221/reviews/abc123");
+  assert.equal(isReportableApiError(reviews, 404), true);
+  assert.equal(isReportableApiError(endpointTemplate("https://api.example.com/professor/X1"), 404), true);
+  assert.equal(isReportableApiError(course, 400), true);
 });

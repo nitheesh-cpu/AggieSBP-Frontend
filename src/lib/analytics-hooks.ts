@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, type RefObject } from "react";
 import {
+  classifyQuery,
   normalizeQuery,
   track,
   type AnalyticsEvent,
@@ -14,8 +15,9 @@ const SEARCH_SETTLE_MS = 1200;
 
 /**
  * Reports a search once the user stops typing and results have loaded:
- * `search` every time, plus `search-miss` (with the normalized query) when
- * nothing came back. Each distinct query is reported once per page view.
+ * `search` every time, plus `search-miss` (with the normalized query and its
+ * kind, see classifyQuery) when nothing came back. Each distinct query is
+ * reported once per page view.
  *
  * Pass `loading: true` while results are being fetched so a stale count
  * isn't reported.
@@ -37,7 +39,7 @@ export function useSearchTracking(
       reported.current.add(q);
       const zero = results === 0;
       track("search", { from, results, zero });
-      if (zero) track("search-miss", { from, q });
+      if (zero) track("search-miss", { from, q, kind: classifyQuery(q) });
     }, SEARCH_SETTLE_MS);
     return () => window.clearTimeout(timer);
   }, [from, query, results, loading]);

@@ -1,6 +1,27 @@
 import type { NextConfig } from "next";
 
+// First-party Umami proxy, off unless NEXT_PUBLIC_UMAMI_PROXY=1 at build time.
+// Keep in step with UMAMI_ORIGIN / UMAMI_PROXY_PATH in src/lib/analytics.ts.
+// Only the paths the tracker (n.js) and recorder (recorder.js) use are
+// forwarded, so the Umami dashboard isn't reachable through this site.
+const UMAMI_PROXY = process.env.NEXT_PUBLIC_UMAMI_PROXY === "1";
+const UMAMI_ORIGIN = "https://stats.nitheeshk.com";
+const UMAMI_PROXY_PATHS = [
+  "/n.js",
+  "/recorder.js",
+  "/api/n",
+  "/api/record",
+  "/api/websites/:websiteId/recorder",
+];
+
 const nextConfig: NextConfig = {
+  async rewrites() {
+    if (!UMAMI_PROXY) return [];
+    return UMAMI_PROXY_PATHS.map((path) => ({
+      source: `/a${path}`,
+      destination: `${UMAMI_ORIGIN}${path}`,
+    }));
+  },
   async headers() {
     return [
       {

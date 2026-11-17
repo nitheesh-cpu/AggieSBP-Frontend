@@ -9,6 +9,7 @@ import { SWRegister } from "@/components/sw-register";
 import { UmamiRecorder } from "@/components/umami-recorder";
 import { AnalyticsSessionTags } from "@/components/analytics-session-tags";
 import { SITE_URL } from "@/lib/site-url";
+import { UMAMI_BASE } from "@/lib/analytics";
 
 const ibmPlexSans = IBM_Plex_Sans({
   subsets: ["latin"],
@@ -88,10 +89,12 @@ export default function RootLayout({
           }}
         />
         {/* Umami (self-hosted). Only counts the production host, so local
-            and preview deploys stay out of the stats. */}
+            and preview deploys stay out of the stats. Loads through the
+            same-origin proxy when NEXT_PUBLIC_UMAMI_PROXY=1 (see
+            UMAMI_BASE); it then also sends events through it. */}
         <script
           defer
-          src="https://stats.nitheeshk.com/n.js"
+          src={`${UMAMI_BASE}/n.js`}
           data-website-id="7efa90af-63b9-4c90-9287-510bd8e41d2e"
           data-domains={new URL(SITE_URL).hostname}
           data-exclude-hash="true"

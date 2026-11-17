@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowRight, Check, Copy, ExternalLink, Lock, RotateCcw, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -351,9 +350,9 @@ function MergeRow({
         />
         <div className="min-w-0 flex-1 space-y-2">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <ProfessorLink id={merge.aliasId} professor={merge.alias} />
+            <ProfessorLink professor={merge.alias} fallback={merge.aliasId} />
             <ArrowRight className="h-4 w-4 shrink-0 text-text-muted" aria-label="shown as" />
-            <ProfessorLink id={merge.canonicalId} professor={merge.canonical} />
+            <ProfessorLink professor={merge.canonical} fallback={merge.canonicalId} />
             {merge.needsCheck && (
               <Badge variant="outline" className="border-amber-500 text-amber-700 dark:text-amber-300">
                 Check spelling
@@ -395,22 +394,29 @@ function MergeRow({
 }
 
 function ProfessorLink({
-  id,
   professor,
+  fallback,
 }: {
-  id: string;
   professor: ProfessorMerge["alias"];
+  fallback: string;
 }) {
+  const label = professor.name || fallback;
   return (
     <span className="inline-flex min-w-0 items-baseline gap-1.5">
-      <Link
-        href={`/professor/${id}`}
-        target="_blank"
-        className="inline-flex items-center gap-1 font-medium text-text-heading hover:underline"
-      >
-        {professor.name || id}
-        <ExternalLink className="h-3 w-3 text-text-muted" />
-      </Link>
+      {professor.rmpId ? (
+        // The RateMyProfessors page, to compare the two entries at the source.
+        <a
+          href={`https://www.ratemyprofessors.com/professor/${professor.rmpId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 font-medium text-text-heading hover:underline"
+        >
+          {label}
+          <ExternalLink className="h-3 w-3 text-text-muted" />
+        </a>
+      ) : (
+        <span className="font-medium text-text-heading">{label}</span>
+      )}
       <span className="text-xs text-text-muted">
         {professor.department || "No department"} · {professor.ratings} ratings
       </span>

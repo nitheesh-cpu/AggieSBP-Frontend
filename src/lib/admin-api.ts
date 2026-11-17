@@ -16,6 +16,8 @@ export interface MergeProfessor {
   name: string;
   department: string | null;
   ratings: number;
+  /** The number in ratemyprofessors.com/professor/<rmpId>. */
+  rmpId: number | null;
 }
 
 export interface ProfessorMerge {

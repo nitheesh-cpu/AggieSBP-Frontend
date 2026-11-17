@@ -21,16 +21,18 @@ Next.js 16, React 19, TypeScript, Tailwind v4, Radix UI, SuperTokens, deployed o
 
 ## Run it locally
 
-Needs Node 22.18+ and the [backend](https://github.com/nitheesh-cpu/AggieSBP-Backend) running.
+Prerequisites: Node 22.18+ (the test script runs TypeScript files directly with Node) and the [backend](https://github.com/nitheesh-cpu/AggieSBP-Backend) running. `package.json` does not declare an `engines` field.
 
 ```bash
 git clone https://github.com/nitheesh-cpu/AggieSBP-Frontend.git
 cd AggieSBP-Frontend
-npm install
-npm run dev
+npm ci
+npm run dev        # http://localhost:3000
 ```
 
-`.env.local`:
+### Environment variables
+
+Create `.env.local`:
 
 ```
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
@@ -38,7 +40,27 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 NEXT_PUBLIC_VAPID_PUBLIC_KEY=...
 ```
 
-Tests: `npm test` (Node's built-in runner over the planner logic in `src/lib/planner/`).
+| Variable | Where | Purpose |
+| --- | --- | --- |
+| `NEXT_PUBLIC_API_BASE_URL` | client + server | Backend API base URL |
+| `NEXT_PUBLIC_SITE_URL` | client + server | Public site URL |
+| `NEXT_PUBLIC_BASE_URL` | build time | Base URL override (e.g. Vercel previews); defaults to `http://localhost:3000` |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | client | Web Push public key for seat alerts |
+| `NEXT_PUBLIC_UMAMI_PROXY` | client, optional | Analytics proxy |
+| `INTERNAL_API_KEY` | server only | Sent to the backend as `X-Internal-Key` so server-side fetches skip rate limits; must match the backend's value |
+| `REVALIDATE_SECRET` | server only | Secret for the cache revalidation endpoint |
+
+Never prefix the two server-only secrets with `NEXT_PUBLIC_`.
+
+### Checks and build
+
+```bash
+npm test             # Node's built-in runner, src/**/*.test.ts
+npx tsc --noEmit     # type check
+npm run build        # production build
+```
+
+`npm run lint` does not currently work: it runs `next lint`, which was removed in Next.js 16, and the repo still has a legacy `.eslintrc.json`.
 
 ## Layout
 

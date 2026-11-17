@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20 # Next.js 16 needs >= 20.9; package.json has no engines field
+          cache: npm
+
+      - run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Unit tests
+        run: npm test
+
+      # `npm run lint` (next lint) is intentionally not run: Next 16 removed the
+      # `next lint` command and there is no ESLint 9 flat config (only .eslintrc.json).
+      # Add an eslint.config.mjs and `eslint .` here when ready.
+
+      # The build calls the public production API at build time (sitemaps and
+      # server-rendered data); only a public, read-only URL is used, no secrets.
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_BASE_URL: https://api-aggiesbp.nitheeshk.com

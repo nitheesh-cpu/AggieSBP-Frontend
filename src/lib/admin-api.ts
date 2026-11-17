@@ -124,7 +124,13 @@ export const retrySummaryJob = (key: string, id: string) =>
 export interface CronMonitor {
   key: string;
   name: string;
-  status: "healthy" | "failing" | "running" | "paused" | "unknown";
+  status:
+    | "healthy"
+    | "failing"
+    | "running"
+    | "paused"
+    | "unknown"
+    | "unavailable";
   schedule: string | null;
   lastActivityAt: string | null;
   lastDurationSeconds: number | null;
@@ -161,6 +167,15 @@ export const getCronMonitors = (key: string) =>
   adminFetch<MonitorResponse>(key, "/admin/operations/monitors");
 export const getOperationsHealth = (key: string) =>
   adminFetch<OperationsHealth>(key, "/admin/operations/health");
+
+export interface DataFreshness {
+  coursesUpdatedAt: string | null;
+  sectionsUpdatedAt: string | null;
+  newestReviewAt: string | null;
+}
+
+export const getDataFreshness = (key: string) =>
+  adminFetch<DataFreshness>(key, "/admin/operations/freshness");
 
 export function checkAdminKey(key: string): Promise<{ ok: boolean }> {
   return adminFetch(key, "/admin/check");

@@ -1,70 +1,300 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ExternalLink, RefreshCw } from "lucide-react";
+import { ArrowRight, ChevronDown, ExternalLink, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAdmin } from "@/components/admin/admin-shell";
 import {
   AdminError,
-  panelClass,
   StatusBadge,
   timestamp,
 } from "@/components/admin/admin-ui";
 import {
   AdminKeyError,
   getCronMonitors,
+  getDataFreshness,
   getOperationsHealth,
+  getPendingSummaries,
+  type CronMonitor,
+  type DataFreshness,
   type MonitorResponse,
-  type OperationsHealth,
 } from "@/lib/admin-api";
+
+const panel = "min-w-0 rounded-xl border border-border bg-card";
+const jobColumns =
+  "lg:grid-cols-[minmax(0,1.5fr)_6.5rem_repeat(2,minmax(0,1fr))]";
+const shortDate = new Intl.DateTimeFormat(undefined, {
+  month: "short",
+  day: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+});
+
+const updateDate = new Intl.DateTimeFormat(undefined, {
+  dateStyle: "medium",
+  timeStyle: "short",
+});
+const reviewDate = new Intl.DateTimeFormat(undefined, {
+  dateStyle: "medium",
+  timeZone: "UTC",
+});
+
+function DashboardTime({
+  value,
+  format = shortDate,
+}: {
+  value: string | null;
+  format?: Intl.DateTimeFormat;
+}) {
+  if (!value || Number.isNaN(Date.parse(value))) return "—";
+  return (
+    <time
+      dateTime={value}
+      title={format !== reviewDate ? timestamp(value) : undefined}
+    >
+      {format.format(new Date(value))}
+    </time>
+  );
+}
+
+function needsAttention(monitor: CronMonitor) {
+  return (
+    monitor.status === "failing" ||
+    monitor.status === "unavailable" ||
+    monitor.status === "unknown"
+  );
+}
+
+function ScheduledJobs({ data }: { data: MonitorResponse | undefined }) {
+  if (!data)
+    return <p className="px-4 py-3 text-sm text-text-muted">Loading jobs…</p>;
+
+  const live = data.status === "ok";
+  const jobs = live
+    ? [...data.monitors].sort(
+        (a, b) => Number(needsAttention(b)) - Number(needsAttention(a)),
+      )
+    : data.monitors;
+  const issues = live ? jobs.filter(needsAttention).length : 0;
+
+  return (
+    <>
+      {!live && (
+        <div
+          role="status"
+          className="mx-4 mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-amber-500/40 px-3 py-2 text-sm text-text-body"
+        >
+          <StatusBadge status={data.status} />
+          <p>{data.message || "Live job monitoring is unavailable."}</p>
+        </div>
+      )}
+      {live && jobs.length === 0 && (
+        <p className="px-4 pb-4 text-sm text-text-muted">
+          No Cronitor monitors are configured.
+        </p>
+      )}
+      {issues > 0 && (
+        <p className="px-4 pb-3 text-sm font-medium text-amber-800 dark:text-amber-300">
+          {issues} {issues === 1 ? "job needs" : "jobs need"} attention
+        </p>
+      )}
+      {jobs.length > 0 && (
+        <>
+          <div
+            aria-hidden="true"
+            className={`hidden gap-3 border-y border-border bg-raised px-4 py-2 text-xs font-medium text-text-muted lg:grid ${jobColumns}`}
+          >
+            <span>Job</span>
+            <span>Status</span>
+            <span>Last activity</span>
+            <span>Next expected</span>
+          </div>
+          <ul className="divide-y divide-border border-t border-border lg:border-t-0">
+            {jobs.map((job) => (
+              <li key={job.key}>
+                <details className="group">
+                  <summary
+                    className={`grid cursor-pointer list-none grid-cols-2 items-center gap-x-3 gap-y-2 px-4 py-3 text-sm transition-colors hover:bg-raised focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden ${jobColumns}`}
+                  >
+                    <span className="col-span-2 flex min-w-0 items-center gap-2 font-medium text-text-heading lg:col-span-1">
+                      <ChevronDown
+                        aria-hidden="true"
+                        className="size-3.5 shrink-0 -rotate-90 text-text-muted transition-transform group-open:rotate-0 motion-reduce:transition-none"
+                      />
+                      <span className="min-w-0 break-words">{job.name}</span>
+                      <span className="ml-auto shrink-0 lg:hidden">
+                        <StatusBadge status={live ? job.status : "stale"} />
+                      </span>
+                    </span>
+                    <span className="hidden lg:block">
+                      <StatusBadge status={live ? job.status : "stale"} />
+                    </span>
+                    <span className="min-w-0 text-text-body">
+                      <span className="block text-xs text-text-muted lg:sr-only">
+                        Last activity
+                      </span>
+                      <DashboardTime value={job.lastActivityAt} />
+                    </span>
+                    <span className="min-w-0 text-text-body">
+                      <span className="block text-xs text-text-muted lg:sr-only">
+                        Next expected
+                      </span>
+                      <DashboardTime value={job.nextExpectedAt} />
+                    </span>
+                  </summary>
+                  <div className="space-y-2 border-t border-border bg-raised/40 px-4 py-3 sm:pl-10">
+                    {!live && (
+                      <p className="text-xs text-text-muted">
+                        Last reported status {job.status}
+                      </p>
+                    )}
+                    <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-xs text-text-muted">
+                      <span>
+                        Last duration{" "}
+                        {job.lastDurationSeconds === null
+                          ? "—"
+                          : `${job.lastDurationSeconds.toFixed(1)}s`}
+                      </span>
+                      {job.url.startsWith("https://cronitor.io/") && (
+                        <a
+                          href={job.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 font-medium text-text-heading underline-offset-4 hover:underline"
+                        >
+                          Open in Cronitor{" "}
+                          <ExternalLink aria-hidden="true" className="size-3" />
+                        </a>
+                      )}
+                    </div>
+                    <p className="text-xs font-medium text-text-heading">
+                      Recent executions
+                    </p>
+                    {job.recentRuns.length ? (
+                      <ul className="space-y-1 text-xs text-text-muted">
+                        {job.recentRuns.map((run, index) => (
+                          <li key={`${run.startedAt}-${index}`}>
+                            <DashboardTime value={run.startedAt} /> ·{" "}
+                            {run.endedAt ? (
+                              <>
+                                Ended <DashboardTime value={run.endedAt} />
+                              </>
+                            ) : (
+                              "No completion reported"
+                            )}
+                            {run.durationSeconds !== null &&
+                              ` · ${run.durationSeconds.toFixed(1)}s`}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-xs text-text-muted">
+                        No recent executions reported.
+                      </p>
+                    )}
+                  </div>
+                </details>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </>
+  );
+}
+
+async function fetchOverview(key: string) {
+  return Promise.allSettled([
+    getCronMonitors(key),
+    getOperationsHealth(key),
+    getPendingSummaries(key),
+    getDataFreshness(key),
+  ]);
+}
+
+function FreshnessPanel({
+  result,
+}: {
+  result?: PromiseSettledResult<DataFreshness>;
+}) {
+  const dates = result?.status === "fulfilled" ? result.value : undefined;
+  return (
+    <section className={panel} aria-labelledby="freshness-heading">
+      <h2
+        id="freshness-heading"
+        className="px-4 py-3 text-base font-semibold text-text-heading"
+      >
+        Data freshness
+      </h2>
+      {dates ? (
+        <dl className="divide-y divide-border border-t border-border">
+          {(
+            [
+              ["Courses updated", dates.coursesUpdatedAt, updateDate],
+              ["Sections updated", dates.sectionsUpdatedAt, updateDate],
+              ["Newest review", dates.newestReviewAt, reviewDate],
+            ] as const
+          ).map(([label, value, format]) => (
+            <div
+              key={label}
+              className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5 px-4 py-2.5 text-sm"
+            >
+              <dt className="font-medium text-text-heading">{label}</dt>
+              <dd className="text-xs text-text-muted">
+                {value ? (
+                  <DashboardTime value={value} format={format} />
+                ) : (
+                  "No date recorded"
+                )}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      ) : (
+        <p className="border-t border-border px-4 py-3 text-sm text-text-muted">
+          {result
+            ? "Dataset timestamps unavailable."
+            : "Checking dataset timestamps…"}
+        </p>
+      )}
+    </section>
+  );
+}
+
+function errorMessage(result: PromiseRejectedResult, fallback: string) {
+  return result.reason instanceof Error ? result.reason.message : fallback;
+}
 
 export default function AdminOverview() {
   const { adminKey, signOut } = useAdmin();
-  const [monitors, setMonitors] = useState<MonitorResponse | null>(null);
-  const [health, setHealth] = useState<OperationsHealth | null>(null);
-  const [monitorError, setMonitorError] = useState<string | null>(null);
-  const [healthError, setHealthError] = useState<string | null>(null);
+  const [snapshot, setSnapshot] =
+    useState<Awaited<ReturnType<typeof fetchOverview>>>();
   const [busy, setBusy] = useState(false);
+  const inFlight = useRef(false);
   const load = useCallback(async () => {
+    if (inFlight.current) return;
+    inFlight.current = true;
     setBusy(true);
-    const results = await Promise.allSettled([
-      getCronMonitors(adminKey),
-      getOperationsHealth(adminKey),
-    ]);
-    const [m, h] = results;
-    if (
-      results.some(
-        (r) => r.status === "rejected" && r.reason instanceof AdminKeyError,
-      )
-    ) {
-      signOut();
-      return;
+    try {
+      const results = await fetchOverview(adminKey);
+      if (
+        results.some(
+          (result) =>
+            result.status === "rejected" &&
+            result.reason instanceof AdminKeyError,
+        )
+      ) {
+        signOut();
+        return;
+      }
+      setSnapshot(results);
+    } finally {
+      inFlight.current = false;
+      setBusy(false);
     }
-    if (m.status === "fulfilled") {
-      setMonitors(m.value);
-      setMonitorError(null);
-    } else {
-      setMonitorError(
-        m.reason instanceof Error
-          ? m.reason.message
-          : "Could not load Cronitor.",
-      );
-      setMonitors(null);
-    }
-    if (h.status === "fulfilled") {
-      setHealth(h.value);
-      setHealthError(null);
-    } else {
-      setHealthError(
-        h.reason instanceof Error
-          ? h.reason.message
-          : "Could not check service health.",
-      );
-      setHealth(null);
-    }
-    setBusy(false);
   }, [adminKey, signOut]);
+
   useEffect(() => {
     void load();
     const timer = window.setInterval(() => {
@@ -73,35 +303,55 @@ export default function AdminOverview() {
     return () => window.clearInterval(timer);
   }, [load]);
 
+  const [monitorResult, healthResult, pendingResult, freshnessResult] =
+    snapshot ?? [];
+  const monitors =
+    monitorResult?.status === "fulfilled" ? monitorResult.value : undefined;
+  const health =
+    healthResult?.status === "fulfilled" ? healthResult.value : undefined;
+  const pendingCount =
+    pendingResult?.status === "fulfilled"
+      ? pendingResult.value.professors.length
+      : undefined;
+
   return (
-    <div className="space-y-6">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-text-heading">
-            Operations
-          </h1>
-          <p className="mt-1 text-sm text-text-muted">
-            Check scheduled jobs and service health before starting maintenance.
-          </p>
-        </div>
-        <Button variant="outline" disabled={busy} onClick={() => void load()}>
+    <div className="space-y-4">
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold text-text-heading">Operations</h1>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={busy}
+          onClick={() => void load()}
+        >
           <RefreshCw
+            aria-hidden="true"
             className={busy ? "animate-spin motion-reduce:animate-none" : ""}
           />
           {busy ? "Refreshing…" : "Refresh status"}
         </Button>
       </header>
-      <section className={panelClass} aria-labelledby="health-heading">
-        <h2
-          id="health-heading"
-          className="text-lg font-medium text-text-heading"
-        >
-          Service health
-        </h2>
-        <AdminError message={healthError} />
+
+      <section
+        className={`${panel} px-4 py-3`}
+        aria-labelledby="health-heading"
+      >
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <h2
+            id="health-heading"
+            className="text-base font-semibold text-text-heading"
+          >
+            Service health
+          </h2>
+          {health && (
+            <span className="text-xs text-text-muted">
+              Checked <DashboardTime value={health.checkedAt} />
+            </span>
+          )}
+        </div>
         {health ? (
           <>
-            <dl className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-2 lg:grid-cols-4">
               {(
                 [
                   ["API", health.api.status],
@@ -110,149 +360,122 @@ export default function AdminOverview() {
                   ["Summary worker", health.worker.status],
                 ] as const
               ).map(([name, status]) => (
-                <div key={name} className="space-y-2">
-                  <dt className="text-sm text-text-muted">{name}</dt>
+                <div
+                  key={name}
+                  className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm"
+                >
+                  <dt className="text-text-body">{name}</dt>
                   <dd>
                     <StatusBadge status={status} />
                   </dd>
                 </div>
               ))}
             </dl>
-            <p className="mt-4 text-xs text-text-muted">
-              Checked {timestamp(health.checkedAt)} · Worker heartbeat:{" "}
-              {timestamp(health.worker.lastHeartbeatAt)}
-            </p>
             {health.worker.status !== "healthy" && (
-              <p className="mt-3 text-sm text-amber-800 dark:text-amber-300">
-                The summary worker is not reporting healthy. Queued rebuilds may
-                wait until it is available.
+              <p className="mt-2 border-t border-border pt-2 text-xs text-amber-800 dark:text-amber-300">
+                Queued rebuilds may wait for the summary worker.{" "}
+                {health.worker.lastHeartbeatAt && (
+                  <>
+                    Last heartbeat{" "}
+                    <DashboardTime value={health.worker.lastHeartbeatAt} />.
+                  </>
+                )}
               </p>
             )}
           </>
-        ) : (
-          !healthError && (
-            <p className="mt-4 text-sm text-text-muted">Checking services…</p>
-          )
-        )}
-      </section>
-      <section className="space-y-4" aria-labelledby="cron-heading">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2
-            id="cron-heading"
-            className="text-lg font-medium text-text-heading"
-          >
-            Scheduled jobs
-          </h2>
-          <span className="text-xs text-text-muted">
-            {monitors?.fetchedAt
-              ? `Cronitor snapshot: ${timestamp(monitors.fetchedAt)}`
-              : "Cronitor"}
-          </span>
-        </div>
-        <AdminError message={monitorError} />
-        {monitors && monitors.status !== "ok" && (
-          <div
-            role="status"
-            className="rounded-lg border border-amber-500/40 bg-card p-4 text-sm text-text-body"
-          >
-            <StatusBadge status={monitors.status} />
-            <p className="mt-2">
-              {monitors.message ||
-                "Live monitoring is unavailable. This does not indicate healthy jobs."}
-            </p>
-          </div>
-        )}
-        {!monitors && !monitorError && (
-          <p className="text-sm text-text-muted">Loading scheduled jobs…</p>
-        )}
-        {monitors?.status === "ok" && monitors.monitors.length === 0 && (
-          <p className={panelClass}>
-            No Cronitor monitors are configured for this dashboard.
-          </p>
-        )}
-        <div className="grid gap-4 lg:grid-cols-2">
-          {monitors?.monitors.map((monitor) => (
-            <article
-              key={monitor.key}
-              className={`${panelClass} min-w-0 space-y-4`}
-            >
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <h3 className="font-medium text-text-heading break-words">
-                  {monitor.name}
-                </h3>
-                <StatusBadge
-                  status={monitors.status === "ok" ? monitor.status : "stale"}
-                />
-              </div>
-              {monitors.status !== "ok" && (
-                <p className="text-xs text-text-muted">
-                  Previous snapshot · Last reported state: {monitor.status}
-                </p>
+        ) : healthResult?.status === "rejected" ? (
+          <div className="mt-2">
+            <AdminError
+              message={errorMessage(
+                healthResult,
+                "Could not check service health.",
               )}
-              <dl className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
-                {[
-                  ["Last activity", timestamp(monitor.lastActivityAt)],
-                  ["Next expected", timestamp(monitor.nextExpectedAt)],
-                  [
-                    "Last duration",
-                    monitor.lastDurationSeconds === null
-                      ? "Not available"
-                      : `${monitor.lastDurationSeconds.toFixed(1)} seconds`,
-                  ],
-                  ["Schedule", monitor.schedule || "Not available"],
-                ].map(([label, value]) => (
-                  <div key={label}>
-                    <dt className="text-text-muted">{label}</dt>
-                    <dd className="mt-1 break-words text-text-body">{value}</dd>
-                  </div>
-                ))}
-              </dl>
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <details className="w-full">
-                  <summary className="cursor-pointer text-sm text-text-heading">
-                    Recent executions ({monitor.recentRuns.length})
-                  </summary>
-                  <ul className="mt-3 space-y-2 text-xs text-text-muted">
-                    {monitor.recentRuns.map((run, index) => (
-                      <li
-                        key={`${run.startedAt}-${index}`}
-                        className="border-t border-border pt-2"
-                      >
-                        {timestamp(run.startedAt)} ·{" "}
-                        {run.endedAt
-                          ? `Ended ${timestamp(run.endedAt)}`
-                          : "No completion reported"}
-                        {run.durationSeconds !== null &&
-                          ` · ${run.durationSeconds.toFixed(1)}s`}
-                      </li>
-                    ))}
-                    {monitor.recentRuns.length === 0 && (
-                      <li>No recent executions reported.</li>
-                    )}
-                  </ul>
-                </details>
-                {monitor.url.startsWith("https://cronitor.io/") && (
-                  <a
-                    href={monitor.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-sm text-text-heading hover:underline"
-                  >
-                    Open in Cronitor <ExternalLink className="h-3 w-3" />
-                  </a>
-                )}
-              </div>
-            </article>
-          ))}
-        </div>
+            />
+          </div>
+        ) : (
+          <p className="mt-2 text-sm text-text-muted">Checking services…</p>
+        )}
       </section>
-      <div className="flex flex-wrap gap-3">
-        <Button asChild>
-          <Link href="/admin/summaries">Review pending summaries</Link>
-        </Button>
-        <Button asChild variant="outline">
-          <Link href="/admin/jobs">View run history</Link>
-        </Button>
+
+      <div className="grid items-start gap-4 md:grid-cols-[minmax(0,3fr)_minmax(15rem,1fr)] xl:grid-cols-[minmax(0,3fr)_minmax(18rem,1fr)]">
+        <section className={panel} aria-labelledby="cron-heading">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-4 py-3">
+            <h2
+              id="cron-heading"
+              className="text-base font-semibold text-text-heading"
+            >
+              Scheduled jobs
+            </h2>
+            <span className="text-xs text-text-muted">
+              Cronitor
+              {monitors?.fetchedAt && (
+                <>
+                  {" "}
+                  · <DashboardTime value={monitors.fetchedAt} />
+                </>
+              )}
+            </span>
+          </div>
+          {monitorResult?.status === "rejected" ? (
+            <div className="px-4 pb-3">
+              <AdminError
+                message={errorMessage(
+                  monitorResult,
+                  "Could not load Cronitor.",
+                )}
+              />
+            </div>
+          ) : (
+            <ScheduledJobs data={monitors} />
+          )}
+        </section>
+
+        <div className="min-w-0 space-y-4">
+          <FreshnessPanel result={freshnessResult} />
+          <section className={panel} aria-labelledby="maintenance-heading">
+            <h2
+              id="maintenance-heading"
+              className="px-4 py-3 text-base font-semibold text-text-heading"
+            >
+              Summary maintenance
+            </h2>
+            <div className="divide-y divide-border border-t border-border">
+              <Link
+                href="/admin/summaries"
+                className="flex items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-raised focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+              >
+                <span>
+                  <span className="block font-medium text-text-heading">
+                    Review pending summaries
+                  </span>
+                  <span className="mt-0.5 block text-xs text-text-muted">
+                    {pendingCount === undefined
+                      ? pendingResult
+                        ? "Pending count unavailable"
+                        : "Checking pending summaries…"
+                      : pendingCount === 0
+                        ? "No rebuilds pending"
+                        : `${pendingCount.toLocaleString()} ${pendingCount === 1 ? "professor needs" : "professors need"} a rebuild`}
+                  </span>
+                </span>
+                <ArrowRight
+                  aria-hidden="true"
+                  className="size-4 shrink-0 text-text-muted"
+                />
+              </Link>
+              <Link
+                href="/admin/jobs"
+                className="flex items-center justify-between gap-3 px-4 py-3 text-sm font-medium text-text-heading transition-colors hover:bg-raised focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+              >
+                View rebuild run history
+                <ArrowRight
+                  aria-hidden="true"
+                  className="size-4 shrink-0 text-text-muted"
+                />
+              </Link>
+            </div>
+          </section>
+        </div>
       </div>
     </div>
   );

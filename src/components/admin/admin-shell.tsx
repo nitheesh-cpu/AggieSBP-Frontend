@@ -73,16 +73,28 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     };
   }, [signOut]);
 
+  const wideOverview = key && pathname === "/admin";
+
   if (!ready)
     return (
       <p className="p-8 text-sm text-text-muted">Checking admin access…</p>
     );
   return (
     <main
-      className="min-h-screen px-4 py-8 sm:px-6"
+      className={
+        wideOverview
+          ? "min-h-screen px-4 py-5 sm:px-6 lg:px-8"
+          : "min-h-screen px-4 py-8 sm:px-6"
+      }
       style={{ background: "var(--app-bg-gradient)" }}
     >
-      <div className="mx-auto max-w-6xl space-y-6">
+      <div
+        className={
+          wideOverview
+            ? "mx-auto max-w-[112rem] space-y-5"
+            : "mx-auto max-w-6xl space-y-6"
+        }
+      >
         {key ? (
           <AdminContext.Provider value={{ adminKey: key, signOut }}>
             <header className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">

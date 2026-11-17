@@ -13,6 +13,9 @@ const WEBSITE_ID = "7efa90af-63b9-4c90-9287-510bd8e41d2e";
 export function UmamiRecorder({ host }: { host: string }) {
   useEffect(() => {
     if (window.location.hostname !== host) return;
+    // Admin pages take the admin key in a form field; never record them.
+    // (The admin page reloads itself if it was reached with this running.)
+    if (window.location.pathname.startsWith("/admin")) return;
     try {
       if (window.localStorage.getItem("umami.disabled")) return;
     } catch {

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
 import { AnalyticsOptOut } from "@/components/analytics-opt-out";
@@ -94,10 +95,10 @@ export default function TermsPage() {
                   It records page views, your browser, device type and country, and
                   actions like searches, filters, and clicks on tools. For searches
                   that find nothing, it records the first 40 characters of what you
-                  typed so we can fix missing courses. For a small share of visits it
-                  also records clicks, scrolling and the page layout to build heatmaps.
-                  Anything you type into a form is hidden in those recordings, and so
-                  is the list of courses you&apos;ve taken in the schedule builder.
+                  typed so we can fix missing courses. For a sample of visits it also
+                  collects heatmap data (where people click and how far they scroll).
+                  We do not record session replays, and everything typed into a form
+                  field is masked, so typed text is never captured.
                   Analytics never receives your name, email, or account ID.
                 </p>
                 <p className="text-text-body mb-4">
@@ -113,6 +114,13 @@ export default function TermsPage() {
                 <p className="text-text-body mb-4">
                   If you have any questions about these terms or our service, please 
                   contact us through our feedback form.
+                </p>
+                <p className="text-text-body mb-4">
+                  How we handle data is described in our{" "}
+                  <Link href="/privacy" className="underline">
+                    Privacy Policy
+                  </Link>
+                  .
                 </p>
               </section>
 

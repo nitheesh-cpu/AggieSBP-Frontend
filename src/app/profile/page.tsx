@@ -1,13 +1,22 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { SessionAuth } from "supertokens-auth-react/recipe/session";
-import { useSessionContext } from "supertokens-auth-react/recipe/session";
+import {
+  SessionAuth,
+  signOut,
+  useSessionContext,
+} from "supertokens-auth-react/recipe/session";
+import { useRouter } from "next/navigation";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
 import { motion } from "motion/react";
-import { getAccountSummary, type AccountSummary } from "@/lib/api";
-import { User, Bell, Mail } from "lucide-react";
+import {
+  deleteMyAccount,
+  getAccountSummary,
+  type AccountSummary,
+} from "@/lib/api";
+import { User, Bell, Mail, Trash2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +34,148 @@ function displayUserId(userId: string): { short: string; full: string } {
   const full = userId || "—";
   if (full.length <= 24) return { short: full, full };
   return { short: `${full.slice(0, 10)}…${full.slice(-8)}`, full };
+}
+
+const DELETE_CONFIRM_WORD = "DELETE";
+
+/** Removes this device's copy of planner data and alert settings (the server copy is already gone). */
+async function clearLocalAccountData() {
+  try {
+    for (const storage of [window.localStorage, window.sessionStorage]) {
+      for (const key of Object.keys(storage)) {
+        if (
+          key.startsWith("aggiesbp:planner:") ||
+          key.startsWith("aggiesbp:alerts-")
+        ) {
+          storage.removeItem(key);
+        }
+      }
+    }
+  } catch {
+    // storage unavailable
+  }
+  try {
+    if ("serviceWorker" in navigator && "PushManager" in window) {
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+      await subscription?.unsubscribe();
+    }
+  } catch {
+    // push not set up on this device
+  }
+}
+
+function DeleteAccountSection() {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const confirmed = confirmText.trim() === DELETE_CONFIRM_WORD;
+
+  async function handleDelete() {
+    if (!confirmed || pending) return;
+    setPending(true);
+    setError(null);
+    try {
+      await deleteMyAccount();
+    } catch (e) {
+      setError(
+        e instanceof Error && e.message
+          ? e.message
+          : "Something went wrong. Please try again.",
+      );
+      setPending(false);
+      return;
+    }
+    // The account is gone; a failing sign-out cleanup must not look like a failure.
+    await clearLocalAccountData();
+    try {
+      await signOut();
+    } catch {
+      // session already revoked server-side
+    }
+    router.push("/?account=deleted");
+    router.refresh();
+  }
+
+  return (
+    <Card className="overflow-hidden border-destructive/30 bg-white/70 shadow-md backdrop-blur-md dark:bg-card">
+      <CardContent className="space-y-4 p-6 sm:p-8">
+        <div className="space-y-1">
+          <h2 className="text-lg font-medium text-text-heading">
+            Delete account
+          </h2>
+          <p className="text-sm text-text-body">
+            This permanently deletes your account and everything tied to it:
+            your sign-in, your seat watches, the devices registered for
+            notifications, and your saved degree plan and schedules. It takes
+            effect immediately and cannot be undone.
+          </p>
+        </div>
+
+        {!open ? (
+          <Button
+            variant="outline"
+            onClick={() => setOpen(true)}
+            className="w-full rounded-full border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive sm:w-auto"
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete my account
+          </Button>
+        ) : (
+          <div className="space-y-3">
+            <label
+              htmlFor="delete-account-confirm"
+              className="block text-sm text-text-body"
+            >
+              Type{" "}
+              <span className="font-mono font-medium text-text-heading">
+                {DELETE_CONFIRM_WORD}
+              </span>{" "}
+              to confirm.
+            </label>
+            <Input
+              id="delete-account-confirm"
+              value={confirmText}
+              onChange={(e) => setConfirmText(e.target.value)}
+              autoComplete="off"
+              autoCapitalize="characters"
+              spellCheck={false}
+              disabled={pending}
+              className="max-w-sm font-mono"
+            />
+            {error && (
+              <p role="alert" className="text-sm text-destructive">
+                {error}
+              </p>
+            )}
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Button
+                onClick={handleDelete}
+                disabled={!confirmed || pending}
+                className="rounded-full bg-destructive text-white hover:bg-destructive/90"
+              >
+                {pending ? "Deleting…" : "Permanently delete account"}
+              </Button>
+              <Button
+                variant="outline"
+                disabled={pending}
+                onClick={() => {
+                  setOpen(false);
+                  setConfirmText("");
+                  setError(null);
+                }}
+                className="rounded-full"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
 }
 
 function ProfileContent() {
@@ -171,6 +322,13 @@ function ProfileContent() {
             </Card>
           </motion.div>
 
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+          >
+            <DeleteAccountSection />
+          </motion.div>
         </div>
       </main>
 

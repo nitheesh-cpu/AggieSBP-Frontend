@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { MotionConfig } from "motion/react";
 import { useRouter } from "next/navigation";
 
@@ -16,6 +16,21 @@ import { Footer } from "@/components/footer";
 
 export function HomePageMotion() {
   const router = useRouter();
+  const [accountDeleted, setAccountDeleted] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("account") === "deleted") {
+      setAccountDeleted(true);
+      params.delete("account");
+      const qs = params.toString();
+      window.history.replaceState(
+        null,
+        "",
+        window.location.pathname + (qs ? `?${qs}` : ""),
+      );
+    }
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -35,6 +50,22 @@ export function HomePageMotion() {
     >
       <div className="min-h-screen bg-canvas">
         <Navigation variant="glass" />
+
+        {accountDeleted && (
+          <div
+            role="status"
+            className="fixed inset-x-4 top-20 z-50 mx-auto flex max-w-md items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3 text-sm text-text-heading shadow-lg"
+          >
+            <span>Your account was deleted.</span>
+            <button
+              type="button"
+              onClick={() => setAccountDeleted(false)}
+              className="shrink-0 text-text-muted underline underline-offset-2 hover:text-text-heading"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
 
         <main>
           <HomeHeroScroll />

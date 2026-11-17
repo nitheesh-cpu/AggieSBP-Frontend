@@ -518,40 +518,103 @@ export async function getProfessors(params?: {
 export async function getProfessor(
   professorId: string,
 ): Promise<ProfessorDetail> {
-  try {
-    console.log(
-      "Fetching professor from URL:",
-      `${API_BASE_URL}/professor/${professorId}`,
+  const response = await trackedFetch(`${API_BASE_URL}/professor/${professorId}`);
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Professor API error:", response.status, errorText);
+    throw new Error(
+      `Failed to fetch professor: ${response.status} - ${errorText}`,
     );
-    const response = await trackedFetch(`${API_BASE_URL}/professor/${professorId}`);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(
-        "Professor API error:",
-        response.status,
-        response.statusText,
-        errorText,
-      );
-      throw new Error(
-        `Failed to fetch professor: ${response.status} - ${errorText}`,
-      );
-    }
-
-    const data = await response.json();
-    console.log("Professor response:", data);
-
-    // Validate response structure
-    if (!data || !data.id || !data.name) {
-      console.error("Invalid professor response structure:", data);
-      throw new Error("Invalid response format from professor API");
-    }
-
-    return data;
-  } catch (error) {
-    console.error("Error in getProfessor:", error);
-    throw error;
   }
+
+  const data = await response.json();
+  if (!data || !data.id || !data.name) {
+    console.error("Invalid professor response structure:", data);
+    throw new Error("Invalid response format from professor API");
+  }
+  return data;
+}
+
+/**
+ * The reviews endpoint returns a bare array of reviews; turn it into the
+ * ProfessorReviews shape the reviews page uses. Shared with the server-side
+ * fetch in server-api.ts.
+ *
+ * The array carries no total, so pagination is inferred: a full page means
+ * there may be another one.
+ */
+export function normalizeProfessorReviews(
+  data: unknown,
+  professorId: string,
+  params?: { limit?: number; skip?: number },
+): ProfessorReviews {
+  if (Array.isArray(data)) {
+    const reviews = data.map((review: Record<string, unknown>) => ({
+      id: review.id,
+      clarity_rating: review.clarity_rating,
+      difficulty_rating: review.difficulty_rating,
+      helpful_rating: review.helpful_rating,
+      overall_rating: review.overall_rating,
+      would_take_again: review.would_take_again,
+      grade: review.grade,
+      review_text: review.review_text,
+      review_date: review.review_date,
+      tags: review.tags || [],
+      thumbs_up: review.thumbs_up,
+      thumbs_down: review.thumbs_down,
+      attendance_mandatory: review.attendance_mandatory,
+      textbook_use: review.textbook_use,
+      // There's no separate course id; the code doubles as one.
+      course: {
+        id: review.course_code,
+        code: review.course_code,
+        name: review.course_name,
+      },
+    }));
+
+    const total = reviews.length;
+    const avg = (key: "overall_rating" | "clarity_rating" | "difficulty_rating" | "helpful_rating") =>
+      total > 0
+        ? reviews.reduce((sum, r) => sum + ((r[key] as number) || 0), 0) / total
+        : 0;
+    const wouldTakeAgain = reviews.filter((r) => r.would_take_again === true).length;
+
+    const limit = params?.limit || 50;
+    const skip = params?.skip || 0;
+    const hasMore = total >= limit;
+
+    return {
+      professor: { id: professorId, name: "" },
+      summary: {
+        total_reviews: total,
+        avg_clarity: avg("clarity_rating"),
+        avg_difficulty: avg("difficulty_rating"),
+        avg_helpfulness: avg("helpful_rating"),
+        avg_overall: avg("overall_rating"),
+        would_take_again_percent: total > 0 ? (wouldTakeAgain / total) * 100 : 0,
+      },
+      reviews: reviews as unknown as ProfessorReviews["reviews"],
+      pagination: {
+        // At least one more review when this page came back full.
+        total: skip + total + (hasMore ? 1 : 0),
+        limit,
+        skip,
+        has_more: hasMore,
+      },
+    };
+  }
+
+  if (
+    data &&
+    typeof data === "object" &&
+    Array.isArray((data as ProfessorReviews).reviews)
+  ) {
+    return data as ProfessorReviews;
+  }
+
+  console.error("Unexpected professor reviews response format:", data);
+  throw new Error("API returned unexpected response format");
 }
 
 // Professor Reviews API
@@ -566,154 +629,29 @@ export async function getProfessorReviews(
     max_rating?: number;
   },
 ): Promise<ProfessorReviews> {
-  try {
-    const url = new URL(`${API_BASE_URL}/professor/${professorId}/reviews`);
+  const url = new URL(`${API_BASE_URL}/professor/${professorId}/reviews`);
 
-    if (params?.course_filter)
-      url.searchParams.append("course_filter", params.course_filter);
-    if (params?.limit)
-      url.searchParams.append("limit", params.limit.toString());
-    if (params?.skip) url.searchParams.append("skip", params.skip.toString());
-    if (params?.sort_by) url.searchParams.append("sort_by", params.sort_by);
-    if (params?.min_rating)
-      url.searchParams.append("min_rating", params.min_rating.toString());
-    if (params?.max_rating)
-      url.searchParams.append("max_rating", params.max_rating.toString());
+  if (params?.course_filter)
+    url.searchParams.append("course_filter", params.course_filter);
+  if (params?.limit) url.searchParams.append("limit", params.limit.toString());
+  if (params?.skip) url.searchParams.append("skip", params.skip.toString());
+  if (params?.sort_by) url.searchParams.append("sort_by", params.sort_by);
+  if (params?.min_rating)
+    url.searchParams.append("min_rating", params.min_rating.toString());
+  if (params?.max_rating)
+    url.searchParams.append("max_rating", params.max_rating.toString());
 
-    console.log("Fetching professor reviews from URL:", url.toString());
-    const response = await trackedFetch(url.toString());
+  const response = await trackedFetch(url.toString());
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(
-        "Professor reviews API error:",
-        response.status,
-        response.statusText,
-        errorText,
-      );
-      throw new Error(
-        `Failed to fetch professor reviews: ${response.status} - ${errorText}`,
-      );
-    }
-
-    const data = await response.json();
-    console.log("Raw professor reviews response type:", typeof data);
-    console.log("Raw professor reviews response isArray:", Array.isArray(data));
-    console.log(
-      "Raw professor reviews response sample:",
-      data.length ? data.slice(0, 2) : data,
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Professor reviews API error:", response.status, errorText);
+    throw new Error(
+      `Failed to fetch professor reviews: ${response.status} - ${errorText}`,
     );
-
-    // If API returns array format, convert to expected structure
-    if (Array.isArray(data)) {
-      console.log("Converting array response to ProfessorReviews structure");
-
-      const reviews = data.map((review: Record<string, unknown>) => {
-        // Map the actual API fields to the expected structure
-        return {
-          id: review.id,
-          clarity_rating: review.clarity_rating,
-          difficulty_rating: review.difficulty_rating,
-          helpful_rating: review.helpful_rating,
-          overall_rating: review.overall_rating,
-          would_take_again: review.would_take_again,
-          grade: review.grade,
-          review_text: review.review_text,
-          review_date: review.review_date,
-          tags: review.tags || [],
-          thumbs_up: review.thumbs_up,
-          thumbs_down: review.thumbs_down,
-          attendance_mandatory: review.attendance_mandatory,
-          textbook_use: review.textbook_use,
-          // Create the course object from the API fields
-          course: {
-            id: review.course_code, // Using course_code as ID since there's no separate ID
-            code: review.course_code,
-            name: review.course_name,
-          },
-        };
-      });
-
-      // Calculate summary statistics
-      const totalReviews = reviews.length;
-      const avgOverall =
-        totalReviews > 0
-          ? reviews.reduce(
-            (sum, r) => sum + ((r.overall_rating as number) || 0),
-            0,
-          ) / totalReviews
-          : 0;
-      const avgClarity =
-        totalReviews > 0
-          ? reviews.reduce(
-            (sum, r) => sum + ((r.clarity_rating as number) || 0),
-            0,
-          ) / totalReviews
-          : 0;
-      const avgDifficulty =
-        totalReviews > 0
-          ? reviews.reduce(
-            (sum, r) => sum + ((r.difficulty_rating as number) || 0),
-            0,
-          ) / totalReviews
-          : 0;
-      const avgHelpfulness =
-        totalReviews > 0
-          ? reviews.reduce(
-            (sum, r) => sum + ((r.helpful_rating as number) || 0),
-            0,
-          ) / totalReviews
-          : 0;
-      const wouldTakeAgainCount = reviews.filter(
-        (r) => r.would_take_again === true,
-      ).length;
-      const wouldTakeAgainPercent =
-        totalReviews > 0 ? (wouldTakeAgainCount / totalReviews) * 100 : 0;
-
-      const result: ProfessorReviews = {
-        professor: {
-          id: professorId,
-          name: "Loading...", // Will be filled by the professor detail call
-        },
-        summary: {
-          total_reviews: totalReviews,
-          avg_clarity: avgClarity,
-          avg_difficulty: avgDifficulty,
-          avg_helpfulness: avgHelpfulness,
-          avg_overall: avgOverall,
-          would_take_again_percent: wouldTakeAgainPercent,
-        },
-        reviews: reviews as unknown as ProfessorReviews["reviews"],
-        pagination: {
-          total: totalReviews,
-          limit: params?.limit || 50,
-          skip: params?.skip || 0,
-          has_more: false, // We don't have pagination info from array response
-        },
-      };
-
-      console.log("Converted ProfessorReviews result:", result);
-      return result;
-    }
-
-    // If API returns object format, validate and return
-    if (
-      data &&
-      typeof data === "object" &&
-      data.reviews &&
-      Array.isArray(data.reviews)
-    ) {
-      console.log("API returned expected object structure");
-      return data as ProfessorReviews;
-    }
-
-    // Unexpected format
-    console.error("Unexpected professor reviews response format:", data);
-    throw new Error("API returned unexpected response format");
-  } catch (error) {
-    console.error("Error in getProfessorReviews:", error);
-    throw error;
   }
+
+  return normalizeProfessorReviews(await response.json(), professorId, params);
 }
 
 // Professor Search API
@@ -1056,6 +994,15 @@ export async function getAccountSummary(): Promise<AccountSummary> {
     headers: await authHeaders({ "Content-Type": "application/json" }),
   });
   return handleResponse<AccountSummary>(response);
+}
+
+/** Permanently deletes the signed-in account and everything stored for it. */
+export async function deleteMyAccount(): Promise<void> {
+  const response = await trackedFetch(`${API_BASE_URL}/users/me`, {
+    method: "DELETE",
+    headers: await authHeaders({ "Content-Type": "application/json" }),
+  });
+  await handleResponse<unknown>(response);
 }
 
 export async function saveSchedule(schedule: ScheduleData): Promise<void> {

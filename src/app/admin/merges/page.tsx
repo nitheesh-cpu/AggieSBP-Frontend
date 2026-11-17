@@ -1,19 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowRight, Check, Copy, ExternalLink, Lock, RotateCcw, X } from "lucide-react";
+import { ArrowRight, Check, ExternalLink, RotateCcw, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
+import Link from "next/link";
+import { useAdmin } from "@/components/admin/admin-shell";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  ADMIN_KEY_STORAGE,
   AdminKeyError,
   type MergeChangeResult,
   type MergeStatus,
   type ProfessorMerge,
-  checkAdminKey,
   getProfessorMerges,
   setProfessorMergeStatus,
 } from "@/lib/admin-api";
@@ -24,117 +23,9 @@ const TABS: { status: MergeStatus; label: string }[] = [
   { status: "rejected", label: "Rejected" },
 ];
 
-function readStoredKey(): string {
-  try {
-    return sessionStorage.getItem(ADMIN_KEY_STORAGE) ?? "";
-  } catch {
-    return "";
-  }
-}
-
-function storeKey(key: string | null) {
-  try {
-    if (key) sessionStorage.setItem(ADMIN_KEY_STORAGE, key);
-    else sessionStorage.removeItem(ADMIN_KEY_STORAGE);
-  } catch {
-    // Storage blocked: the key just isn't remembered across reloads.
-  }
-}
-
 export default function AdminMergesPage() {
-  const [key, setKey] = useState<string | null>(null);
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    // The session recorder skips /admin, but only on a fresh page load. If it
-    // is already running (we arrived by client-side navigation), reload.
-    if (document.querySelector('script[src*="recorder.js"]')) {
-      window.location.reload();
-      return;
-    }
-    const stored = readStoredKey();
-    if (stored) setKey(stored);
-    setReady(true);
-  }, []);
-
-  const signOut = useCallback(() => {
-    storeKey(null);
-    setKey(null);
-  }, []);
-
-  if (!ready) return null;
-
-  return (
-    <main
-      className="min-h-screen px-4 py-10 sm:px-6"
-      style={{ background: "var(--app-bg-gradient)" }}
-    >
-      <div className="mx-auto max-w-4xl space-y-6">
-        {key ? (
-          <MergeReview adminKey={key} onSignOut={signOut} />
-        ) : (
-          <KeyGate
-            onUnlock={(k) => {
-              storeKey(k);
-              setKey(k);
-            }}
-          />
-        )}
-      </div>
-    </main>
-  );
-}
-
-function KeyGate({ onUnlock }: { onUnlock: (key: string) => void }) {
-  const [value, setValue] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [checking, setChecking] = useState(false);
-
-  const submit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    const candidate = value.trim();
-    if (!candidate) return;
-    setChecking(true);
-    setError(null);
-    try {
-      await checkAdminKey(candidate);
-      onUnlock(candidate);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn't check the key.");
-    } finally {
-      setChecking(false);
-    }
-  };
-
-  return (
-    <form
-      onSubmit={submit}
-      className="mx-auto mt-16 max-w-sm space-y-4 rounded-2xl border border-border bg-card p-6"
-    >
-      <div className="flex items-center gap-3">
-        <Lock strokeWidth={1.5} className="h-5 w-5 text-text-muted" />
-        <h1 className="text-lg font-medium text-text-heading">Admin</h1>
-      </div>
-      <p className="text-sm text-text-body">
-        Enter the admin key (<code>ADMIN_API_KEY</code> on the server). It is kept
-        for this tab only.
-      </p>
-      <Input
-        type="password"
-        autoComplete="off"
-        spellCheck={false}
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        placeholder="Admin key"
-        aria-label="Admin key"
-        autoFocus
-      />
-      {error && <p className="text-sm text-red-700 dark:text-red-300">{error}</p>}
-      <Button type="submit" className="w-full" disabled={checking || !value.trim()}>
-        {checking ? "Checking..." : "Unlock"}
-      </Button>
-    </form>
-  );
+  const { adminKey, signOut } = useAdmin();
+  return <MergeReview adminKey={adminKey} onSignOut={signOut} />;
 }
 
 function MergeReview({
@@ -166,7 +57,11 @@ function MergeReview({
   }, [load]);
 
   const counts = useMemo(() => {
-    const c: Record<MergeStatus, number> = { proposed: 0, confirmed: 0, rejected: 0 };
+    const c: Record<MergeStatus, number> = {
+      proposed: 0,
+      confirmed: 0,
+      rejected: 0,
+    };
     for (const m of merges ?? []) c[m.status] += 1;
     return c;
   }, [merges]);
@@ -190,7 +85,8 @@ function MergeReview({
     });
   };
 
-  const allSelected = visible.length > 0 && visible.every((m) => selected.has(m.aliasId));
+  const allSelected =
+    visible.length > 0 && visible.every((m) => selected.has(m.aliasId));
 
   const act = async (aliasIds: string[], action: "confirm" | "reject") => {
     if (!aliasIds.length) return;
@@ -221,19 +117,20 @@ function MergeReview({
     <>
       <header className="flex flex-wrap items-start justify-between gap-4 rounded-2xl border border-border bg-card p-5">
         <div>
-          <h1 className="text-xl font-medium text-text-heading">Duplicate professors</h1>
+          <h1 className="text-xl font-medium text-text-heading">
+            Duplicate professors
+          </h1>
           <p className="mt-1 text-sm text-text-muted">
-            RateMyProfessors entries that look like one person. Merging shows them as one
-            professor; nothing is deleted, and any merge can be undone.
+            RateMyProfessors entries that look like one person. Merging shows
+            them as one professor; nothing is deleted, and any merge can be
+            undone.
           </p>
         </div>
-        <Button variant="ghost" size="sm" onClick={onSignOut} className="gap-1.5">
-          <Lock className="h-3.5 w-3.5" />
-          Lock
-        </Button>
       </header>
 
-      {result && <ResultPanel result={result} onDismiss={() => setResult(null)} />}
+      {result && (
+        <ResultPanel result={result} onDismiss={() => setResult(null)} />
+      )}
       {error && (
         <p className="rounded-xl border border-border bg-card p-4 text-sm text-red-700 dark:text-red-300">
           {error}
@@ -265,7 +162,9 @@ function MergeReview({
               <Checkbox
                 checked={allSelected}
                 onCheckedChange={(on) =>
-                  setSelected(on ? new Set(visible.map((m) => m.aliasId)) : new Set())
+                  setSelected(
+                    on ? new Set(visible.map((m) => m.aliasId)) : new Set(),
+                  )
                 }
               />
               Select all ({visible.length})
@@ -351,10 +250,19 @@ function MergeRow({
         <div className="min-w-0 flex-1 space-y-2">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <ProfessorLink professor={merge.alias} fallback={merge.aliasId} />
-            <ArrowRight className="h-4 w-4 shrink-0 text-text-muted" aria-label="shown as" />
-            <ProfessorLink professor={merge.canonical} fallback={merge.canonicalId} />
+            <ArrowRight
+              className="h-4 w-4 shrink-0 text-text-muted"
+              aria-label="shown as"
+            />
+            <ProfessorLink
+              professor={merge.canonical}
+              fallback={merge.canonicalId}
+            />
             {merge.needsCheck && (
-              <Badge variant="outline" className="border-amber-500 text-amber-700 dark:text-amber-300">
+              <Badge
+                variant="outline"
+                className="border-amber-500 text-amber-700 dark:text-amber-300"
+              >
                 Check spelling
               </Badge>
             )}
@@ -365,13 +273,23 @@ function MergeRow({
         </div>
         <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
           {merge.status !== "confirmed" && (
-            <Button size="sm" disabled={busy} onClick={() => onAct("confirm")} className="gap-1">
+            <Button
+              size="sm"
+              disabled={busy}
+              onClick={() => onAct("confirm")}
+              className="gap-1"
+            >
               <Check className="h-3.5 w-3.5" />
               Merge
             </Button>
           )}
           {merge.status === "proposed" && (
-            <Button size="sm" variant="outline" disabled={busy} onClick={() => onAct("reject")}>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={busy}
+              onClick={() => onAct("reject")}
+            >
               Reject
             </Button>
           )}
@@ -431,29 +349,22 @@ function ResultPanel({
   result: MergeChangeResult;
   onDismiss: () => void;
 }) {
-  const [copied, setCopied] = useState(false);
   const changed = result.changes.filter((c) => c.status !== "skipped");
   const skipped = result.changes.filter((c) => c.status === "skipped");
-
-  const copy = async () => {
-    if (!result.rebuildCommand) return;
-    try {
-      await navigator.clipboard.writeText(result.rebuildCommand);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      // Clipboard blocked: the command is still selectable below.
-    }
-  };
 
   return (
     <section className="space-y-3 rounded-xl border border-border bg-card p-4 text-sm">
       <div className="flex items-start justify-between gap-3">
         <p className="text-text-heading">
-          {changed.length} updated{skipped.length ? `, ${skipped.length} skipped` : ""}. The
-          site cache was cleared.
+          {changed.length} updated
+          {skipped.length ? `, ${skipped.length} skipped` : ""}.
         </p>
-        <Button variant="ghost" size="sm" onClick={onDismiss} aria-label="Dismiss">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onDismiss}
+          aria-label="Dismiss"
+        >
           <X className="h-4 w-4" />
         </Button>
       </div>
@@ -466,21 +377,21 @@ function ResultPanel({
           ))}
         </ul>
       )}
-      {result.rebuildCommand && (
-        <div className="space-y-2">
+      {result.affectedProfessorIds?.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-text-body">
-            Rebuild these professors&apos; summaries on the server (from{" "}
-            <code>/home/opc/backend</code>) so they cover the merged reviews:
+            {result.affectedProfessorIds.length === 1
+              ? "1 professor needs an updated summary."
+              : `${result.affectedProfessorIds.length} professors need updated summaries.`}{" "}
+            Review the affected professors and rebuild from stored reviews.
           </p>
-          <div className="flex items-start gap-2">
-            <code className="block max-h-32 flex-1 overflow-auto rounded-md bg-raised p-2 text-xs break-all text-text-heading">
-              {result.rebuildCommand}
-            </code>
-            <Button variant="outline" size="sm" onClick={copy} className="gap-1">
-              <Copy className="h-3.5 w-3.5" />
-              {copied ? "Copied" : "Copy"}
-            </Button>
-          </div>
+          <Button asChild size="sm">
+            <Link
+              href={`/admin/summaries?professors=${encodeURIComponent(JSON.stringify(result.affectedProfessorIds))}`}
+            >
+              Rebuild affected summaries
+            </Link>
+          </Button>
         </div>
       )}
     </section>

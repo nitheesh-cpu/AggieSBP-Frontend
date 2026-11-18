@@ -88,6 +88,14 @@ export default function RootLayout({
             __html: `try{var h=location.hash;if(h.indexOf("#howdy=")===0){sessionStorage.setItem("aggiesbp:planner:howdy-hash",h);history.replaceState(history.state,"",location.pathname+location.search)}}catch(e){}`,
           }}
         />
+        {/* Sign-in callbacks (/auth/callback/google?code=...) carry one-time
+            OAuth codes in the query; drop it from the URL and referrer
+            before Umami sends anything. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.umamiBeforeSend=function(t,p){function c(u){if(typeof u!=="string"||u.indexOf("/auth/callback")<0)return u;var i=u.search(/[?#]/);return i<0?u:u.slice(0,i)}if(p){p.url=c(p.url);p.referrer=c(p.referrer)}return p};`,
+          }}
+        />
         {/* Umami (self-hosted). Only counts the production host, so local
             and preview deploys stay out of the stats. Loads through the
             same-origin proxy when NEXT_PUBLIC_UMAMI_PROXY=1 (see
@@ -98,6 +106,7 @@ export default function RootLayout({
           data-website-id="7efa90af-63b9-4c90-9287-510bd8e41d2e"
           data-domains={new URL(SITE_URL).hostname}
           data-exclude-hash="true"
+          data-before-send="umamiBeforeSend"
         />
       </head>
       <body className="font-sans antialiased">

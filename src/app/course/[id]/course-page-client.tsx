@@ -32,6 +32,7 @@ import {
   BookOpen,
   BarChart3,
   ChevronRight,
+  ChevronDown,
   Eye,
   Award,
   Zap,
@@ -72,6 +73,68 @@ interface CoursePageClientProps {
   initialTerms: Term[] | null;
   /** Default term picked on the server so the first render matches the HTML. */
   initialSelectedTerm: string;
+}
+
+/**
+ * Paragraph clamped to `lines` lines, with a Show more / Show less toggle.
+ * The toggle only appears when the text actually overflows the clamp.
+ */
+function ExpandableText({
+  text,
+  lines,
+  className,
+}: {
+  text: string;
+  lines: number;
+  className?: string;
+}) {
+  const ref = useRef<HTMLParagraphElement>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [overflows, setOverflows] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || expanded) return;
+    const check = () => setOverflows(el.scrollHeight > el.clientHeight + 1);
+    check();
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [text, expanded]);
+
+  return (
+    <div className={className}>
+      <p
+        ref={ref}
+        className="text-text-body leading-relaxed"
+        style={
+          expanded
+            ? undefined
+            : {
+                display: "-webkit-box",
+                WebkitLineClamp: lines,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }
+        }
+      >
+        {text}
+      </p>
+      {(overflows || expanded) && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          aria-expanded={expanded}
+          className="mt-1 inline-flex items-center gap-1 text-sm font-medium text-text-heading hover:underline underline-offset-4"
+        >
+          {expanded ? "Show less" : "Show more"}
+          <ChevronDown
+            className={`h-4 w-4 transition-transform ${expanded ? "rotate-180" : ""}`}
+          />
+        </button>
+      )}
+    </div>
+  );
 }
 
 function formatAnimatedNumber(n: number, decimals: number) {
@@ -404,6 +467,31 @@ const getDepartmentColor = (courseCode: string) => {
   return colorMap[deptCode] || "bg-raised text-text-body";
 };
 
+
+type CourseProfessor = NonNullable<CourseDetail["professors"]>[number];
+
+/**
+ * The term's professor details carry official grades as counts summed over
+ * every semester ("grades"); course history uses percentages from the latest
+ * one ("gradeDistribution"). Convert so an instructor who is not in the
+ * history list (no review profile, or not among its top entries) still shows
+ * their grades.
+ */
+function withGradePercentages(prof: CourseProfessor): CourseProfessor {
+  const counts = prof.grades?.distribution;
+  if (prof.gradeDistribution || !counts) return prof;
+  const total = counts.A + counts.B + counts.C + counts.D + counts.F;
+  if (total <= 0) return prof;
+  const pct = (n: number) => Math.round((n / total) * 100);
+  return {
+    ...prof,
+    gradeScope: "all",
+    gradeDistribution: {
+      A: pct(counts.A), B: pct(counts.B), C: pct(counts.C), D: pct(counts.D), F: pct(counts.F),
+    },
+  };
+}
+
 export default function CoursePageClient({
   id,
   initialCourse,
@@ -566,7 +654,7 @@ export default function CoursePageClient({
       return false;
     });
 
-    const firstTime = newTermProfessors.filter(
+    const firstTime = newTermProfessors.map(withGradePercentages).filter(
       (np) =>
         !withHistory.some(
           (p) =>
@@ -669,9 +757,13 @@ export default function CoursePageClient({
                       {courseData.code}: {courseData.name}
                     </h1>
 
-                    <p className="text-text-body mb-4 max-w-4xl leading-relaxed">
-                      {courseData.description}
-                    </p>
+                    {courseData.description && (
+                      <ExpandableText
+                        text={courseData.description}
+                        lines={3}
+                        className="mb-4 max-w-4xl"
+                      />
+                    )}
                   </div>
 
                   {/* Add to Comparison Button */}
@@ -814,9 +906,13 @@ export default function CoursePageClient({
                       <span className="text-xs font-medium text-body">
                         Description:
                       </span>
-                      <p className="text-text-body mt-1 leading-relaxed">
-                        {courseData.description}
-                      </p>
+                      {courseData.description && (
+                        <ExpandableText
+                          text={courseData.description}
+                          lines={6}
+                          className="mt-1"
+                        />
+                      )}
                     </div>
 
                     {courseData.prerequisites &&
@@ -1332,7 +1428,7 @@ export default function CoursePageClient({
                               </h4>
                               {!historyProfessorKeys.has(
                                 (prof.id || prof.name) as string,
-                              ) && (
+                              ) && !prof.gradeDistribution && (
                                 <p className="text-xs text-text-muted mb-1">
                                   First time teaching this course
                                 </p>
@@ -1786,7 +1882,9 @@ export default function CoursePageClient({
                         {prof.gradeDistribution && (
                           <div className="border-t border-border pt-3 mt-3">
                             <h5 className="text-sm font-medium text-heading mb-2">
-                              Official grades (their latest semester)
+                              {prof.gradeScope === "all"
+                                ? `Official grades (all semesters${prof.grades?.avgGpa != null ? `, ${prof.grades.avgGpa.toFixed(2)} GPA` : ""})`
+                                : "Official grades (their latest semester)"}
                             </h5>
                             <div className="flex gap-0.5 h-6 mb-2 rounded-md overflow-hidden">
                               <div

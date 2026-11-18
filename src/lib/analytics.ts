@@ -75,6 +75,10 @@ export type AnalyticsEvents = {
   // other text (see classifyQuery).
   "search-miss": { from: SearchFrom; q: string; kind: SearchMissKind };
   "search-pick": { from: SearchFrom; position: number };
+  // A professor search found no review profile but found instructors teaching
+  // recently (`results`); `pick` when one of their courses is opened.
+  "instructor-fallback": { results: number };
+  "instructor-fallback-pick": { position: number };
 
   // Phase 1: courses list
   "courses-filter": { filter: string; value: string };

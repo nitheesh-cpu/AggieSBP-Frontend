@@ -19,6 +19,8 @@ export function UmamiRecorder({ host }: { host: string }) {
     // Admin pages take the admin key in a form field; never record them.
     // (The admin page reloads itself if it was reached with this running.)
     if (window.location.pathname.startsWith("/admin")) return;
+    // Sign-in callback URLs carry one-time OAuth codes.
+    if (window.location.pathname.startsWith("/auth")) return;
     try {
       if (window.localStorage.getItem("umami.disabled")) return;
     } catch {

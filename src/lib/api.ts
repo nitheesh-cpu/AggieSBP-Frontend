@@ -136,6 +136,9 @@ export interface CourseDetail {
       D: number;
       F: number;
     };
+    // "all": gradeDistribution sums every semester (from grades), otherwise
+    // it is the latest semester's.
+    gradeScope?: "latest" | "all";
     teachingStyle?: string;
     description?: string; // Legacy AI-generated summary
     courseSummary?: CourseSummary; // New structured AI-generated summary
@@ -677,6 +680,27 @@ export async function searchProfessors(params: {
 
   const response = await trackedFetch(url.toString());
   return handleResponse<Professor[]>(response);
+}
+
+// Instructors teaching recently, including those with no review profile.
+export interface InstructorMatch {
+  name: string;
+  campus: string | null;
+  term: string;
+  courses: { code: string; title: string | null }[];
+  grades: {
+    avgGpa: number | null;
+    totalStudents: number;
+    distribution: { A: number; B: number; C: number; D: number; F: number };
+  } | null;
+}
+
+export async function searchInstructors(name: string): Promise<InstructorMatch[]> {
+  const url = new URL(`${API_BASE_URL}/instructors/search`);
+  url.searchParams.append("name", name);
+  const response = await trackedFetch(url.toString());
+  const data = await handleResponse<{ instructors: InstructorMatch[] }>(response);
+  return data.instructors;
 }
 
 // Sitemap-specific API functions for efficient bulk data fetching

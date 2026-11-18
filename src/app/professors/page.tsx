@@ -17,6 +17,7 @@ import { useOfficialSubjects } from "@/hooks/use-official-subjects";
 import { track } from "@/lib/analytics";
 import { useSearchTracking } from "@/lib/analytics-hooks";
 import { useEmptyStateTracking } from "@/lib/use-empty-state-tracking";
+import { InstructorMatches } from "@/components/professors/instructor-matches";
 import {
   Search,
   Star,
@@ -44,6 +45,9 @@ export default function ProfessorsPage() {
   const [minRating, setMinRating] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Instructors without a review profile, looked up when a name search finds
+  // no profile (null until that lookup answers).
+  const [instructorCount, setInstructorCount] = useState<number | null>(null);
 
   // Server-side paging: ask for one extra row to know whether a next page exists.
   const [currentPage, setCurrentPage] = useState(1);
@@ -67,6 +71,7 @@ export default function ProfessorsPage() {
 
   useEffect(() => {
     setCurrentPage(1);
+    setInstructorCount(null);
   }, [searchTerm, departmentFilter, minRating]);
 
   useEffect(() => {
@@ -111,6 +116,11 @@ export default function ProfessorsPage() {
   );
 
   useEmptyStateTracking("professors", !loading && !error && professors.length === 0);
+
+  // With a department or rating filter on, an empty result may just be the
+  // filter, so instructors are only looked up for a plain name search.
+  const instructorLookup =
+    searchTerm.length >= 2 && !departmentFilter && minRating == null && currentPage === 1;
 
   const goToPage = (page: number) => {
     setCurrentPage(Math.max(1, page));
@@ -383,8 +393,14 @@ export default function ProfessorsPage() {
               </motion.div>
             )}
 
+            {/* No profile matched the name: instructors with no reviews yet */}
+            {!loading && !error && professors.length === 0 && instructorLookup && (
+                <InstructorMatches query={searchTerm} onResult={setInstructorCount} />
+              )}
+
             {/* No Results Message */}
-            {!loading && !error && professors.length === 0 && (
+            {!loading && !error && professors.length === 0 &&
+              !(instructorLookup && instructorCount !== 0) && (
               <div className="text-center py-16">
                 <GraduationCap className="w-16 h-16 text-text-muted mx-auto mb-4" />
                 <h3 className="text-2xl font-medium text-text-heading mb-2">

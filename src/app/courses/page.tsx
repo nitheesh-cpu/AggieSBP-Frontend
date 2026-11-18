@@ -270,11 +270,11 @@ function CoursesPageContent() {
   const [selectedDepartment, setSelectedDepartment] = useState(
     searchParams?.get("department") || "All"
   );
-  const [selectedDifficulty] = useState(searchParams?.get("difficulty") || "");
-  const [minGpa] = useState<string>(searchParams?.get("min_gpa") || "");
-  const [maxGpa] = useState<string>(searchParams?.get("max_gpa") || "");
-  const [minRating] = useState<string>(searchParams?.get("min_rating") || "");
-  const [maxRating] = useState<string>(searchParams?.get("max_rating") || "");
+  const [selectedDifficulty, setSelectedDifficulty] = useState(searchParams?.get("difficulty") || "");
+  const [minGpa, setMinGpa] = useState<string>(searchParams?.get("min_gpa") || "");
+  const [maxGpa, setMaxGpa] = useState<string>(searchParams?.get("max_gpa") || "");
+  const [minRating, setMinRating] = useState<string>(searchParams?.get("min_rating") || "");
+  const [maxRating, setMaxRating] = useState<string>(searchParams?.get("max_rating") || "");
   // Most-taken first, so the catalog opens on courses with data, not AALO 285
   const [sortBy, setSortBy] = useState("enrollment");
   const [filtersExpanded, setFiltersExpanded] = useState(false);
@@ -656,6 +656,26 @@ function CoursesPageContent() {
     track("courses-page", { page });
   };
 
+  // A search that finds nothing is often just the filters ("hist 225" with a
+  // core-curriculum filter on), so the empty state offers to clear them.
+  const activeFilterCount =
+    (selectedDepartment && selectedDepartment !== "All" ? 1 : 0) +
+    selectedQuickFilters.length +
+    selectedSectionAttributes.length +
+    [selectedDifficulty, minGpa, maxGpa, minRating, maxRating].filter(Boolean).length;
+
+  const clearFilters = () => {
+    track("courses-filter", { filter: "clear", value: String(activeFilterCount) });
+    setSelectedDepartment("All");
+    setSelectedQuickFilters([]);
+    setSelectedSectionAttributes([]);
+    setSelectedDifficulty("");
+    setMinGpa("");
+    setMaxGpa("");
+    setMinRating("");
+    setMaxRating("");
+  };
+
   const getDepartmentColor = (deptName: string) => {
     if (deptName === "All") return "bg-raised text-text-body";
 
@@ -921,9 +941,6 @@ function CoursesPageContent() {
   const totalCoursesCount = departments?.summary.total_courses || 0;
   const totalProfessors = departments?.summary.total_professors || 0;
   const totalDepartments = departments?.summary.total_departments || 0;
-
-  const activeFilterCount = selectedQuickFilters.length + selectedSectionAttributes.length
-    + Number(selectedDepartment !== "All");
 
   // Top 15 departments by course count (from SQL query)
   const topDepartments = [
@@ -1417,9 +1434,26 @@ function CoursesPageContent() {
                 <h3 className="text-2xl font-medium text-text-heading mb-2">
                   No courses found
                 </h3>
-                <p className="text-text-body">
-                  Try adjusting your search or filter criteria
-                </p>
+                {activeFilterCount > 0 ? (
+                  <>
+                    <p className="text-text-body">
+                      {activeFilterCount === 1 ? "A filter is" : `${activeFilterCount} filters are`}{" "}
+                      on{searchTerm.trim() ? `, which may be hiding "${searchTerm.trim()}"` : ""}.
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={clearFilters}
+                      className="mt-4 border-border bg-canvas text-text-body hover:bg-button-hover dark:bg-card dark:hover:bg-raised"
+                    >
+                      Clear filters
+                    </Button>
+                  </>
+                ) : (
+                  <p className="text-text-body">
+                    Check the spelling, or search by course code (CSCE 121) or title.
+                  </p>
+                )}
               </div>
             )}
           </div>

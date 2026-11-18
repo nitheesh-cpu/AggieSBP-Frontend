@@ -1,16 +1,33 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowRight, Check, ExternalLink, RotateCcw, X } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowRight,
+  Check,
+  ExternalLink,
+  RotateCcw,
+  X,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import { useAdmin } from "@/components/admin/admin-shell";
+import {
+  CompareLegend,
+  ConfirmStepButton,
+  CourseChip,
+  EvidenceText,
+  MarkedName,
+  RatingCount,
+  subjectOf,
+} from "@/components/admin/compare-ui";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AdminKeyError,
   type MergeChangeResult,
+  type MergeProfessor,
   type MergeStatus,
   type ProfessorMerge,
   getProfessorMerges,
@@ -22,6 +39,10 @@ const TABS: { status: MergeStatus; label: string }[] = [
   { status: "confirmed", label: "Merged" },
   { status: "rejected", label: "Rejected" },
 ];
+
+/** Columns of one merge on wide screens: select, alias, arrow, canonical, evidence, actions. */
+const rowColumns =
+  "xl:grid-cols-[1.25rem_minmax(0,1fr)_1.25rem_minmax(0,1fr)_minmax(0,1.4fr)_8.5rem]";
 
 export default function AdminMergesPage() {
   const { adminKey, signOut } = useAdmin();
@@ -105,13 +126,7 @@ function MergeReview({
     }
   };
 
-  // What the bulk button does on each tab.
-  const bulk =
-    tab === "proposed"
-      ? null
-      : tab === "confirmed"
-        ? { action: "reject" as const, label: "Undo selected merges" }
-        : { action: "confirm" as const, label: "Merge selected" };
+  const n = selected.size;
 
   return (
     <>
@@ -120,25 +135,29 @@ function MergeReview({
           <h1 className="text-xl font-medium text-text-heading">
             Duplicate professors
           </h1>
-          <p className="mt-1 text-sm text-text-muted">
+          <p className="mt-1 max-w-3xl text-sm text-text-muted">
             RateMyProfessors entries that look like one person. Merging shows
-            them as one professor; nothing is deleted, and any merge can be
-            undone.
+            the left entry under the right one; nothing is deleted, and any
+            merge can be undone.
           </p>
         </div>
+        <CompareLegend />
       </header>
 
       {result && (
         <ResultPanel result={result} onDismiss={() => setResult(null)} />
       )}
       {error && (
-        <p className="rounded-xl border border-border bg-card p-4 text-sm text-red-700 dark:text-red-300">
+        <p
+          role="alert"
+          className="rounded-xl border border-red-500/30 bg-card p-4 text-sm text-red-700 dark:text-red-300"
+        >
           {error}
         </p>
       )}
 
       <Tabs value={tab} onValueChange={changeTab}>
-        <TabsList>
+        <TabsList className="h-auto w-full flex-wrap justify-start sm:w-fit">
           {TABS.map(({ status, label }) => (
             <TabsTrigger key={status} value={status}>
               {label} ({counts[status]})
@@ -156,8 +175,8 @@ function MergeReview({
             : "None yet."}
         </p>
       ) : (
-        <>
-          <div className="flex flex-wrap items-center gap-3">
+        <section className="overflow-hidden rounded-xl border border-border bg-card">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3 border-b border-border px-4 py-3">
             <label className="flex items-center gap-2 text-sm text-text-body">
               <Checkbox
                 checked={allSelected}
@@ -169,45 +188,64 @@ function MergeReview({
               />
               Select all ({visible.length})
             </label>
-            <div className="ml-auto flex flex-wrap gap-2">
+            {/* Bulk actions ask twice; the opposite actions sit apart. */}
+            <div className="flex flex-1 basis-full flex-wrap items-center justify-between gap-x-10 gap-y-3 sm:basis-auto">
               {tab === "proposed" ? (
                 <>
-                  <Button
-                    size="sm"
-                    disabled={busy || selected.size === 0}
-                    onClick={() => act([...selected], "confirm")}
-                    className="gap-1.5"
-                  >
-                    <Check className="h-3.5 w-3.5" />
-                    Merge selected ({selected.size})
-                  </Button>
-                  <Button
-                    size="sm"
+                  <ConfirmStepButton
                     variant="outline"
-                    disabled={busy || selected.size === 0}
-                    onClick={() => act([...selected], "reject")}
-                    className="gap-1.5"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                    Reject selected
-                  </Button>
+                    icon={<X className="h-3.5 w-3.5" />}
+                    label={`Reject selected (${n})`}
+                    confirmLabel={`Reject ${n}?`}
+                    disabled={busy || n === 0}
+                    onConfirm={() => act([...selected], "reject")}
+                  />
+                  <ConfirmStepButton
+                    icon={<Check className="h-3.5 w-3.5" />}
+                    label={`Merge selected (${n})`}
+                    confirmLabel={`Merge ${n}?`}
+                    disabled={busy || n === 0}
+                    onConfirm={() => act([...selected], "confirm")}
+                  />
                 </>
-              ) : (
-                bulk && (
-                  <Button
-                    size="sm"
+              ) : tab === "confirmed" ? (
+                <span className="ml-auto">
+                  <ConfirmStepButton
                     variant="outline"
-                    disabled={busy || selected.size === 0}
-                    onClick={() => act([...selected], bulk.action)}
-                  >
-                    {bulk.label} ({selected.size})
-                  </Button>
-                )
+                    icon={<RotateCcw className="h-3.5 w-3.5" />}
+                    label={`Undo selected merges (${n})`}
+                    confirmLabel={`Undo ${n} merges?`}
+                    disabled={busy || n === 0}
+                    onConfirm={() => act([...selected], "reject")}
+                  />
+                </span>
+              ) : (
+                <span className="ml-auto">
+                  <ConfirmStepButton
+                    icon={<Check className="h-3.5 w-3.5" />}
+                    label={`Merge selected (${n})`}
+                    confirmLabel={`Merge ${n}?`}
+                    disabled={busy || n === 0}
+                    onConfirm={() => act([...selected], "confirm")}
+                  />
+                </span>
               )}
             </div>
           </div>
 
-          <ul className="space-y-3">
+          <div
+            aria-hidden="true"
+            className={`hidden gap-4 border-b border-border bg-raised px-4 py-2 text-xs font-medium text-text-muted xl:grid ${rowColumns}`}
+          >
+            <span />
+            <span>Duplicate entry (hidden after merging)</span>
+            <span />
+            <span>Shown as</span>
+            <span>Evidence</span>
+            <span className="text-right">Action</span>
+          </div>
+
+          <ul className="divide-y divide-border">
             {visible.map((merge) => (
               <MergeRow
                 key={merge.aliasId}
@@ -219,11 +257,37 @@ function MergeReview({
               />
             ))}
           </ul>
-        </>
+        </section>
       )}
     </>
   );
 }
+
+/** Splits "CHECK: ...; nickname name (A / B); both reviewed for X, Y; ..." */
+function parseEvidence(evidence: string) {
+  const check = /^CHECK: ([^;]*); /.exec(evidence);
+  const rest = check ? evidence.slice(check[0].length) : evidence;
+  const parts = rest.split("; ");
+  const kind = /^(\w+) name \(/.exec(parts[0] ?? "");
+  const shared = parts.find((p) => p.startsWith("both reviewed for "));
+  const sharedCourses = shared
+    ? shared
+        .slice("both reviewed for ".length)
+        .split(/,\s*/)
+        .filter(Boolean)
+    : [];
+  return {
+    check: check?.[1] ?? null,
+    kind: kind?.[1] ?? null,
+    sharedCourses,
+    notes: parts.filter((p, i) => p !== shared && !(i === 0 && kind)),
+  };
+}
+
+const KIND_LABELS: Record<string, string> = {
+  same: "Same name",
+  vowel: "First names differ by a vowel",
+};
 
 function MergeRow({
   merge,
@@ -238,107 +302,211 @@ function MergeRow({
   busy: boolean;
   onAct: (action: "confirm" | "reject") => void;
 }) {
+  const evidence = parseEvidence(merge.evidence);
+  const sharedSubjects = new Set(evidence.sharedCourses.map(subjectOf));
+  const aliasLabel = merge.alias.name || merge.aliasId;
+  const canonicalLabel = merge.canonical.name || merge.canonicalId;
+
   return (
-    <li className="rounded-xl border border-border bg-card p-4">
-      <div className="flex gap-3">
-        <Checkbox
-          checked={checked}
-          onCheckedChange={(on) => onCheck(on === true)}
-          aria-label={`Select ${merge.alias.name}`}
-          className="mt-1"
+    <li
+      className={`grid grid-cols-[1.25rem_minmax(0,1fr)] gap-x-3 gap-y-3 px-4 py-4 xl:items-start xl:gap-x-4 ${rowColumns}`}
+    >
+      <Checkbox
+        checked={checked}
+        onCheckedChange={(on) => onCheck(on === true)}
+        aria-label={`Select ${aliasLabel} → ${canonicalLabel}`}
+        className="mt-1"
+      />
+      <ProfileSide
+        heading="Duplicate entry"
+        professor={merge.alias}
+        id={merge.aliasId}
+        other={merge.canonical}
+      />
+      <div className="col-start-2 flex items-center gap-2 text-xs text-text-muted xl:col-start-auto xl:mt-7 xl:block">
+        <ArrowDown className="h-4 w-4 xl:hidden" aria-hidden="true" />
+        <ArrowRight
+          className="hidden h-5 w-5 xl:block"
+          aria-label="shown as"
         />
-        <div className="min-w-0 flex-1 space-y-2">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <ProfessorLink professor={merge.alias} fallback={merge.aliasId} />
-            <ArrowRight
-              className="h-4 w-4 shrink-0 text-text-muted"
-              aria-label="shown as"
-            />
-            <ProfessorLink
-              professor={merge.canonical}
-              fallback={merge.canonicalId}
-            />
-            {merge.needsCheck && (
-              <Badge
-                variant="outline"
-                className="border-amber-500 text-amber-700 dark:text-amber-300"
-              >
-                Check spelling
-              </Badge>
-            )}
-          </div>
-          <p className="text-xs text-text-muted break-words">
-            {merge.evidence.replace(/^CHECK: [^;]*; /, "")}
-          </p>
+        <span className="xl:sr-only">shown as</span>
+      </div>
+      <ProfileSide
+        heading="Shown as"
+        professor={merge.canonical}
+        id={merge.canonicalId}
+        other={merge.alias}
+        className="col-start-2 xl:col-start-auto"
+      />
+
+      <div className="col-start-2 min-w-0 space-y-2 rounded-lg bg-raised/50 p-3 text-xs text-text-body xl:col-start-auto">
+        <div className="flex flex-wrap items-center gap-1.5">
+          {evidence.kind && (
+            <Badge variant="outline">
+              {KIND_LABELS[evidence.kind] ?? `${evidence.kind} name`}
+            </Badge>
+          )}
+          {merge.needsCheck && (
+            <Badge
+              variant="outline"
+              className="border-amber-500 text-amber-700 dark:text-amber-300"
+              title={evidence.check ?? undefined}
+            >
+              Check spelling
+            </Badge>
+          )}
         </div>
-        <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
-          {merge.status !== "confirmed" && (
+        {evidence.check && (
+          <p className="text-amber-800 dark:text-amber-300">
+            {evidence.check}
+          </p>
+        )}
+        {evidence.sharedCourses.length > 0 && (
+          <div>
+            <p className="mb-1 font-medium text-text-heading">
+              Both reviewed for
+            </p>
+            <div className="flex flex-wrap gap-1">
+              {evidence.sharedCourses.map((code) => (
+                <CourseChip
+                  key={code}
+                  code={code}
+                  shared
+                  href={`/course/${code.replace(/\s+/g, "")}`}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+        {evidence.notes.map((note, i) => (
+          <p key={i} className="leading-relaxed break-words">
+            <EvidenceText text={note} sharedSubjects={sharedSubjects} />
+          </p>
+        ))}
+      </div>
+
+      {/* Opposite actions sit at opposite ends, never side by side. */}
+      <div className="col-start-2 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3 xl:col-start-auto xl:h-full xl:flex-col xl:flex-nowrap xl:items-stretch xl:justify-between xl:border-t-0 xl:border-l xl:pt-0 xl:pl-4">
+        {merge.status === "proposed" && (
+          <>
             <Button
               size="sm"
               disabled={busy}
               onClick={() => onAct("confirm")}
-              className="gap-1"
+              className="order-2 gap-1 xl:order-1"
+              aria-label={`Merge ${aliasLabel} into ${canonicalLabel}`}
             >
               <Check className="h-3.5 w-3.5" />
               Merge
             </Button>
-          )}
-          {merge.status === "proposed" && (
             <Button
               size="sm"
               variant="outline"
               disabled={busy}
               onClick={() => onAct("reject")}
+              className="order-1 gap-1 xl:order-2"
+              aria-label={`Reject merging ${aliasLabel} into ${canonicalLabel}`}
             >
+              <X className="h-3.5 w-3.5" />
               Reject
             </Button>
-          )}
-          {merge.status === "confirmed" && (
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={busy}
-              onClick={() => onAct("reject")}
-              className="gap-1"
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-              Undo
-            </Button>
-          )}
-        </div>
+          </>
+        )}
+        {merge.status === "rejected" && (
+          <Button
+            size="sm"
+            disabled={busy}
+            onClick={() => onAct("confirm")}
+            className="ml-auto gap-1 xl:ml-0"
+            aria-label={`Merge ${aliasLabel} into ${canonicalLabel}`}
+          >
+            <Check className="h-3.5 w-3.5" />
+            Merge
+          </Button>
+        )}
+        {merge.status === "confirmed" && (
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={busy}
+            onClick={() => onAct("reject")}
+            className="ml-auto gap-1 xl:ml-0"
+            aria-label={`Undo merging ${aliasLabel} into ${canonicalLabel}`}
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+            Undo merge
+          </Button>
+        )}
       </div>
     </li>
   );
 }
 
-function ProfessorLink({
+function ProfileSide({
+  heading,
   professor,
-  fallback,
+  id,
+  other,
+  className = "",
 }: {
-  professor: ProfessorMerge["alias"];
-  fallback: string;
+  heading: string;
+  professor: MergeProfessor;
+  id: string;
+  other: MergeProfessor;
+  className?: string;
 }) {
-  const label = professor.name || fallback;
+  const label = professor.name || id;
+  const sameDepartment =
+    !!professor.department &&
+    professor.department.toLowerCase() === other.department?.toLowerCase();
   return (
-    <span className="inline-flex min-w-0 items-baseline gap-1.5">
-      {professor.rmpId ? (
-        // The RateMyProfessors page, to compare the two entries at the source.
-        <a
-          href={`https://www.ratemyprofessors.com/professor/${professor.rmpId}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 font-medium text-text-heading hover:underline"
+    <div className={`min-w-0 space-y-1.5 ${className}`}>
+      <p className="text-xs text-text-muted xl:sr-only">{heading}</p>
+      <p className="text-base font-medium break-words text-text-heading">
+        <MarkedName name={label} other={other.name || ""} />
+      </p>
+      <p className="text-sm text-text-body">
+        {professor.department ? (
+          sameDepartment ? (
+            professor.department
+          ) : (
+            <mark
+              title="Different department from the other entry"
+              className="rounded bg-amber-200/70 px-0.5 text-inherit dark:bg-amber-500/25"
+            >
+              {professor.department}
+              <span className="sr-only"> (different department)</span>
+            </mark>
+          )
+        ) : (
+          <span className="text-text-muted">No department</span>
+        )}
+      </p>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs">
+        <RatingCount count={professor.ratings} />
+        {professor.rmpId ? (
+          // The RateMyProfessors page, to compare the two entries at the source.
+          <a
+            href={`https://www.ratemyprofessors.com/professor/${professor.rmpId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 font-medium text-text-heading underline-offset-4 hover:underline"
+          >
+            RMP #{professor.rmpId}
+            <ExternalLink className="h-3 w-3 text-text-muted" />
+            <span className="sr-only">(opens in a new tab)</span>
+          </a>
+        ) : (
+          <span className="text-text-muted">No RMP number</span>
+        )}
+        <Link
+          href={`/professor/${encodeURIComponent(id)}`}
+          className="font-medium text-text-heading underline-offset-4 hover:underline"
         >
-          {label}
-          <ExternalLink className="h-3 w-3 text-text-muted" />
-        </a>
-      ) : (
-        <span className="font-medium text-text-heading">{label}</span>
-      )}
-      <span className="text-xs text-text-muted">
-        {professor.department || "No department"} · {professor.ratings} ratings
-      </span>
-    </span>
+          Our page
+        </Link>
+      </div>
+    </div>
   );
 }
 
@@ -353,7 +521,10 @@ function ResultPanel({
   const skipped = result.changes.filter((c) => c.status === "skipped");
 
   return (
-    <section className="space-y-3 rounded-xl border border-border bg-card p-4 text-sm">
+    <section
+      role="status"
+      className="space-y-3 rounded-xl border border-border bg-card p-4 text-sm"
+    >
       <div className="flex items-start justify-between gap-3">
         <p className="text-text-heading">
           {changed.length} updated
@@ -393,6 +564,14 @@ function ResultPanel({
             </Link>
           </Button>
         </div>
+      )}
+      {result.rebuildCommand && (
+        <details className="text-xs text-text-muted">
+          <summary className="cursor-pointer">Command line</summary>
+          <code className="mt-2 block overflow-x-auto rounded-md bg-raised p-2 font-mono text-text-body">
+            {result.rebuildCommand}
+          </code>
+        </details>
       )}
     </section>
   );

@@ -47,6 +47,16 @@ export interface MergeChangeResult {
 
 export class AdminKeyError extends Error {}
 
+/** A non-401 failure, with the HTTP status so callers can tell 404 from 409. */
+export class AdminRequestError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+  }
+}
+
 async function adminFetch<T>(
   key: string,
   path: string,
@@ -64,10 +74,11 @@ async function adminFetch<T>(
   if (response.status === 401) throw new AdminKeyError("Wrong admin key.");
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
-    throw new Error(
+    throw new AdminRequestError(
       typeof body.detail === "string"
         ? body.detail
         : `Request failed (HTTP ${response.status})`,
+      response.status,
     );
   }
   return response.json();
@@ -284,4 +295,120 @@ export function setProfessorMergeStatus(
     method: "POST",
     body: JSON.stringify({ alias_ids: aliasIds }),
   });
+}
+
+/* Instructor <-> RateMyProfessors profile links (/admin/instructor-links). */
+
+export type LinkStatus = "proposed" | "confirmed" | "rejected";
+export type InstructorTab = "proposed" | "confirmed" | "rejected" | "conflict";
+
+export interface LinkCandidate {
+  /** professors.id = base64("Teacher-<rmpLegacyId>"). */
+  professorId: string;
+  rmpLegacyId: number | null;
+  /** RMP "First Last". */
+  name: string;
+  department: string | null;
+  numRatings: number | null;
+  avgRating: number | null;
+  /** RMP hit type, a candidate the matcher turned down, or added by hand. */
+  kind: "plausible" | "near" | "rejected" | "middle_initial" | "swapped" | "manual";
+  /** Name score 0..1. */
+  score: number | null;
+  /** Why the matcher did not pick it, or a note. */
+  reason: string | null;
+  /** False: on RMP but not imported yet (the nightly import adds it). */
+  inDatabase: boolean;
+  status: LinkStatus;
+  /** The instructor's courses this profile's reviews mention ("ECEN214"). */
+  courseOverlap?: string[];
+  /** Every course the profile's reviews mention. */
+  reviewedCourses?: string[];
+}
+
+export interface InstructorLinks {
+  /** "pidm:<pidm>", or "name:<registrar name>" without a PIDM. */
+  key: string;
+  name: string;
+  pidm: number | null;
+  campus: string | null;
+  courses: string[];
+  sections: number | null;
+  tab: InstructorTab;
+  linkedProfessorId: string | null;
+  noProfile: boolean;
+  conflict: string | null;
+  rmpSearchUrl: string;
+  updatedAt: string;
+  candidates: LinkCandidate[];
+}
+
+export type InstructorLinkCounts = Record<InstructorTab, number>;
+
+export interface InstructorLinksPage {
+  instructors: InstructorLinks[];
+  counts: InstructorLinkCounts;
+  total: number;
+}
+
+export interface InstructorLinkResult {
+  instructor: InstructorLinks;
+  invalidatedCourses: string[];
+}
+
+export function getInstructorLinks(
+  key: string,
+  params: { tab: InstructorTab; q?: string; limit?: number; offset?: number },
+  signal?: AbortSignal,
+) {
+  const query = new URLSearchParams({
+    tab: params.tab,
+    limit: String(params.limit ?? 200),
+    offset: String(params.offset ?? 0),
+  });
+  if (params.q?.trim()) query.set("q", params.q.trim());
+  return adminFetch<InstructorLinksPage>(
+    key,
+    `/admin/instructor-links?${query}`,
+    { signal },
+  );
+}
+
+const postLinks = (key: string, action: string, body: object) =>
+  adminFetch<InstructorLinkResult>(key, `/admin/instructor-links/${action}`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+
+/** Confirms the pair and rejects the instructor's other proposed candidates. */
+export const linkInstructor = (key: string, k: string, professorId: string) =>
+  postLinks(key, "link", { key: k, professorId });
+export const markNoProfile = (key: string, k: string) =>
+  postLinks(key, "no-profile", { key: k });
+export const rejectCandidates = (
+  key: string,
+  k: string,
+  professorIds: string[],
+) => postLinks(key, "reject", { key: k, professorIds });
+/** A confirmed decision goes back to proposed. */
+export const undoInstructorLink = (key: string, k: string) =>
+  postLinks(key, "undo", { key: k });
+
+export const professorIdFromRmpId = (rmpId: number) =>
+  btoa(`Teacher-${rmpId}`);
+
+/**
+ * The RMP number from a pasted profile URL
+ * (ratemyprofessors.com/professor/2348685), a bare number, or one of our
+ * professor ids. Null when it is none of those.
+ */
+export function parseRmpProfile(input: string): number | null {
+  const text = input.trim();
+  if (!text) return null;
+  if (/^\d+$/.test(text)) return Number(text);
+  const url =
+    /ratemyprofessors\.com\/professor\/(\d+)/i.exec(text) ??
+    /ratemyprofessors\.com\/.*[?&]tid=(\d+)/i.exec(text);
+  if (url) return Number(url[1]);
+  return rmpIdFromProfessorId(text);
 }

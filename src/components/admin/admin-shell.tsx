@@ -14,6 +14,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ADMIN_KEY_STORAGE, checkAdminKey } from "@/lib/admin-api";
 
+/** Pages that use the whole screen width; the rest keep a reading width. */
+const WIDE_PAGES = new Set(["/admin", "/admin/merges", "/admin/instructors"]);
+
 const AdminContext = createContext<{
   adminKey: string;
   signOut: () => void;
@@ -73,7 +76,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     };
   }, [signOut]);
 
-  const wideOverview = key && pathname === "/admin";
+  const wide = key && WIDE_PAGES.has(pathname);
 
   if (!ready)
     return (
@@ -82,7 +85,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   return (
     <main
       className={
-        wideOverview
+        wide
           ? "min-h-screen px-4 py-5 sm:px-6 lg:px-8"
           : "min-h-screen px-4 py-8 sm:px-6"
       }
@@ -90,7 +93,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     >
       <div
         className={
-          wideOverview
+          wide
             ? "mx-auto max-w-[112rem] space-y-5"
             : "mx-auto max-w-6xl space-y-6"
         }
@@ -113,6 +116,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                   ["/admin", "Overview"],
                   ["/admin/seat-alerts", "Seat Alerts"],
                   ["/admin/merges", "Professor merges"],
+                  ["/admin/instructors", "Instructor links"],
                   ["/admin/summaries", "Summaries"],
                   ["/admin/jobs", "Run history"],
                   ["/admin/cache", "Cache"],

@@ -13,7 +13,9 @@ import {
 } from "@/components/admin/admin-ui";
 import {
   AdminKeyError,
+  AdminRequestError,
   getCronMonitors,
+  getInstructorLinks,
   getDataFreshness,
   getGpaRun,
   getOperationsHealth,
@@ -214,6 +216,7 @@ async function fetchOverview(key: string) {
     getPendingSummaries(key),
     getDataFreshness(key),
     getGpaRun(key),
+    getInstructorLinks(key, { tab: "proposed", limit: 1 }),
   ]);
 }
 
@@ -389,6 +392,7 @@ export default function AdminOverview() {
     pendingResult,
     freshnessResult,
     gpaResult,
+    linksResult,
   ] = snapshot ?? [];
   const monitors =
     monitorResult?.status === "fulfilled" ? monitorResult.value : undefined;
@@ -561,8 +565,69 @@ export default function AdminOverview() {
               </Link>
             </div>
           </section>
+          <section className={panel} aria-labelledby="professor-data-heading">
+            <h2
+              id="professor-data-heading"
+              className="px-4 py-3 text-base font-semibold text-text-heading"
+            >
+              Professor matching
+            </h2>
+            <div className="divide-y divide-border border-t border-border">
+              <Link
+                href="/admin/instructors"
+                className="flex items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-raised focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+              >
+                <span>
+                  <span className="block font-medium text-text-heading">
+                    Review instructor links
+                  </span>
+                  <span className="mt-0.5 block text-xs text-text-muted">
+                    {linksSummary(linksResult)}
+                  </span>
+                </span>
+                <ArrowRight
+                  aria-hidden="true"
+                  className="size-4 shrink-0 text-text-muted"
+                />
+              </Link>
+              <Link
+                href="/admin/merges"
+                className="flex items-center justify-between gap-3 px-4 py-3 text-sm font-medium text-text-heading transition-colors hover:bg-raised focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+              >
+                Review duplicate professors
+                <ArrowRight
+                  aria-hidden="true"
+                  className="size-4 shrink-0 text-text-muted"
+                />
+              </Link>
+            </div>
+          </section>
         </div>
       </div>
     </div>
   );
+}
+
+function linksSummary(
+  result?: PromiseSettledResult<{
+    counts: { proposed: number; conflict: number };
+  }>,
+) {
+  if (!result) return "Checking instructor links…";
+  if (result.status === "rejected")
+    return result.reason instanceof AdminRequestError &&
+      result.reason.status === 409
+      ? "Run migration 005 to enable"
+      : "Count unavailable";
+  const { proposed, conflict } = result.value.counts;
+  const parts = [
+    proposed === 0
+      ? "Nothing to review"
+      : `${proposed.toLocaleString()} to review`,
+  ];
+  if (conflict > 0)
+    parts.push(
+      `${conflict.toLocaleString()} ${conflict === 1 ? "conflict" : "conflicts"}`,
+    );
+  return parts.join(" · ");
 }

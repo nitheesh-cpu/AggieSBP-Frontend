@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, ChevronDown, ExternalLink, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { useAdmin } from "@/components/admin/admin-shell";
 import {
   AdminError,
@@ -14,10 +15,12 @@ import {
   AdminKeyError,
   getCronMonitors,
   getDataFreshness,
+  getGpaRun,
   getOperationsHealth,
   getPendingSummaries,
   type CronMonitor,
   type DataFreshness,
+  type GpaRun,
   type MonitorResponse,
 } from "@/lib/admin-api";
 
@@ -210,7 +213,84 @@ async function fetchOverview(key: string) {
     getOperationsHealth(key),
     getPendingSummaries(key),
     getDataFreshness(key),
+    getGpaRun(key),
   ]);
+}
+
+function GpaPanel({
+  result,
+}: {
+  result?: PromiseSettledResult<GpaRun | null>;
+}) {
+  const run = result?.status === "fulfilled" ? result.value : null;
+  return (
+    <section className={panel} aria-labelledby="gpa-heading">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
+        <h2
+          id="gpa-heading"
+          className="text-base font-semibold text-text-heading"
+        >
+          GPA upsert
+        </h2>
+        {run && <StatusBadge status={run.status} />}
+      </div>
+      <div className="space-y-2 border-t border-border px-4 py-3 text-sm text-text-body">
+        {run ? (
+          <>
+            {run.totalCourses !== null && run.totalCourses > 0 && (
+              <>
+                <p>
+                  {run.attemptedCourses.toLocaleString()} of{" "}
+                  {run.totalCourses.toLocaleString()} courses attempted
+                </p>
+                <Progress
+                  aria-label="GPA courses attempted"
+                  value={Math.min(
+                    100,
+                    (run.attemptedCourses / run.totalCourses) * 100,
+                  )}
+                />
+              </>
+            )}
+            {run.totalCourses === 0 && <p>No courses to fetch.</p>}
+            {run.status === "selecting" && <p>Finding courses to refresh…</p>}
+            {run.status === "cooldown" && run.retryAt && (
+              <p>
+                Rate limited by anex.us. Retry scheduled for{" "}
+                <DashboardTime value={run.retryAt} />.
+              </p>
+            )}
+            {run.status === "stale" && (
+              <p>No progress update in the last five minutes.</p>
+            )}
+            <p>
+              {run.recordsWritten.toLocaleString()} records upserted
+              {run.failedCourses > 0 &&
+                ` · ${run.failedCourses.toLocaleString()} courses failed`}
+            </p>
+            <div className="text-xs text-text-muted">
+              <p>
+                Started <DashboardTime value={run.startedAt} />
+              </p>
+              <p>
+                Updated <DashboardTime value={run.updatedAt} />
+              </p>
+            </div>
+          </>
+        ) : result?.status === "rejected" ? (
+          <AdminError
+            message={errorMessage(result, "Could not load GPA progress.")}
+          />
+        ) : (
+          <p className="text-text-muted">
+            {result
+              ? "No GPA run has reported progress yet."
+              : "Checking GPA progress…"}
+          </p>
+        )}
+      </div>
+    </section>
+  );
 }
 
 function FreshnessPanel({
@@ -303,8 +383,13 @@ export default function AdminOverview() {
     return () => window.clearInterval(timer);
   }, [load]);
 
-  const [monitorResult, healthResult, pendingResult, freshnessResult] =
-    snapshot ?? [];
+  const [
+    monitorResult,
+    healthResult,
+    pendingResult,
+    freshnessResult,
+    gpaResult,
+  ] = snapshot ?? [];
   const monitors =
     monitorResult?.status === "fulfilled" ? monitorResult.value : undefined;
   const health =
@@ -431,6 +516,7 @@ export default function AdminOverview() {
         </section>
 
         <div className="min-w-0 space-y-4">
+          <GpaPanel result={gpaResult} />
           <FreshnessPanel result={freshnessResult} />
           <section className={panel} aria-labelledby="maintenance-heading">
             <h2

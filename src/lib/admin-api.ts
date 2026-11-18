@@ -177,6 +177,29 @@ export interface DataFreshness {
 export const getDataFreshness = (key: string) =>
   adminFetch<DataFreshness>(key, "/admin/operations/freshness");
 
+export interface GpaRun {
+  status:
+    | "selecting"
+    | "fetching"
+    | "cooldown"
+    | "finalizing"
+    | "succeeded"
+    | "completed_with_errors"
+    | "failed"
+    | "interrupted"
+    | "stale";
+  startedAt: string;
+  updatedAt: string;
+  totalCourses: number | null;
+  attemptedCourses: number;
+  failedCourses: number;
+  recordsWritten: number;
+  retryAt: string | null;
+}
+
+export const getGpaRun = (key: string) =>
+  adminFetch<GpaRun | null>(key, "/admin/operations/gpa");
+
 export function checkAdminKey(key: string): Promise<{ ok: boolean }> {
   return adminFetch(key, "/admin/check");
 }

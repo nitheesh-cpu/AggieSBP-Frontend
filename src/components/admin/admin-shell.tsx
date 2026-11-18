@@ -111,6 +111,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <nav aria-label="Admin" className="flex w-full flex-wrap gap-2">
                 {[
                   ["/admin", "Overview"],
+                  ["/admin/seat-alerts", "Seat Alerts"],
                   ["/admin/merges", "Professor merges"],
                   ["/admin/summaries", "Summaries"],
                   ["/admin/jobs", "Run history"],

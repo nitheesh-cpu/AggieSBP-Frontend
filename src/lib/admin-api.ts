@@ -200,6 +200,24 @@ export interface GpaRun {
 export const getGpaRun = (key: string) =>
   adminFetch<GpaRun | null>(key, "/admin/operations/gpa");
 
+export type SeatAlertPeriod = "day" | "week" | "month";
+
+export interface SeatAlertHistory {
+  timeZone: string;
+  buckets: { startAt: string; sent: number }[];
+}
+
+export const getSeatAlertHistory = (
+  key: string,
+  period: SeatAlertPeriod,
+  signal: AbortSignal,
+) =>
+  adminFetch<SeatAlertHistory>(
+    key,
+    `/admin/operations/seat-alerts?period=${period}`,
+    { signal },
+  );
+
 export function checkAdminKey(key: string): Promise<{ ok: boolean }> {
   return adminFetch(key, "/admin/check");
 }

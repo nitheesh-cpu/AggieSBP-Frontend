@@ -25,6 +25,15 @@ const ComparisonContext = createContext<ComparisonState | undefined>(undefined);
 const MAX_COURSES = 4;
 const STORAGE_KEY = "aggie-rmp-comparison";
 
+/**
+ * The id the course API expects: "ACCT 327" -> "ACCT327". Course pages pass
+ * the display code (with a space); storing that made /course/ACCT 327 fail
+ * with a 400 on the compare page.
+ */
+export function toCourseId(code: string): string {
+  return code.replace(/\s+/g, "").toUpperCase();
+}
+
 interface ComparisonProviderProps {
   children: ReactNode;
 }
@@ -40,7 +49,11 @@ export function ComparisonProvider({ children }: ComparisonProviderProps) {
       try {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed) && parsed.length <= MAX_COURSES) {
-          setSelectedCourses(parsed);
+          // Normalize ids saved before toCourseId existed ("ACCT 327").
+          const ids = parsed
+            .filter((id): id is string => typeof id === "string")
+            .map(toCourseId);
+          setSelectedCourses([...new Set(ids)]);
         }
       } catch (error) {
         console.error("Failed to parse stored comparison data:", error);
@@ -55,7 +68,8 @@ export function ComparisonProvider({ children }: ComparisonProviderProps) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(selectedCourses));
   }, [selectedCourses]);
 
-  const addCourse = (courseId: string): boolean => {
+  const addCourse = (code: string): boolean => {
+    const courseId = toCourseId(code);
     if (
       selectedCourses.length >= MAX_COURSES ||
       selectedCourses.includes(courseId)
@@ -71,7 +85,8 @@ export function ComparisonProvider({ children }: ComparisonProviderProps) {
     return true;
   };
 
-  const removeCourse = (courseId: string): void => {
+  const removeCourse = (code: string): void => {
+    const courseId = toCourseId(code);
     if (!selectedCourses.includes(courseId)) return;
     setSelectedCourses((prev) => prev.filter((id) => id !== courseId));
     track("compare-remove", {
@@ -85,8 +100,8 @@ export function ComparisonProvider({ children }: ComparisonProviderProps) {
     setSelectedCourses([]);
   };
 
-  const isSelected = (courseId: string): boolean => {
-    return selectedCourses.includes(courseId);
+  const isSelected = (code: string): boolean => {
+    return selectedCourses.includes(toCourseId(code));
   };
 
   const canAddMore = (): boolean => {

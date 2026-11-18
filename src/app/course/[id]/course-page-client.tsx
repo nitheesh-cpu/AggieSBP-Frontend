@@ -513,18 +513,40 @@ export default function CoursePageClient({
     loadTermData();
   }, [selectedTerm, id]);
 
+  // Grade-history entries carry only a registrar name ("RICHARD J") and a
+  // grade distribution. When the term's details matched that instructor to a
+  // profile, take the profile's id, full name and ratings, keeping the
+  // course's grades; otherwise the profile was hidden behind the bare entry.
+  const historyProfessors = React.useMemo(() => {
+    if (!courseData?.professors) return undefined;
+    return courseData.professors.map((prof) => {
+      if (prof.id || !prof.name) return prof;
+      const detail = newTermProfessors.find(
+        (np) => np.id && np.name && professorNamesMatch(prof.name, np.name),
+      );
+      if (!detail) return prof;
+      const merged: typeof prof = { ...detail };
+      for (const [key, value] of Object.entries(prof)) {
+        if (key !== "name" && value !== null && value !== undefined) {
+          (merged as Record<string, unknown>)[key] = value;
+        }
+      }
+      return merged;
+    });
+  }, [courseData?.professors, newTermProfessors]);
+
   // Filter professors based on selected term, then append professors teaching
   // this term who have no history for this course yet.
   const displayedProfessors = React.useMemo(() => {
-    if (!courseData?.professors) return undefined;
+    if (!historyProfessors) return undefined;
 
     // If no term selected, show all professors
     if (!selectedTerm || termProfessorIds.size === 0) {
-      return courseData.professors;
+      return historyProfessors;
     }
 
     // Filter professors to only those teaching in the selected term
-    const withHistory = courseData.professors.filter((prof) => {
+    const withHistory = historyProfessors.filter((prof) => {
       // Match by ID if available
       if (prof.id && termProfessorIds.has(prof.id)) {
         return true;
@@ -554,14 +576,14 @@ export default function CoursePageClient({
     );
 
     return [...withHistory, ...firstTime];
-  }, [courseData?.professors, selectedTerm, termProfessorIds, newTermProfessors]);
+  }, [historyProfessors, selectedTerm, termProfessorIds, newTermProfessors]);
 
   const historyProfessorKeys = React.useMemo(
     () =>
       new Set(
-        (courseData?.professors || []).map((p) => (p.id || p.name) as string),
+        (historyProfessors || []).map((p) => (p.id || p.name) as string),
       ),
-    [courseData?.professors],
+    [historyProfessors],
   );
 
   const sectionsRef = useRef<HTMLDivElement>(null);
@@ -573,13 +595,20 @@ export default function CoursePageClient({
     !!selectedTerm && !loadingTermData,
   );
   // matched: listed professors with a profile; unmatched: instructors (often
-  // grade-data only) we couldn't tie to one.
+  // grade-data only) we couldn't tie to one. Only counted once the term's
+  // professor details have loaded: before that the list is a fallback without
+  // profile ids, which made every instructor look unmatched.
   const matchedProfessors = (displayedProfessors ?? []).filter((p) => p.id).length;
-  useTrackInView(professorsRef, "course-section-view", {
-    section: "professors",
-    matched: matchedProfessors,
-    unmatched: (displayedProfessors?.length ?? 0) - matchedProfessors,
-  });
+  useTrackInView(
+    professorsRef,
+    "course-section-view",
+    {
+      section: "professors",
+      matched: matchedProfessors,
+      unmatched: (displayedProfessors?.length ?? 0) - matchedProfessors,
+    },
+    displayedProfessors !== undefined && (!selectedTerm || !loadingTermData),
+  );
 
   return (
     <MotionConfig

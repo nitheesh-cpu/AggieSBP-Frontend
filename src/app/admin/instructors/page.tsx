@@ -120,6 +120,10 @@ function InstructorLinkReview({
       controller.signal,
     )
       .then((data) => {
+        if (offset > 0 && offset >= data.total) {
+          setOffset(Math.floor(Math.max(0, data.total - 1) / PAGE_SIZE) * PAGE_SIZE);
+          return;
+        }
         setPage(data);
         setMissingTable(null);
       })
@@ -160,19 +164,16 @@ function InstructorLinkReview({
         }
         let { instructors, total } = p;
         const index = instructors.findIndex((i) => i.key === next.key);
-        if (next.tab === tab) {
-          if (index >= 0)
-            instructors = instructors.map((i, k) => (k === index ? next : i));
-          else {
-            instructors = [next, ...instructors];
-            total += 1;
-          }
-        } else if (index >= 0) {
+        if (next.tab === tab && index >= 0) {
+          instructors = instructors.map((i, k) => (k === index ? next : i));
+        } else if (next.tab !== tab && index >= 0) {
           instructors = instructors.filter((_, k) => k !== index);
           total = Math.max(0, total - 1);
         }
         return { instructors, counts, total };
       });
+      // A moved instructor can land on a different page in Spring section order.
+      if (from !== next.tab) setReloadToken((token) => token + 1);
       if (from !== next.tab || res.invalidatedCourses.length)
         setNotice({
           instructor: next,

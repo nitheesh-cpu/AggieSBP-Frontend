@@ -3,6 +3,7 @@
 import { Suspense, useCallback, useEffect, useId, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { AiBulkRejection } from "./ai-bulk-rejection";
 import {
   AlertTriangle,
   Check,
@@ -269,7 +270,17 @@ function InstructorLinkReview({
             other pending candidates and refreshes the instructor&apos;s course pages.
           </p>
         </div>
-        <CompareLegend />
+        <div className="flex flex-wrap items-center gap-3">
+          <CompareLegend />
+          <AiBulkRejection
+            adminKey={adminKey}
+            onSignOut={onSignOut}
+            onApplied={() => {
+              setOffset(0);
+              setReloadToken((token) => token + 1);
+            }}
+          />
+        </div>
       </header>
 
       {missingTable && (
@@ -514,12 +525,13 @@ function NoticePanel({
 }
 
 const STATUS_ORDER = { confirmed: 0, proposed: 1, rejected: 2 } as const;
-const AI_REVIEW_ORDER = { high: 0, possible: 1, unclear: 2, unlikely: 2 } as const;
+const AI_REVIEW_ORDER = { high: 0, possible: 1, unclear: 2, unlikely: 2, "very unlikely": 2 } as const;
 const AI_REVIEW_LABEL = {
   high: "AI recommended",
   possible: "AI possible match",
   unclear: "AI unsure",
   unlikely: "AI unlikely match",
+  "very unlikely": "AI very unlikely match",
 } as const;
 
 function candidateAiPriority(candidate: LinkCandidate) {

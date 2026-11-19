@@ -325,7 +325,7 @@ export interface LinkCandidate {
   /** Every course the profile's reviews mention. */
   reviewedCourses?: string[];
   aiReview?: {
-    confidence: "high" | "possible" | "unclear" | "unlikely";
+    confidence: "high" | "possible" | "unclear" | "unlikely" | "very unlikely";
     reason: string;
     sources: { url: string; title: string; snippet: string }[];
   };
@@ -398,6 +398,22 @@ export const rejectCandidates = (
 ) => postLinks(key, "reject", { key: k, professorIds });
 export const rejectAllCandidates = (key: string, k: string) =>
   postLinks(key, "reject-all", { key: k });
+
+export interface AiRejectionPreview {
+  token: string;
+  candidates: number;
+  instructors: number;
+  hasVeryUnlikelyRatings: boolean;
+}
+
+export const previewAiRejection = (key: string) =>
+  adminFetch<AiRejectionPreview>(key, "/admin/instructor-links/ai-reject");
+
+export const applyAiRejection = (key: string, token: string) =>
+  adminFetch<{ rejected: number }>(key, "/admin/instructor-links/ai-reject", {
+    method: "POST",
+    body: JSON.stringify({ token }),
+  });
 /** A confirmed decision goes back to proposed. */
 export const undoInstructorLink = (key: string, k: string) =>
   postLinks(key, "undo", { key: k });

@@ -3,7 +3,6 @@
 import { Suspense, useCallback, useEffect, useId, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { AiReviewPanel } from "./ai-review-panel";
 import {
   AlertTriangle,
   Check,
@@ -109,7 +108,6 @@ function InstructorLinkReview({
   const [cardErrors, setCardErrors] = useState<Record<string, string>>({});
   const [notice, setNotice] = useState<Notice | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
-  const [showAiReport, setShowAiReport] = useState(false);
   const filterId = useId();
 
   // The name filter waits for typing to pause.
@@ -183,8 +181,10 @@ function InstructorLinkReview({
         }
         return { instructors, counts, total };
       });
-      // A moved instructor can land on a different page in Spring section order.
-      if (from !== next.tab) setReloadToken((token) => token + 1);
+      // A decision can change a card's AI priority even if it stays in this tab.
+      if (from !== next.tab || next.tab === "proposed" || next.tab === "conflict") {
+        setReloadToken((token) => token + 1);
+      }
       if (from !== next.tab || res.invalidatedCourses.length)
         setNotice({
           instructor: next,
@@ -269,30 +269,8 @@ function InstructorLinkReview({
             other pending candidates and refreshes the instructor&apos;s course pages.
           </p>
         </div>
-        <div className="flex flex-col items-start gap-3 sm:items-end">
-          <Button
-            variant="outline"
-            aria-expanded={showAiReport}
-            onClick={() => setShowAiReport((shown) => !shown)}
-          >
-            {showAiReport ? "Hide AI review report" : "View AI review report"}
-          </Button>
-          <CompareLegend />
-        </div>
+        <CompareLegend />
       </header>
-
-      {showAiReport && (
-        <AiReviewPanel
-          adminKey={adminKey}
-          onSignOut={onSignOut}
-          onReview={(key, reviewTab) => {
-            changeTab(reviewTab);
-            setFilter(key);
-            setQ(key);
-            setShowAiReport(false);
-          }}
-        />
-      )}
 
       {missingTable && (
         <div
@@ -536,6 +514,17 @@ function NoticePanel({
 }
 
 const STATUS_ORDER = { confirmed: 0, proposed: 1, rejected: 2 } as const;
+const AI_REVIEW_ORDER = { high: 0, possible: 1, unclear: 2, unlikely: 2 } as const;
+const AI_REVIEW_LABEL = {
+  high: "AI recommended",
+  possible: "AI possible match",
+  unclear: "AI unsure",
+  unlikely: "AI unlikely match",
+} as const;
+
+function candidateAiPriority(candidate: LinkCandidate) {
+  return candidate.aiReview ? AI_REVIEW_ORDER[candidate.aiReview.confidence] : 2;
+}
 
 function InstructorCard({
   instructor,
@@ -559,7 +548,8 @@ function InstructorCard({
   const candidates = useMemo(
     () =>
       [...instructor.candidates].sort(
-        (a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status],
+        (a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status] ||
+          candidateAiPriority(a) - candidateAiPriority(b),
       ),
     [instructor.candidates],
   );
@@ -914,6 +904,8 @@ function CandidateRow({
     : (reviewed?.filter((s) => subjects.has(s)) ?? []);
   const isLinked = candidate.status === "confirmed";
   const isRejected = candidate.status === "rejected";
+  const aiReview = candidate.status === "proposed" ? candidate.aiReview : undefined;
+  const isAiRecommended = aiReview?.confidence === "high";
   const reasons = (candidate.reason ?? "")
     .split(/\s*[;|]\s*/)
     .filter((part) => part && !/^its reviews are for /.test(part));
@@ -923,12 +915,22 @@ function CandidateRow({
       className={`grid gap-x-4 gap-y-3 p-4 ${candidateColumns} ${
         isLinked
           ? "border-l-4 border-l-emerald-600 bg-emerald-50/50 dark:bg-emerald-500/5"
-          : ""
+          : isAiRecommended
+            ? "border-l-4 border-l-violet-600 bg-violet-50/70 dark:bg-violet-500/10"
+            : ""
       }`}
     >
       {/* Who */}
       <div className={`min-w-0 space-y-1.5 ${isRejected ? "opacity-75" : ""}`}>
         <div className="flex flex-wrap items-center gap-1.5">
+          {aiReview && (
+            <Badge
+              variant={isAiRecommended ? "default" : "outline"}
+              className={isAiRecommended ? "bg-violet-700 text-white" : "text-text-muted"}
+            >
+              {AI_REVIEW_LABEL[aiReview.confidence]}
+            </Badge>
+          )}
           {isLinked && (
             <Badge className="bg-emerald-600 text-white dark:bg-emerald-500 dark:text-black">
               Linked
@@ -1003,6 +1005,26 @@ function CandidateRow({
 
       {/* Evidence */}
       <div className="min-w-0 space-y-2 rounded-lg bg-raised/50 p-3 text-xs text-text-body">
+        {aiReview && (
+          <div className="space-y-1 border-b border-border pb-2">
+            <p>{aiReview.reason}</p>
+            {aiReview.sources.length > 0 && (
+              <details>
+                <summary className="cursor-pointer font-medium text-text-heading">AI sources</summary>
+                <ul className="mt-1 space-y-1">
+                  {aiReview.sources.map((source, index) => (
+                    <li key={`${source.url}:${index}`}>
+                      <a href={source.url} target="_blank" rel="noreferrer" className="underline underline-offset-4">
+                        {source.title}
+                      </a>
+                      {source.snippet && <p className="text-text-muted">{source.snippet}</p>}
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
+          </div>
+        )}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
           {candidate.score != null && (
             <span>

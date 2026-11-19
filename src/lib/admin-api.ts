@@ -324,6 +324,11 @@ export interface LinkCandidate {
   courseOverlap?: string[];
   /** Every course the profile's reviews mention. */
   reviewedCourses?: string[];
+  aiReview?: {
+    confidence: "high" | "possible" | "unclear" | "unlikely";
+    reason: string;
+    sources: { url: string; title: string; snippet: string }[];
+  };
 }
 
 export interface InstructorLinks {
@@ -350,25 +355,6 @@ export interface InstructorLinksPage {
   instructors: InstructorLinks[];
   counts: InstructorLinkCounts;
   total: number;
-}
-
-export interface InstructorAiReport {
-  updatedAt: string;
-  errors: string[];
-  reviews: {
-    title: string;
-    confidence: "high" | "possible" | "unclear" | "unlikely";
-    key: string;
-    tab: "proposed" | "conflict";
-    rmpUrl: string | null;
-    reason: string;
-    details: string[];
-    sources: { url: string; title: string; snippet: string }[];
-  }[];
-}
-
-export function getInstructorAiReport(key: string, signal?: AbortSignal) {
-  return adminFetch<InstructorAiReport>(key, "/admin/instructor-links/ai-report", { signal });
 }
 
 export interface InstructorLinkResult {

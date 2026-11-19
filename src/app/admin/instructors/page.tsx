@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useId, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useId, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   AlertTriangle,
   Check,
@@ -77,7 +78,11 @@ interface Notice {
 
 export default function AdminInstructorLinksPage() {
   const { adminKey, signOut } = useAdmin();
-  return <InstructorLinkReview adminKey={adminKey} onSignOut={signOut} />;
+  return (
+    <Suspense fallback={<p className="text-sm text-text-muted">Loading.</p>}>
+      <InstructorLinkReview adminKey={adminKey} onSignOut={signOut} />
+    </Suspense>
+  );
 }
 
 function InstructorLinkReview({
@@ -87,9 +92,13 @@ function InstructorLinkReview({
   adminKey: string;
   onSignOut: () => void;
 }) {
-  const [tab, setTab] = useState<InstructorTab>("proposed");
-  const [filter, setFilter] = useState("");
-  const [q, setQ] = useState("");
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams.get("q")?.trim().slice(0, 200) ?? "";
+  const [tab, setTab] = useState<InstructorTab>(
+    () => TABS.find((item) => item.tab === searchParams.get("tab"))?.tab ?? "proposed",
+  );
+  const [filter, setFilter] = useState(initialQuery);
+  const [q, setQ] = useState(initialQuery);
   const [offset, setOffset] = useState(0);
   const [page, setPage] = useState<InstructorLinksPage | null>(null);
   const [loading, setLoading] = useState(true);

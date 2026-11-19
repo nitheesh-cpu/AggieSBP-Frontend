@@ -15,8 +15,8 @@ import {
 
 // Server-rendered so crawlers get the real profile in the HTML (a client-only
 // page that failed to fetch read as "Professor Not Found", a soft 404).
-// Regenerated at most daily; each id is rendered on first visit and cached.
-export const revalidate = 86400;
+// Regenerated at most weekly; each id is rendered on first visit and cached.
+export const revalidate = 604800;
 
 // generateStaticParams() returning [] with dynamicParams makes every id an
 // on-demand ISR page: rendered on its first visit, then cached. dynamicParams

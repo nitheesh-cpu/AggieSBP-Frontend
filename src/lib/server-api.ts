@@ -2,7 +2,7 @@
  * API reads for server components and generateMetadata (course and professor
  * pages). Never import this from a "use client" module.
  *
- * - Responses go through Next's data cache for a day, and React's cache()
+ * - Responses go through Next's data cache for a week, and React's cache()
  *   shares one call between generateMetadata and the page in a render.
  * - Requests carry X-Internal-Key from INTERNAL_API_KEY (a server-only env
  *   var) so SSR traffic, which all comes from a few Vercel IPs, isn't caught
@@ -27,7 +27,7 @@ const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL?.trim() || "http://localhost:8000";
 
 /** Matches the pages' `revalidate` segment config. */
-const DAY_SECONDS = 60 * 60 * 24;
+const WEEK_SECONDS = 60 * 60 * 24 * 7;
 const REQUEST_TIMEOUT_MS = 10_000;
 const NOT_FOUND_STATUSES = new Set([400, 404, 410, 422]);
 
@@ -59,7 +59,7 @@ function serverHeaders(): HeadersInit {
   return headers;
 }
 
-async function apiGet<T>(path: string, revalidate = DAY_SECONDS): Promise<T> {
+async function apiGet<T>(path: string, revalidate = WEEK_SECONDS): Promise<T> {
   let res: Response;
   try {
     res = await fetch(`${API_BASE_URL}${path}`, {

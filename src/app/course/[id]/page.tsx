@@ -15,9 +15,9 @@ import {
 import { pickDefaultTerm } from "@/lib/terms";
 
 // Server-rendered so crawlers get the real course in the HTML; regenerated at
-// most daily. No paths are built ahead of time: each is rendered on its first
+// most weekly. No paths are built ahead of time: each is rendered on its first
 // visit and cached.
-export const revalidate = 86400;
+export const revalidate = 604800;
 
 // generateStaticParams() returning [] with dynamicParams makes every id an
 // on-demand ISR page: rendered on its first visit, then cached. dynamicParams

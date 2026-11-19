@@ -12,8 +12,8 @@ import {
   professorReviewsTitle,
 } from "@/lib/seo-metadata";
 
-// Server-rendered with the first page of reviews; regenerated at most daily.
-export const revalidate = 86400;
+// Server-rendered with the first page of reviews; regenerated at most weekly.
+export const revalidate = 604800;
 
 // generateStaticParams() returning [] with dynamicParams makes every id an
 // on-demand ISR page: rendered on its first visit, then cached. dynamicParams

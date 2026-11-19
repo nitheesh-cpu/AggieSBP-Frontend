@@ -3,6 +3,7 @@
 import { Suspense, useCallback, useEffect, useId, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { AiReviewPanel } from "./ai-review-panel";
 import {
   AlertTriangle,
   Check,
@@ -108,6 +109,7 @@ function InstructorLinkReview({
   const [cardErrors, setCardErrors] = useState<Record<string, string>>({});
   const [notice, setNotice] = useState<Notice | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
+  const [showAiReport, setShowAiReport] = useState(false);
   const filterId = useId();
 
   // The name filter waits for typing to pause.
@@ -267,8 +269,30 @@ function InstructorLinkReview({
             other pending candidates and refreshes the instructor&apos;s course pages.
           </p>
         </div>
-        <CompareLegend />
+        <div className="flex flex-col items-start gap-3 sm:items-end">
+          <Button
+            variant="outline"
+            aria-expanded={showAiReport}
+            onClick={() => setShowAiReport((shown) => !shown)}
+          >
+            {showAiReport ? "Hide AI review report" : "View AI review report"}
+          </Button>
+          <CompareLegend />
+        </div>
       </header>
+
+      {showAiReport && (
+        <AiReviewPanel
+          adminKey={adminKey}
+          onSignOut={onSignOut}
+          onReview={(key, reviewTab) => {
+            changeTab(reviewTab);
+            setFilter(key);
+            setQ(key);
+            setShowAiReport(false);
+          }}
+        />
+      )}
 
       {missingTable && (
         <div

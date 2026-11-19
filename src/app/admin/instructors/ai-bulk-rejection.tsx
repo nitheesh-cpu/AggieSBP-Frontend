@@ -57,7 +57,7 @@ export function AiBulkRejection({
           disabled={busy}
           onClick={() => void run(false)}
         >
-          {busy ? "Checking AI mismatches…" : "Bulk reject AI mismatches"}
+          {busy ? "Checking mismatches…" : "Bulk reject mismatches"}
         </Button>
       )}
       {preview && (
@@ -67,12 +67,10 @@ export function AiBulkRejection({
               ? `${preview.candidates.toLocaleString()} pending profiles across ${preview.instructors.toLocaleString()} instructors qualify. This applies across the full queue.`
               : "No pending profiles qualify for bulk rejection."}
           </p>
-          {!preview.hasVeryUnlikelyRatings && (
-            <p className="text-text-muted">
-              This report qualifies only unlikely matches with a clear
-              department mismatch.
-            </p>
-          )}
+          <p className="text-text-muted">
+            Includes clear department mismatches and matches the AI rated
+            unlikely or very unlikely. Rejections can be undone.
+          </p>
           <div className="flex flex-wrap gap-2">
             {preview.candidates > 0 && (
               <Button

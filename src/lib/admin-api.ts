@@ -403,7 +403,6 @@ export interface AiRejectionPreview {
   token: string;
   candidates: number;
   instructors: number;
-  hasVeryUnlikelyRatings: boolean;
 }
 
 export const previewAiRejection = (key: string) =>

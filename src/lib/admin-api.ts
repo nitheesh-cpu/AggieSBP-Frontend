@@ -336,6 +336,7 @@ export interface InstructorLinks {
   sections: number | null;
   tab: InstructorTab;
   linkedProfessorId: string | null;
+  linkedProfessorIds: string[];
   noProfile: boolean;
   conflict: string | null;
   rmpSearchUrl: string;
@@ -380,9 +381,9 @@ const postLinks = (key: string, action: string, body: object) =>
     body: JSON.stringify(body),
   });
 
-/** Confirms the pair and rejects the instructor's other proposed candidates. */
-export const linkInstructor = (key: string, k: string, professorId: string) =>
-  postLinks(key, "link", { key: k, professorId });
+/** Adds the selected links and rejects the remaining pending candidates. */
+export const linkInstructor = (key: string, k: string, professorIds: string[]) =>
+  postLinks(key, "link", { key: k, professorIds });
 export const markNoProfile = (key: string, k: string) =>
   postLinks(key, "no-profile", { key: k });
 export const rejectCandidates = (
@@ -390,6 +391,8 @@ export const rejectCandidates = (
   k: string,
   professorIds: string[],
 ) => postLinks(key, "reject", { key: k, professorIds });
+export const rejectAllCandidates = (key: string, k: string) =>
+  postLinks(key, "reject-all", { key: k });
 /** A confirmed decision goes back to proposed. */
 export const undoInstructorLink = (key: string, k: string) =>
   postLinks(key, "undo", { key: k });

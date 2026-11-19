@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAdmin } from "@/components/admin/admin-shell";
@@ -38,6 +39,7 @@ import {
   markNoProfile,
   parseRmpProfile,
   professorIdFromRmpId,
+  rejectAllCandidates,
   rejectCandidates,
   undoInstructorLink,
 } from "@/lib/admin-api";
@@ -61,8 +63,9 @@ const candidateColumns =
   "lg:grid-cols-[minmax(0,16rem)_minmax(0,1fr)_7.5rem]";
 
 type Action =
-  | { type: "link"; professorId: string }
+  | { type: "link"; professorIds: string[] }
   | { type: "reject"; professorId: string }
+  | { type: "reject-all" }
   | { type: "no-profile" }
   | { type: "undo" };
 
@@ -186,14 +189,25 @@ function InstructorLinkReview({
       setPending((s) => new Set(s).add(key));
       setCardErrors(({ [key]: _, ...rest }) => rest);
       try {
-        const res =
-          action.type === "link"
-            ? await linkInstructor(adminKey, key, action.professorId)
-            : action.type === "reject"
-              ? await rejectCandidates(adminKey, key, [action.professorId])
-              : action.type === "no-profile"
-                ? await markNoProfile(adminKey, key)
-                : await undoInstructorLink(adminKey, key);
+        let request: Promise<InstructorLinkResult>;
+        switch (action.type) {
+          case "link":
+            request = linkInstructor(adminKey, key, action.professorIds);
+            break;
+          case "reject":
+            request = rejectCandidates(adminKey, key, [action.professorId]);
+            break;
+          case "reject-all":
+            request = rejectAllCandidates(adminKey, key);
+            break;
+          case "no-profile":
+            request = markNoProfile(adminKey, key);
+            break;
+          case "undo":
+            request = undoInstructorLink(adminKey, key);
+            break;
+        }
+        const res = await request;
         apply(res, instructor.tab);
         return true;
       } catch (e) {
@@ -239,8 +253,8 @@ function InstructorLinkReview({
             Registrar instructors matched to RMP profiles on an assumption (a
             middle initial used as the first name, swapped names, a near-miss
             spelling). Check the subjects and courses before linking: couples
-            often teach the same subject. Linking clears the instructor&apos;s
-            course pages; every decision can be undone.
+            often teach the same subject. Linking selected profiles rejects the
+            other pending candidates and refreshes the instructor&apos;s course pages.
           </p>
         </div>
         <CompareLegend />
@@ -432,18 +446,16 @@ function NoticePanel({
 }) {
   const { instructor, from, invalidatedCourses } = notice;
   const moved = from !== instructor.tab;
+  const linked = instructor.candidates.filter((c) => c.status === "confirmed");
   const decision = instructor.noProfile
     ? "marked as having no RMP profile"
-    : instructor.linkedProfessorId
-      ? `linked to ${
-          instructor.candidates.find(
-            (c) => c.professorId === instructor.linkedProfessorId,
-          )?.name ?? "the profile"
-        }`
-      : null;
+    : linked.length > 1
+      ? `linked to ${linked.length} RMP profiles`
+      : linked.length === 1
+        ? `linked to ${linked[0].name || "the profile"}`
+        : null;
   const canUndo =
-    instructor.tab === "confirmed" &&
-    (instructor.noProfile || !!instructor.linkedProfessorId);
+    instructor.tab === "confirmed" || (moved && instructor.tab === "rejected");
   return (
     <section
       role="status"
@@ -473,7 +485,7 @@ function NoticePanel({
             className="gap-1"
           >
             <RotateCcw className="h-3.5 w-3.5" />
-            Undo
+            {instructor.tab === "rejected" ? "Reopen candidates" : "Undo"}
           </Button>
         )}
         <Button
@@ -505,6 +517,7 @@ function InstructorCard({
   onError: (message: string) => void;
 }) {
   const headingId = useId();
+  const [selected, setSelected] = useState<string[]>([]);
   const subjects = useMemo(
     () => new Set(instructor.courses.map(subjectOf)),
     [instructor.courses],
@@ -526,13 +539,23 @@ function InstructorCard({
         s.add(subject);
     return s;
   }, [instructor.candidates]);
-  const linked = instructor.candidates.find(
-    (c) => c.professorId === instructor.linkedProfessorId,
+  const linked = candidates.filter(
+    (candidate) => candidate.status === "confirmed",
   );
-  const hasDecision = instructor.noProfile || !!instructor.linkedProfessorId;
+  const hasPending = candidates.some(
+    (candidate) => candidate.status === "proposed",
+  );
+  const hasDecision = instructor.noProfile || linked.length > 0;
   const canUndo =
-    hasDecision &&
-    (instructor.tab === "confirmed" || instructor.tab === "conflict");
+    instructor.tab === "rejected" ||
+    (hasDecision &&
+      (instructor.tab === "confirmed" || instructor.tab === "conflict"));
+
+  async function linkSelected(professorIds: string[]) {
+    const done = await onAct({ type: "link", professorIds });
+    if (done) setSelected([]);
+    return done;
+  }
 
   return (
     <li
@@ -579,7 +602,9 @@ function InstructorCard({
             <Check className="h-4 w-4 shrink-0" aria-hidden="true" />
             {instructor.noProfile
               ? "Decided: no RMP profile"
-              : `Linked to ${linked?.name ?? instructor.linkedProfessorId}`}
+              : linked.length === 1
+                ? `Linked to ${linked[0].name || linked[0].professorId}`
+                : `Linked to ${linked.length} RMP profiles`}
           </p>
         )}
 
@@ -618,7 +643,7 @@ function InstructorCard({
         <ManualLink
           instructor={instructor}
           busy={busy}
-          onLink={(professorId) => onAct({ type: "link", professorId })}
+          onLink={(professorId) => linkSelected([...selected, professorId])}
           onError={onError}
         />
 
@@ -629,7 +654,9 @@ function InstructorCard({
                 size="sm"
                 variant="outline"
                 disabled={busy}
-                onClick={() => void onAct({ type: "no-profile" })}
+                onClick={async () => {
+                  if (await onAct({ type: "no-profile" })) setSelected([]);
+                }}
                 aria-label={`Mark ${instructor.name} as having no RMP profile`}
               >
                 No RMP profile
@@ -640,12 +667,18 @@ function InstructorCard({
                 size="sm"
                 variant="outline"
                 disabled={busy}
-                onClick={() => void onAct({ type: "undo" })}
+                onClick={async () => {
+                  if (await onAct({ type: "undo" })) setSelected([]);
+                }}
                 className="gap-1"
-                aria-label={`Undo the decision for ${instructor.name}`}
+                aria-label={
+                  instructor.tab === "rejected"
+                    ? `Reopen candidates for ${instructor.name}`
+                    : `Undo the decision for ${instructor.name}`
+                }
               >
                 <RotateCcw className="h-3.5 w-3.5" />
-                Undo decision
+                {instructor.tab === "rejected" ? "Reopen candidates" : "Undo decision"}
               </Button>
             )}
           </div>
@@ -671,6 +704,32 @@ function InstructorCard({
 
       {/* RMP side */}
       <div className="min-w-0">
+        {linked.length < candidates.length && (
+          <div className="flex flex-wrap items-center justify-end gap-2 border-b border-border px-4 py-2">
+            {hasPending && (
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={busy}
+                onClick={async () => {
+                  if (await onAct({ type: "reject-all" })) setSelected([]);
+                }}
+                aria-label={`Reject all pending candidates for ${instructor.name}`}
+              >
+                <X className="h-3.5 w-3.5" aria-hidden="true" />
+                Reject all
+              </Button>
+            )}
+            <Button
+              size="sm"
+              disabled={busy || selected.length === 0}
+              onClick={() => void linkSelected(selected)}
+            >
+              <Check className="h-3.5 w-3.5" aria-hidden="true" />
+              Link selected{selected.length > 0 && ` (${selected.length})`}
+            </Button>
+          </div>
+        )}
         <div
           aria-hidden="true"
           className={`hidden gap-4 border-b border-border bg-raised px-4 py-2 text-xs font-medium text-text-muted lg:grid ${candidateColumns}`}
@@ -692,7 +751,23 @@ function InstructorCard({
                 candidate={candidate}
                 subjects={subjects}
                 busy={busy}
-                onAct={onAct}
+                selected={selected.includes(candidate.professorId)}
+                onSelect={(checked) => {
+                  setSelected((ids) =>
+                    checked
+                      ? [...ids, candidate.professorId]
+                      : ids.filter((id) => id !== candidate.professorId),
+                  );
+                }}
+                onReject={async () => {
+                  const done = await onAct({
+                    type: "reject",
+                    professorId: candidate.professorId,
+                  });
+                  if (done) {
+                    setSelected((ids) => ids.filter((id) => id !== candidate.professorId));
+                  }
+                }}
               />
             ))}
           </ul>
@@ -771,14 +846,19 @@ function CandidateRow({
   candidate,
   subjects,
   busy,
-  onAct,
+  selected,
+  onSelect,
+  onReject,
 }: {
   instructor: InstructorLinks;
   candidate: LinkCandidate;
   subjects: Set<string>;
   busy: boolean;
-  onAct: (action: Action) => Promise<boolean>;
+  selected: boolean;
+  onSelect: (checked: boolean) => void;
+  onReject: () => void;
 }) {
+  const selectId = useId();
   const kind = KIND_BADGES[candidate.kind] ?? {
     label: candidate.kind,
     className: "",
@@ -948,31 +1028,29 @@ function CandidateRow({
         )}
       </div>
 
-      {/* Actions: Link on top, Reject apart at the bottom. */}
       <div className="flex flex-wrap items-center justify-between gap-3 lg:flex-col lg:flex-nowrap lg:items-stretch">
         {!isLinked && (
-          <Button
-            size="sm"
-            disabled={busy}
-            onClick={() =>
-              void onAct({ type: "link", professorId: candidate.professorId })
-            }
-            className="order-2 gap-1 lg:order-1"
-            aria-label={`Link ${instructor.name} to ${candidate.name}`}
+          <label
+            htmlFor={selectId}
+            className="flex items-center gap-2 text-sm text-text-body"
           >
-            <Check className="h-3.5 w-3.5" />
-            Link
-          </Button>
+            <Checkbox
+              id={selectId}
+              checked={selected}
+              disabled={busy}
+              onCheckedChange={(checked) => onSelect(checked === true)}
+              aria-label={`Select ${candidate.name || candidate.professorId} for ${instructor.name}`}
+            />
+            Select
+          </label>
         )}
         {candidate.status === "proposed" && (
           <Button
             size="sm"
             variant="outline"
             disabled={busy}
-            onClick={() =>
-              void onAct({ type: "reject", professorId: candidate.professorId })
-            }
-            className="order-1 gap-1 lg:order-2"
+            onClick={onReject}
+            className="gap-1"
             aria-label={`Reject ${candidate.name} for ${instructor.name}`}
           >
             <X className="h-3.5 w-3.5" />

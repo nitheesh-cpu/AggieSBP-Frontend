@@ -1,3 +1,4 @@
+// Parked on purpose, not dead: hidden from the planner at the owner's request. Don't delete or re-wire. See docs/context/decisions.md D-021
 "use client";
 
 import { useMemo, useState } from "react";

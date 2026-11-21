@@ -16,6 +16,7 @@ type PageBannerProps = {
  * It sits directly under the fixed nav, so pages render it before their
  * padded content.
  */
+// Intentional: no `eyebrow` prop. The owner removed pixel-font labels from banners. See docs/context/decisions.md D-010
 export function PageBanner({ title, subtitle, children, aside }: PageBannerProps) {
   return (
     <section className="relative isolate overflow-hidden bg-maroon-band pt-14 text-white">

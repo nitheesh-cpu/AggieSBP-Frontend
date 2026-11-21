@@ -349,6 +349,7 @@ export default function PlannerPage() {
             </Card>
           </TabsContent>
 
+          {/* Intentional: forceMount keeps Find/Build state alive across tab switches. See docs/context/gotchas.md G-024 */}
           <TabsContent value="find" forceMount className="data-[state=inactive]:hidden">
             <Card className={CARD}>
               <CardContent className="space-y-4 p-6">

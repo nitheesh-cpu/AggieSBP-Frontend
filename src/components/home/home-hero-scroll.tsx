@@ -33,6 +33,7 @@ const { props: portraitImage } = getImageProps({
 export function HomeHeroScroll() {
   const extension = useExtensionLink();
 
+  // Intentional: height capped at 1100px so Umami heatmaps don't stretch the hero. See docs/context/gotchas.md G-020
   return (
     <section className="relative isolate min-h-[min(100svh,1100px)] bg-canvas">
       <picture className="pointer-events-none absolute inset-0 -z-20">

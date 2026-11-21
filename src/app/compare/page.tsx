@@ -536,6 +536,7 @@ function ComparisonTable({
           style={{ "--cols": columns.length } as React.CSSProperties}
         >
           <colgroup>
+            {/* Intentional: zero-width label column on phones, labels render in their own row. See docs/context/gotchas.md G-027 */}
             <col className="w-0 sm:w-44" />
             {columns.map((_, i) => (
               <col key={i} />

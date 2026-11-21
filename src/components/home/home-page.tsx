@@ -34,6 +34,7 @@ export function HomePageMotion() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    // Intentional: the installed app has two launch paths (manifest start_url and this redirect). See docs/context/gotchas.md G-021
     const mq = window.matchMedia("(display-mode: standalone)");
     const iosStandalone =
       (navigator as any).standalone === true ||

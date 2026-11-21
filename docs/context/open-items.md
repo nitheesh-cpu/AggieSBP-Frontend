@@ -5,7 +5,7 @@ Backend and extension items live in those repos' `docs/context/open-items.md`. M
 
 ## In flight
 
-- **After the switch from ISR to force-dynamic (D-044, 2026-11-20):** not yet checked in production. Confirm that `/course/*` and `/professor/*` responses get a CDN cache HIT on repeat visits (`x-vercel-cache`), and watch the API load from SSR misses. Also decide whether `/api/revalidate` (`revalidatePath`) still has a purpose. It doesn't purge the `Vercel-CDN-Cache-Control` edge cache for these pages, so after a data fix they can stay stale for up to a day. (2026-11-20)
+- **After the switch from ISR to force-dynamic (D-044, 2026-11-20):** verified in production on 2026-11-20: `/course/CSCE221` is a `MISS` on first request, then `x-vercel-cache: HIT` with a rising `Age`. Browsers get `Cache-Control: private, no-store`, and only the edge caches. The only ISR writers left are the sitemaps (the `/sitemap.xml` index, the course and professor sitemap chunks, and four `unstable_cache` id lists), all daily, about 10 writes a day. Still open: watch the API load from edge misses, and decide whether `/api/revalidate` (`revalidatePath`) still has a purpose. It doesn't purge the `Vercel-CDN-Cache-Control` edge cache for these pages, so after a data fix they can stay stale for up to a day. (2026-11-20)
 
 ## Bugs and gaps
 

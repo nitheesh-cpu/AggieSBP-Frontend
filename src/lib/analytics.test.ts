@@ -92,4 +92,9 @@ test("isReportableApiError skips expected 404s only", () => {
   assert.equal(isReportableApiError(reviews, 404), true);
   assert.equal(isReportableApiError(endpointTemplate("https://api.example.com/professor/X1"), 404), true);
   assert.equal(isReportableApiError(course, 400), true);
+
+  const tracking = endpointTemplate("https://api.example.com/users/tracking");
+  assert.equal(isReportableApiError(tracking, 422), false);
+  assert.equal(isReportableApiError(tracking, 500), true);
+  assert.equal(isReportableApiError(endpointTemplate("https://api.example.com/users/tracking/abc"), 422), true);
 });

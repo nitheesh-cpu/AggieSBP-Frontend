@@ -197,9 +197,17 @@ const EXPECTED_404_ENDPOINTS = new Set([
   "/course/:id",
 ]);
 
+/**
+ * Adding a seat watch returns 422 when the user is at the per-account cap. The
+ * button already shows that message, so it is not an error worth reporting.
+ */
+const SEAT_WATCH_CAP_ENDPOINT = "/users/tracking";
+
 /** Whether a failed response is worth an `api-error` event. */
 export function isReportableApiError(endpoint: string, status: number): boolean {
-  return !(status === 404 && EXPECTED_404_ENDPOINTS.has(endpoint));
+  if (status === 404 && EXPECTED_404_ENDPOINTS.has(endpoint)) return false;
+  if (status === 422 && endpoint === SEAT_WATCH_CAP_ENDPOINT) return false;
+  return true;
 }
 
 /**

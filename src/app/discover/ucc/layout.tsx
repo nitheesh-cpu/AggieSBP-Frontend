@@ -1,8 +1,9 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "Core Curriculum - Aggie Schedule Builder Plus",
-    description: "Discover the easiest core curriculum courses at Texas A&M University. Find high-rated professors and maximize your GPA with data-driven recommendations.",
+    title: "Easiest Core Curriculum Classes at Texas A&M | AggieSB+",
+    description:
+        "Find the easiest classes for each Texas A&M core curriculum category, ranked by easiness score, with the professors who teach them.",
 };
 
 export default function DiscoverUCCLayout({

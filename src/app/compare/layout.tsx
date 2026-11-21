@@ -1,8 +1,9 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "Compare - Aggie Schedule Builder Plus",
-    description: "Compare courses and professors side-by-side at Texas A&M University. Make informed decisions about your schedule with detailed statistics.",
+    title: "Compare Texas A&M Courses & Professors | AggieSB+",
+    description:
+        "Put up to 4 Texas A&M courses or professors side by side: average GPA, ratings, reviews and grade distributions.",
 };
 
 export default function CompareLayout({

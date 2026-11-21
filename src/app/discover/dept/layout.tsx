@@ -1,9 +1,9 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Browse by Department - Aggie Schedule Builder Plus",
+  title: "Easiest Courses in Any Texas A&M Department | AggieSB+",
   description:
-    "Find the easiest courses in any Texas A&M department. Compare professors by easiness score, GPA data, and student ratings.",
+    "Pick a Texas A&M department and see its courses ranked by easiness, with professor ratings and GPA data for each.",
 };
 
 export default function DiscoverDeptLayout({

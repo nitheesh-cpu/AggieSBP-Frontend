@@ -43,9 +43,9 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   // Resolves relative canonical/OpenGraph URLs against the production origin
   metadataBase: new URL(SITE_URL),
-  title: "Aggie Schedule Builder Plus - A&M Course Planner",
+  title: "Aggie Schedule Builder Plus: TAMU Professor Grades & Ratings",
   description:
-    "The fastest way to choose the right Texas A&M courses. Compare course difficulty, workload, and professor quality side by side.",
+    "Unofficial companion to Texas A&M's Aggie Schedule Builder. Grade distributions, professor ratings and reviews, and seat alerts for full classes.",
   manifest: "/manifest.json",
   icons: {
     icon: "/favicon.ico",

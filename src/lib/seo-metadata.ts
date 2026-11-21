@@ -44,16 +44,38 @@ export function courseCanonicalPath(course: Pick<CourseDetail, "code">): string 
   return `/course/${encodeURIComponent(courseSlug(course.code))}`;
 }
 
-export function courseTitle(course: Pick<CourseDetail, "code" | "name">): string {
+/**
+ * A real number in the title ("Avg GPA 2.92") gives searchers a reason to click
+ * that a bare "Grades & Professors" does not. Tails go from richest to
+ * shortest; the first one that fits next to the full course name wins, and
+ * only the last resort truncates the name.
+ */
+export function courseTitle(
+  course: Pick<CourseDetail, "code" | "name"> & { avgGPA?: number | null },
+): string {
   const code = formatCourseCode(course.code);
   const name = clean(course.name);
   const suffix = " | Texas A&M";
-  if (!name) return `${code} – Grades, Professors & Reviews${suffix}`;
+  const gpa =
+    typeof course.avgGPA === "number" && course.avgGPA >= 0
+      ? course.avgGPA.toFixed(2)
+      : null;
 
-  const full = `${code}: ${name} – Grades, Professors & Reviews${suffix}`;
-  if (full.length <= MAX_TITLE) return full;
+  const tails = gpa
+    ? [
+        ` – Avg GPA ${gpa}, Professors & Reviews${suffix}`,
+        ` – Avg GPA ${gpa} & Professors${suffix}`,
+        ` – Avg GPA ${gpa}${suffix}`,
+      ]
+    : [` – Grades, Professors & Reviews${suffix}`, ` – Grades & Professors${suffix}`];
 
-  const shortTail = ` – Grades & Professors${suffix}`;
+  if (!name) return `${code}${tails[0]}`;
+  for (const tail of tails) {
+    const full = `${code}: ${name}${tail}`;
+    if (full.length <= MAX_TITLE) return full;
+  }
+
+  const shortTail = tails[tails.length - 1];
   const room = MAX_TITLE - `${code}: `.length - shortTail.length;
   return `${code}: ${truncate(name, Math.max(room, 20))}${shortTail}`;
 }
@@ -73,23 +95,26 @@ export function courseDescription(
     0,
   );
 
-  const facts: string[] = [];
-  if (typeof course.avgGPA === "number" && course.avgGPA >= 0) {
-    const scope = course.gpaScope === "recent" ? " (last 4 semesters)" : "";
-    facts.push(`average GPA ${course.avgGPA.toFixed(2)}${scope}`);
-  }
-  facts.push(
-    professors.length > 0
-      ? `grade distributions for ${plural(professors.length, "professor")}`
-      : "grade distributions",
-  );
-  facts.push(
-    reviewCount > 0 ? `${plural(reviewCount, "student review")}` : "student reviews",
-  );
+  // Lead with the number people came for, then say what they can do on the page.
+  const label = `${code}${name ? ` (${name})` : ""} at Texas A&M`;
+  const lead =
+    typeof course.avgGPA === "number" && course.avgGPA >= 0
+      ? `${label}: average GPA ${course.avgGPA.toFixed(2)}${
+          course.gpaScope === "recent" ? " (last 4 semesters)" : ""
+        }.`
+      : `${label}.`;
 
-  const lead = `${code}${name ? ` (${name})` : ""} at Texas A&M: ${joinList(facts)}.`;
+  const compare =
+    professors.length > 0 && reviewCount > 0
+      ? `Compare grades across ${plural(professors.length, "professor")} and read ${plural(reviewCount, "student review")}.`
+      : professors.length > 0
+        ? `Compare grades across ${plural(professors.length, "professor")}.`
+        : reviewCount > 0
+          ? `Compare grades by professor and read ${plural(reviewCount, "student review")}.`
+          : "Compare grades by professor and read student reviews.";
+
   return fitSentences(
-    [lead, "Compare professors and pick the best section before you register."],
+    [lead, compare, "Pick the right section before you register."],
     MAX_DESCRIPTION,
   );
 }
@@ -104,8 +129,21 @@ export function professorCanonicalPath(professor: Pick<ProfessorDetail, "id">): 
   return `/professor/${encodeURIComponent(professor.id).replace(/%3D/gi, "=")}`;
 }
 
-export function professorTitle(professor: Pick<ProfessorDetail, "name">): string {
-  return `${clean(professor.name)} – Texas A&M Professor Ratings, Reviews & Grades`;
+/**
+ * With reviews the title carries the rating and review count, which is what a
+ * student scanning "<name> tamu" results is looking for. Without them it keeps
+ * the plain keyword form (never a made-up number).
+ */
+export function professorTitle(
+  professor: Pick<ProfessorDetail, "name"> &
+    Partial<Pick<ProfessorDetail, "overall_rating" | "total_reviews">>,
+): string {
+  const name = clean(professor.name);
+  const reviews = professor.total_reviews ?? 0;
+  if (typeof professor.overall_rating === "number" && reviews > 0) {
+    return `${name} – Texas A&M Professor: ${professor.overall_rating.toFixed(1)}/5, ${plural(reviews, "Review")} & Grades`;
+  }
+  return `${name} – Texas A&M Professor Ratings, Reviews & Grades`;
 }
 
 /** The courses with the most reviews (then most graded students), formatted. */
@@ -152,7 +190,7 @@ export function professorDescription(professor: ProfessorDetail): string {
     [
       ratingSentence(professor),
       courses.length > 0 ? `Teaches ${joinList(courses)}.` : "",
-      "See grade distributions and what students say.",
+      "See grades and what students say.",
     ],
     MAX_DESCRIPTION,
   );

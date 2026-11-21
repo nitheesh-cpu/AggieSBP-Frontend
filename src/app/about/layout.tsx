@@ -1,8 +1,9 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "About - Aggie Schedule Builder Plus",
-    description: "Learn about Aggie Schedule Builder Plus, the ultimate course planning and professor discovery tool for Texas A&M University students.",
+    title: "About AggieSB+: Unofficial Texas A&M Schedule Companion",
+    description:
+        "AggieSB+ is a student-built, unofficial companion to Aggie Schedule Builder with grade distributions, professor ratings and seat alerts. Not affiliated with Texas A&M.",
 };
 
 export default function AboutLayout({

@@ -48,8 +48,10 @@ test("formatCourseCode spaces and uppercases", () => {
 });
 
 test("courseTitle matches the search shape and falls back", () => {
+  // No GPA known: keyword form, never a made-up number.
+  const noGpa = { code: "MATH 152", name: "Engineering Mathematics II" };
   assert.equal(
-    courseTitle(course),
+    courseTitle(noGpa),
     "MATH 152: Engineering Mathematics II – Grades, Professors & Reviews | Texas A&M",
   );
   assert.equal(
@@ -65,12 +67,47 @@ test("courseTitle matches the search shape and falls back", () => {
   assert.ok(long.endsWith("– Grades & Professors | Texas A&M"), long);
 });
 
+test("courseTitle puts the average GPA in, shrinking the tail before the name", () => {
+  assert.equal(
+    courseTitle(course),
+    "MATH 152: Engineering Mathematics II – Avg GPA 2.70 & Professors | Texas A&M",
+  );
+  assert.equal(
+    courseTitle({ code: "MSEN 325", name: "Properties of Functional Materials", avgGPA: 2.92 }),
+    "MSEN 325: Properties of Functional Materials – Avg GPA 2.92 | Texas A&M",
+  );
+  assert.equal(
+    courseTitle({ code: "CSCE 120", name: "Program Design", avgGPA: 3.1 }),
+    "CSCE 120: Program Design – Avg GPA 3.10, Professors & Reviews | Texas A&M",
+  );
+  const long = courseTitle({
+    code: "ECEN 489",
+    name: "Special Topics in Advanced Machine Learning Systems for Embedded Hardware",
+    avgGPA: 3.4,
+  });
+  assert.ok(long.length <= 80, long);
+  assert.ok(long.endsWith("– Avg GPA 3.40 | Texas A&M"), long);
+  assert.doesNotMatch(
+    courseTitle({ code: "MATH 152", name: "Engineering Mathematics II", avgGPA: -1 }),
+    /GPA/,
+  );
+});
+
 test("courseDescription mentions GPA, professors and reviews", () => {
   const d = courseDescription(course);
   assert.match(d, /average GPA 2\.70/);
-  assert.match(d, /2 professors/);
-  assert.match(d, /120 student reviews/);
+  assert.match(d, /across 2 professors/);
+  assert.match(d, /read 120 student reviews/);
   assert.ok(d.length <= 160, d);
+  // The compare sentence is kept even with a long course name.
+  const longName = courseDescription({
+    ...course,
+    code: "MSEN 325",
+    name: "Properties of Functional Materials",
+    professors: [{ id: "a", name: "A", courseReviewCount: 6 }],
+  } as unknown as CourseDetail);
+  assert.match(longName, /across 1 professor and read 6 student reviews/);
+  assert.ok(longName.length <= 160, longName);
   assert.doesNotMatch(courseDescription({ ...course, avgGPA: -1 }), /GPA -1/);
 });
 
@@ -82,7 +119,15 @@ test("canonical paths use the API's ids", () => {
 test("professor title and description", () => {
   assert.equal(
     professorTitle(professor),
+    "Doug Klein – Texas A&M Professor: 1.8/5, 31 Reviews & Grades",
+  );
+  assert.equal(
+    professorTitle({ name: "Doug Klein", overall_rating: null, total_reviews: 0 }),
     "Doug Klein – Texas A&M Professor Ratings, Reviews & Grades",
+  );
+  assert.equal(
+    professorTitle({ name: "Doug Klein", overall_rating: 4, total_reviews: 1 }),
+    "Doug Klein – Texas A&M Professor: 4.0/5, 1 Review & Grades",
   );
   assert.deepEqual(mainCourses(professor), ["PHYS 206", "PHYS 218", "CHEM 107"]);
   const d = professorDescription(professor);

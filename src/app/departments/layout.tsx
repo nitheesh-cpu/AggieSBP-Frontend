@@ -1,8 +1,9 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "Departments - Aggie Schedule Builder Plus",
-    description: "Browse all academic departments at Texas A&M University. Find courses, professors, and GPA statistics for each department.",
+    title: "Texas A&M Departments: Course GPAs & Professors | AggieSB+",
+    description:
+        "Browse every Texas A&M department. See each course's average GPA and the professors who teach it.",
 };
 
 export default function DepartmentsLayout({

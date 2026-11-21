@@ -16,12 +16,16 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
+      # `npm test` runs .ts files directly and passes a quoted glob to `node --test`,
+      # which needs Node 22.6+ (Node 20 fails with "Could not find src/**/*.test.ts").
+      # Node 24 is what the tests are verified on. Next.js 16 itself needs >= 20.9.
       - uses: actions/setup-node@v4
         with:
-          node-version: 20 # Next.js 16 needs >= 20.9; package.json has no engines field
+          node-version: 24
           cache: npm
 
       - run: npm ci

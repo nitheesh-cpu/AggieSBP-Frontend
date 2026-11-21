@@ -167,7 +167,7 @@ export default function PlannerPage() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-x-clip" style={{ background: "var(--app-bg-gradient)" }}>
+    <div className="min-h-dvh relative overflow-x-clip" style={{ background: "var(--app-bg-gradient)" }}>
       <Navigation variant="glass" />
       <PageBanner
         title="Schedule builder"

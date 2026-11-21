@@ -21,7 +21,7 @@ export default function NotifyTestPage() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-black text-white">
+    <main className="min-h-dvh flex items-center justify-center bg-black text-white">
       <div className="max-w-md w-full p-6 border border-yellow-400/50 rounded-xl bg-black/80 space-y-4">
         <h1 className="text-xl font-medium">AggieSB+ Notification Test</h1>
         <p className="text-sm text-gray-300">

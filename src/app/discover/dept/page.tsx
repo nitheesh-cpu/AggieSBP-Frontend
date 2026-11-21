@@ -246,7 +246,7 @@ export default function DiscoverDeptPage() {
 
   return (
     <MotionConfig reducedMotion={shouldReduceMotion ? "always" : "never"}>
-      <div className="min-h-screen relative" style={{ background: "var(--app-bg-gradient)" }}>
+      <div className="min-h-dvh relative" style={{ background: "var(--app-bg-gradient)" }}>
         <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "var(--app-bg-ambient)" }} />
 
         <Navigation variant="glass" />

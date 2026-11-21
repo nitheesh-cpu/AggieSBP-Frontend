@@ -621,7 +621,7 @@ export default function ProfessorPageClient({
       transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
     >
       <div
-        className="min-h-screen relative"
+        className="min-h-dvh relative"
         style={{ background: "var(--app-bg-gradient)" }}
       >
         <Navigation variant="glass" />

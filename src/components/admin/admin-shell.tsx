@@ -86,8 +86,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     <main
       className={
         wide
-          ? "min-h-screen px-4 py-5 sm:px-6 lg:px-8"
-          : "min-h-screen px-4 py-8 sm:px-6"
+          ? "min-h-dvh px-4 py-5 sm:px-6 lg:px-8"
+          : "min-h-dvh px-4 py-8 sm:px-6"
       }
       style={{ background: "var(--app-bg-gradient)" }}
     >

@@ -20,7 +20,7 @@ export default function CourseError({ reset }: { error: Error; reset: () => void
     });
 
   return (
-    <div className="min-h-screen relative" style={{ background: "var(--app-bg-gradient)" }}>
+    <div className="min-h-dvh relative" style={{ background: "var(--app-bg-gradient)" }}>
       <Navigation variant="glass" />
       <main className="pt-24 pb-20 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">

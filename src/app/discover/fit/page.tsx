@@ -840,7 +840,7 @@ export default function DiscoverFitPage() {
   };
 
   return (
-    <div className="min-h-screen relative" style={{ background: "var(--app-bg-gradient)" }}>
+    <div className="min-h-dvh relative" style={{ background: "var(--app-bg-gradient)" }}>
       <Navigation variant="glass" />
       <PageBanner
         title="Fit my schedule"
@@ -1226,7 +1226,7 @@ export default function DiscoverFitPage() {
                           className="h-8 text-sm"
                         />
                       </div>
-                      <ScrollArea className="h-[min(50vh,280px)]">
+                      <ScrollArea className="h-[min(50dvh,280px)]">
                         <div className="p-2 space-y-1">
                           {attributeOptions.length === 0 && (
                             <p className="text-xs text-text-body dark:text-text-muted px-1 py-2">

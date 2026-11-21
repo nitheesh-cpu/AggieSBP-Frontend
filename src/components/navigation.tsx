@@ -355,7 +355,7 @@ export const Navigation = ({
               exit={{ y: -6, opacity: 0 }}
               transition={{ duration: 0.2 }}
             >
-              <div className="px-4 py-4 max-h-[min(70vh,calc(100dvh-5.5rem-env(safe-area-inset-top)))] overflow-y-auto">
+              <div className="px-4 py-4 max-h-[min(70dvh,calc(100dvh-5.5rem-env(safe-area-inset-top)))] overflow-y-auto">
                 <p className="text-xs text-text-muted mb-2 px-1">
                   Navigation
                 </p>

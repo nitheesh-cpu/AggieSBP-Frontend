@@ -49,7 +49,7 @@ export function HomePageMotion() {
       reducedMotion="user"
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
     >
-      <div className="min-h-screen bg-canvas">
+      <div className="min-h-dvh bg-canvas">
         <Navigation variant="glass" />
 
         {accountDeleted && (

@@ -285,7 +285,7 @@ function UCCDiscoveryContent() {
   return (
     <MotionConfig reducedMotion={shouldReduceMotion ? "always" : "never"}>
       <div
-        className="min-h-screen relative"
+        className="min-h-dvh relative"
         style={{ background: "var(--app-bg-gradient)" }}
       >
         {/* Ambient background gradient */}
@@ -507,7 +507,7 @@ function UCCDiscoveryContent() {
                               className="h-8 text-sm"
                             />
                           </div>
-                          <ScrollArea className="h-[min(50vh,280px)]">
+                          <ScrollArea className="h-[min(50dvh,280px)]">
                             <div className="p-2 space-y-1">
                               {filterOptions.sectionTypes.length === 0 && (
                                 <p className="text-xs text-text-body dark:text-text-muted px-1 py-2">

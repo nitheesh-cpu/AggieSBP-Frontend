@@ -7,7 +7,7 @@ import { Footer } from "@/components/footer";
 export default function NotFound() {
   return (
     <div
-      className="relative flex min-h-screen flex-col"
+      className="relative flex min-h-dvh flex-col"
       style={{ background: "var(--app-bg-gradient)" }}
     >
       <div

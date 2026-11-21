@@ -9,7 +9,7 @@ import { ErrorBoundary } from "react-error-boundary";
 
 function AuthErrorFallback({ error, resetErrorBoundary }: any) {
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-4">
+        <div className="flex flex-col items-center justify-center min-h-dvh bg-black text-white p-4">
             <div className="max-w-md w-full border-2 border-red-500 rounded-lg p-6 bg-red-500/10">
                 <h2 className="text-xl font-medium mb-4 text-red-500">Authentication Service Error</h2>
                 <p className="text-sm text-gray-300 mb-4">

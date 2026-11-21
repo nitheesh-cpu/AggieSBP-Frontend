@@ -251,7 +251,7 @@ export function GlobalOmnibar({
               id={listId}
               role="listbox"
               aria-label="Search suggestions"
-              className="max-h-[min(16rem,42vh)] overflow-y-auto"
+              className="max-h-[min(16rem,42dvh)] overflow-y-auto"
             >
               {results.map((result, index) => {
                 const Icon = resultIcons[result.kind];

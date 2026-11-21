@@ -5,7 +5,7 @@ import { AnalyticsOptOut } from "@/components/analytics-opt-out";
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-[var(--color-canvas)]">
+    <div className="min-h-dvh bg-[var(--color-canvas)]">
       <Navigation />
       
       <main className="pt-20 pb-16">

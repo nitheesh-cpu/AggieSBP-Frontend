@@ -250,7 +250,7 @@ export function Flowchart({ record, plan }: { record: AcademicRecord; plan: Degr
 
       <div
         ref={viewportRef}
-        className="relative h-[calc(100vh-14rem)] min-h-[480px] cursor-grab touch-none select-none overflow-hidden border-y border-border bg-white/40 active:cursor-grabbing dark:bg-white/[0.02]"
+        className="relative h-[calc(100dvh-14rem)] min-h-[480px] cursor-grab touch-none select-none overflow-hidden border-y border-border bg-white/40 active:cursor-grabbing dark:bg-white/[0.02]"
         onPointerDown={(e) => {
           if (e.button !== 0) return;
           drag.current = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y, moved: false };

@@ -106,7 +106,7 @@ export function PasteImportDialog({
           Paste a list
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-h-[90vh] overflow-y-auto bg-white sm:max-w-3xl dark:bg-card">
+      <DialogContent className="max-h-[90dvh] overflow-y-auto bg-white sm:max-w-3xl dark:bg-card">
         <DialogHeader>
           <DialogTitle>Paste your courses</DialogTitle>
           <DialogDescription>
@@ -132,7 +132,7 @@ export function PasteImportDialog({
               grade, or status below.
               {error && " Couldn't check course names right now, so all are selected."}
             </p>
-            <div className="max-h-[45vh] overflow-y-auto rounded-md border border-border">
+            <div className="max-h-[45dvh] overflow-y-auto rounded-md border border-border">
               <table className="w-full text-sm">
                 <thead className="sticky top-0 bg-white/95 text-left text-xs text-text-body dark:bg-card">
                   <tr>

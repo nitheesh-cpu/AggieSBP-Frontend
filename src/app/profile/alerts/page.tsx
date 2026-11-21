@@ -322,7 +322,7 @@ function MyAlertsContent() {
 
   return (
     <div
-      className="min-h-screen relative flex flex-col"
+      className="min-h-dvh relative flex flex-col"
       style={{ background: "var(--app-bg-gradient)" }}
     >
 

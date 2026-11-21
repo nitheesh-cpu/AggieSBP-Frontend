@@ -64,7 +64,7 @@ export function HowdyImportDialog(props: Props) {
   const { open, onOpenChange, pending } = props;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto bg-white sm:max-w-2xl dark:bg-card">
+      <DialogContent className="max-h-[90dvh] overflow-y-auto bg-white sm:max-w-2xl dark:bg-card">
         {pending ? <Review {...props} pending={pending} /> : <Instructions />}
       </DialogContent>
     </Dialog>
@@ -257,7 +257,7 @@ function Review({
         </div>
       ) : (
         <>
-          <div className="max-h-[55vh] space-y-5 overflow-y-auto rounded-md border border-border p-3">
+          <div className="max-h-[55dvh] space-y-5 overflow-y-auto rounded-md border border-border p-3">
             {hasCourses && (
               <div className="space-y-3">
                 <SectionHeader

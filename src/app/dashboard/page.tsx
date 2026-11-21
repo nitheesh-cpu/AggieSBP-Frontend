@@ -141,7 +141,7 @@ export default function DashboardPage() {
       className={
         isStandalone
           ? "relative flex h-[calc(100dvh-env(safe-area-inset-top))] max-h-[calc(100dvh-env(safe-area-inset-top))] min-h-0 flex-col overflow-hidden bg-canvas"
-          : "relative flex min-h-screen flex-col bg-canvas"
+          : "relative flex min-h-dvh flex-col bg-canvas"
       }
     >
 

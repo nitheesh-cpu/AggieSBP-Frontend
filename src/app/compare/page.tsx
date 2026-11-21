@@ -1412,7 +1412,7 @@ function ComparePageContent() {
 
   return (
     <div
-      className="min-h-screen relative"
+      className="min-h-dvh relative"
       style={{ background: "var(--app-bg-gradient)" }}
     >
       <div
@@ -1476,7 +1476,7 @@ export default function ComparePage() {
     <Suspense
       fallback={
         <div
-          className="min-h-screen relative"
+          className="min-h-dvh relative"
           style={{ background: "var(--app-bg-gradient)" }}
         >
           <Navigation variant="glass" />

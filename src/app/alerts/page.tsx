@@ -97,7 +97,7 @@ export default function SeatAlertsPage() {
   };
 
   return (
-    <div className="min-h-screen overflow-hidden bg-canvas">
+    <div className="min-h-dvh overflow-hidden bg-canvas">
       <Navigation variant="glass" />
 
       <main>

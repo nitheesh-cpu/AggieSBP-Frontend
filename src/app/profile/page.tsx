@@ -211,7 +211,7 @@ function ProfileContent() {
 
   return (
     <div
-      className="relative flex min-h-screen flex-col"
+      className="relative flex min-h-dvh flex-col"
       style={{ background: "var(--app-bg-gradient)" }}
     >
 

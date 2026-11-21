@@ -33,11 +33,16 @@ export default async function sitemap(props: {
       priority: 0.8,
     }))
 
-    const reviewPages: MetadataRoute.Sitemap = paginatedProfessors.map((professor) => ({
-      url: `${SITE_URL}/professor/${professor.id}/reviews`,
-      changeFrequency: 'weekly',
-      priority: 0.7,
-    }))
+    // Only professors with reviews: an empty reviews page is thin and noindex
+    // (see professor/[id]/reviews/page.tsx), and the sitemap should list only
+    // indexable URLs. About 15% of professors have none.
+    const reviewPages: MetadataRoute.Sitemap = paginatedProfessors
+      .filter((professor) => (professor.totalReviews ?? 0) > 0)
+      .map((professor) => ({
+        url: `${SITE_URL}/professor/${professor.id}/reviews`,
+        changeFrequency: 'weekly',
+        priority: 0.7,
+      }))
 
     const allPages = [...professorPages, ...reviewPages]
 

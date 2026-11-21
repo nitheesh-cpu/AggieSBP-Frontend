@@ -348,6 +348,8 @@ export interface CoursesParams {
 export interface SitemapEntry {
   id: string;
   lastModified: Date;
+  /** Professors only: lets the sitemap skip /reviews pages that have no reviews. */
+  totalReviews?: number;
 }
 
 // Helper function to handle API errors
@@ -753,7 +755,8 @@ export async function getAllProfessorIds(): Promise<SitemapEntry[]> {
     const professors = await handleResponse<Professor[]>(response);
     return professors.map(prof => ({
       id: prof.id,
-      lastModified: new Date() // Use current date as fallback
+      lastModified: new Date(), // Use current date as fallback
+      totalReviews: prof.total_reviews ?? 0,
     }));
   } catch (error) {
     console.error("Error fetching professor IDs for sitemap:", error);

@@ -309,3 +309,10 @@ Event names and data shapes are in `AnalyticsEvents` in `src/lib/analytics.ts` (
 **Rejected:** putting "RateMyProfessors" in titles (trademark, and the page is not that site); `SearchAction` JSON-LD (the site search is not a URL query Google can call); an OG image (does nothing for Google ranking).
 **Where:** `src/lib/seo-metadata.ts` (+ test), `src/app/page.tsx`, `src/app/layout.tsx`, `src/app/dashboard/layout.tsx`, the `layout.tsx` of courses, professors, departments, discover/ucc, discover/dept, compare, about
 **Status:** active, unmeasured. Compare Search Console CTR for course and professor pages about 2 to 4 weeks after deploy. The CDN keeps old HTML up to a day (D-044), and Google re-snippets over days to weeks.
+
+### D-046: Empty reviews pages are noindex and out of the sitemap  (2026-11-21)
+**Decision:** `/professor/[id]/reviews` sets `robots: {index:false, follow:true}` when the professor has no reviews, and `professors/sitemap.ts` lists a reviews URL only for professors with `total_reviews > 0` (`getAllProfessorIds` now returns `totalReviews`). The profile URL stays in the sitemap for every professor.
+**Why:** 956 of 6,250 professors have no reviews, so 956 sitemap URLs were thin pages with nothing the profile does not show. Google's guidance is to list only canonical, indexable URLs and avoid thin ones; Search Console already had about 8,300 "discovered - not indexed".
+**Rejected:** dropping the page entirely (the reviews tab is still useful to visitors); faking a `lastmod` (D-027).
+**Where:** `src/app/professor/[id]/reviews/page.tsx`, `src/app/professors/sitemap.ts`, `src/lib/api.ts`
+**Status:** active. Verified locally: professor sitemap went from 12,500 to 11,544 URLs, and an empty reviews page renders `noindex, follow`. Not yet verified on the live site or in Search Console. Known gap, not fixed: the hub pages (`/courses`, `/professors`, `/departments`, `/discover/*`) are client-rendered and put no `<a href>` links to course or professor pages in the server HTML, so the sitemap is the main way Google finds those URLs.

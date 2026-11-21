@@ -47,6 +47,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description,
     alternates: { canonical },
     openGraph: { title, description, url: canonical, type: "website" },
+    // No reviews means nothing here that the profile page doesn't already
+    // show; keep it out of the index but let Google follow its links.
+    ...((professor.total_reviews ?? 0) > 0 ? {} : { robots: { index: false, follow: true } }),
   };
 }
 

@@ -12,17 +12,10 @@ import {
   professorReviewsTitle,
 } from "@/lib/seo-metadata";
 
-// Server-rendered with the first page of reviews; regenerated at most weekly.
-export const revalidate = 604800;
-
-// generateStaticParams() returning [] with dynamicParams makes every id an
-// on-demand ISR page: rendered on its first visit, then cached. dynamicParams
-// is set explicitly: without it, Next 16.2 (next dev) 404ed every id here.
-export const dynamicParams = true;
-
-export function generateStaticParams(): Array<{ id: string }> {
-  return [];
-}
+// Rendered per request, never written to the ISR cache (Vercel bills ISR
+// writes and the free tier ran out). Vercel's CDN caches the HTML instead,
+// via Vercel-CDN-Cache-Control in next.config.ts.
+export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 25;
 

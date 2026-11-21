@@ -42,6 +42,18 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      // Pages are force-dynamic (no ISR writes); the CDN caches the HTML.
+      // Vercel-CDN-Cache-Control is read by Vercel's edge only and is not
+      // overwritten by Next's own Cache-Control for dynamic routes.
+      {
+        source: "/:section(course|professor)/:path*",
+        headers: [
+          {
+            key: "Vercel-CDN-Cache-Control",
+            value: "max-age=86400, stale-while-revalidate=604800",
+          },
+        ],
+      },
     ];
   },
   async redirects() {

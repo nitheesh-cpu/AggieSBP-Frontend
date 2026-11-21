@@ -6,7 +6,7 @@ export const getCachedCourseIds = unstable_cache(
   async () => getAllCourseIds(),
   ['sitemap-courses'],
   {
-    revalidate: 3600, // Revalidate every hour
+    revalidate: 86400, // daily; every refresh is an ISR write
     tags: ['sitemap', 'courses']
   }
 )
@@ -15,7 +15,7 @@ export const getCachedProfessorIds = unstable_cache(
   async () => getAllProfessorIds(),
   ['sitemap-professors'],
   {
-    revalidate: 3600, // Revalidate every hour
+    revalidate: 86400, // daily; every refresh is an ISR write
     tags: ['sitemap', 'professors']
   }
 )
@@ -24,7 +24,7 @@ export const getCachedDepartmentIds = unstable_cache(
   async () => getAllDepartmentIds(),
   ['sitemap-departments'],
   {
-    revalidate: 3600, // Revalidate every hour
+    revalidate: 86400, // daily; every refresh is an ISR write
     tags: ['sitemap', 'departments']
   }
 )
@@ -33,7 +33,7 @@ export const getCachedSitemapCounts = unstable_cache(
   async () => getSitemapCounts(),
   ['sitemap-counts'],
   {
-    revalidate: 3600, // Revalidate every hour
+    revalidate: 86400, // daily; every refresh is an ISR write
     tags: ['sitemap']
   }
 )

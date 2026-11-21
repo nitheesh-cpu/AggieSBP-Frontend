@@ -14,19 +14,10 @@ import {
 } from "@/lib/seo-metadata";
 import { pickDefaultTerm } from "@/lib/terms";
 
-// Server-rendered so crawlers get the real course in the HTML; regenerated at
-// most weekly. No paths are built ahead of time: each is rendered on its first
-// visit and cached.
-export const revalidate = 604800;
-
-// generateStaticParams() returning [] with dynamicParams makes every id an
-// on-demand ISR page: rendered on its first visit, then cached. dynamicParams
-// is set explicitly: without it, Next 16.2 (next dev) 404ed every id here.
-export const dynamicParams = true;
-
-export function generateStaticParams(): Array<{ id: string }> {
-  return [];
-}
+// Rendered per request, never written to the ISR cache (Vercel bills ISR
+// writes and the free tier ran out). Vercel's CDN caches the HTML instead,
+// via Vercel-CDN-Cache-Control in next.config.ts.
+export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ id: string }>;

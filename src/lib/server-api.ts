@@ -17,7 +17,9 @@ import { cache } from "react";
 import {
   normalizeProfessorReviews,
   type CourseDetail,
+  type Course,
   type Department,
+  type Professor,
   type ProfessorDetail,
   type ProfessorReviews,
   type Term,
@@ -122,6 +124,23 @@ export const getTermsServer = cache(async (): Promise<Term[] | null> => {
     return null;
   }
 });
+
+/** All departments, including ones without data; callers filter with publishedDepartments(). */
+export const getDepartmentsServer = cache(
+  (): Promise<Department[]> => apiGet<Department[]>("/departments?limit=1000"),
+);
+
+/** Every course in a subject, for the department page's link list. */
+export const getDepartmentCoursesServer = cache(
+  (code: string): Promise<Course[]> =>
+    apiGet<Course[]>(`/courses?department=${encodeURIComponent(code)}&limit=1000`),
+);
+
+/** Professors who teach in a subject; the page sorts and trims them. */
+export const getDepartmentProfessorsServer = cache(
+  (code: string): Promise<Professor[]> =>
+    apiGet<Professor[]>(`/professors?department=${encodeURIComponent(code)}&limit=1000`),
+);
 
 /** Official subject codes (CSCE, MATH, ...); null when unavailable. */
 export const getOfficialSubjectCodesServer = cache(

@@ -46,7 +46,16 @@ const nextConfig: NextConfig = {
       // Vercel-CDN-Cache-Control is read by Vercel's edge only and is not
       // overwritten by Next's own Cache-Control for dynamic routes.
       {
-        source: "/:section(course|professor)/:path*",
+        source: "/:section(course|professor|departments)/:path+",
+        headers: [
+          {
+            key: "Vercel-CDN-Cache-Control",
+            value: "max-age=86400, stale-while-revalidate=604800",
+          },
+        ],
+      },
+      {
+        source: "/browse",
         headers: [
           {
             key: "Vercel-CDN-Cache-Control",

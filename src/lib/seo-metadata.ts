@@ -3,7 +3,8 @@
  * worded to match what people search ("msen 325", "<name> rate my professor").
  * Pure functions so they can be unit tested (seo-metadata.test.ts).
  */
-import type { CourseDetail, ProfessorDetail } from "./api";
+import type { CourseDetail, Department, ProfessorDetail } from "./api";
+import { departmentName } from "./department-pages.ts";
 
 /** Titles past this get a shorter suffix / truncated course name. */
 const MAX_TITLE = 80;
@@ -78,6 +79,35 @@ export function courseTitle(
   const shortTail = tails[tails.length - 1];
   const room = MAX_TITLE - `${code}: `.length - shortTail.length;
   return `${code}: ${truncate(name, Math.max(room, 20))}${shortTail}`;
+}
+
+export function departmentCanonicalPath(code: string): string {
+  return `/departments/${encodeURIComponent(clean(code).toUpperCase())}`;
+}
+
+/** "Texas A&M MATH Courses: Avg GPA 2.79 & Top Professors | AggieSB+" */
+export function departmentTitle(
+  dept: Pick<Department, "code" | "avgGpa">,
+): string {
+  const code = clean(dept.code).toUpperCase();
+  return typeof dept.avgGpa === "number" && dept.avgGpa >= 0
+    ? `Texas A&M ${code} Courses: Avg GPA ${dept.avgGpa.toFixed(2)} & Top Professors | AggieSB+`
+    : `Texas A&M ${code} Courses & Professors | AggieSB+`;
+}
+
+export function departmentDescription(
+  dept: Pick<Department, "code" | "name" | "courses" | "avgGpa">,
+): string {
+  const code = clean(dept.code).toUpperCase();
+  const label = departmentName(dept);
+  const lead =
+    typeof dept.avgGpa === "number" && dept.avgGpa >= 0
+      ? `${label} (${code}) at Texas A&M: average GPA ${dept.avgGpa.toFixed(2)} across ${plural(dept.courses, "course")} with grade data.`
+      : `${label} (${code}) at Texas A&M: ${plural(dept.courses, "course")} with grade data.`;
+  return fitSentences(
+    [lead, "See each course's GPA, its professors and what students say."],
+    MAX_DESCRIPTION,
+  );
 }
 
 function plural(n: number, one: string, many = `${one}s`): string {

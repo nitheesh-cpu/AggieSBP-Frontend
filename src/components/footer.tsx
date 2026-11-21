@@ -30,6 +30,8 @@ const COLUMNS: { title: string; links: FooterLink[] }[] = [
   {
     title: "Website",
     links: [
+      // Server-rendered list of every department: the crawlable way into course pages.
+      { label: "Browse by department", href: "/browse", item: "browse-departments" },
       { label: "About", href: "/about", item: "about" },
       { label: "Terms", href: "/terms", item: "terms" },
       { label: "Privacy", href: "/privacy", item: "privacy" },

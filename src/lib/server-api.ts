@@ -14,6 +14,7 @@
  *   empty-looking 200 page.
  */
 import { cache } from "react";
+import { memoTtl } from "@/lib/memo-ttl";
 import {
   normalizeProfessorReviews,
   type CourseDetail,
@@ -116,19 +117,29 @@ export const getProfessorReviewsFirstPageServer = cache(
   },
 );
 
+/**
+ * Terms and the department list change a few times a semester, so a warm
+ * instance keeps them for 6 hours instead of fetching them on every render
+ * (D-048). Saves API round trips and function CPU on every CDN miss.
+ */
+const SHARED_LIST_TTL_MS = 6 * 60 * 60 * 1000;
+const loadTerms = memoTtl(() => apiGet<Term[]>("/terms"), SHARED_LIST_TTL_MS);
+const loadDepartments = memoTtl(
+  () => apiGet<Department[]>("/departments?limit=1000"),
+  SHARED_LIST_TTL_MS,
+);
+
 /** Terms only fill the term picker; on failure the client loads them itself. */
 export const getTermsServer = cache(async (): Promise<Term[] | null> => {
   try {
-    return await apiGet<Term[]>("/terms");
+    return await loadTerms();
   } catch {
     return null;
   }
 });
 
 /** All departments, including ones without data; callers filter with publishedDepartments(). */
-export const getDepartmentsServer = cache(
-  (): Promise<Department[]> => apiGet<Department[]>("/departments?limit=1000"),
-);
+export const getDepartmentsServer = cache((): Promise<Department[]> => loadDepartments());
 
 /** Every course in a subject, for the department page's link list. */
 export const getDepartmentCoursesServer = cache(
@@ -146,7 +157,7 @@ export const getDepartmentProfessorsServer = cache(
 export const getOfficialSubjectCodesServer = cache(
   async (): Promise<Set<string> | null> => {
     try {
-      const rows = await apiGet<Department[]>("/departments?limit=1000");
+      const rows = await loadDepartments();
       return new Set(rows.map((d) => d.code).filter(Boolean));
     } catch {
       return null;

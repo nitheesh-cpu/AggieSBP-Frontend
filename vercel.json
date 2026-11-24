@@ -1,6 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "redirects": [
-    { "source": "/(.*)", "destination": "https://aggiesbp.com/$1", "permanent": true }
+    {
+      "source": "/((?!googlea75cc1ec8def39f3\.html).*)",
+      "destination": "https://aggiesbp.com/$1",
+      "permanent": true
+    }
   ]
 }

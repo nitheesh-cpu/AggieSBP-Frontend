@@ -4,6 +4,7 @@ export const metadata: Metadata = {
     title: "Texas A&M Professor Ratings, Reviews & Grades | AggieSB+",
     description:
         "Look up any Texas A&M professor: student ratings, would-take-again percent, grade distributions and AI summaries of what students say.",
+    alternates: { canonical: "/professors" },
 };
 
 export default function ProfessorsLayout({

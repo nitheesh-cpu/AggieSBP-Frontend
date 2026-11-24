@@ -35,7 +35,7 @@ function sanitizeNotificationClickUrl(raw) {
  */
 const UMAMI_ENDPOINT = "https://stats.nitheeshk.com/api/n";
 const UMAMI_WEBSITE_ID = "7efa90af-63b9-4c90-9287-510bd8e41d2e";
-const PRODUCTION_HOSTNAME = "aggieschedulebuilderplus.vercel.app";
+const PRODUCTION_HOSTNAME = "aggiesbp.com";
 const NOTIFICATION_EVENT_URL = "/sw/notification";
 const TRACK_TIMEOUT_MS = 3000;
 

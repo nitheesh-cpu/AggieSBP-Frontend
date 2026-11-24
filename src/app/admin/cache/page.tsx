@@ -69,9 +69,10 @@ export default function AdminCachePage() {
       <header>
         <h1 className="text-2xl font-semibold text-text-heading">Cache</h1>
         <p className="mt-1 text-sm text-text-muted">
-          Clear cached API responses so visitors see fresh data, for example
-          after a merge or a summary rebuild. Pages on the site are refreshed
-          too when that is configured.
+          Clear cached API responses and the site&apos;s cached pages on
+          Cloudflare so visitors see fresh data, for example after a merge or a
+          summary rebuild. Merges and instructor links already do this for the
+          pages they change.
         </p>
       </header>
 
@@ -128,8 +129,8 @@ export default function AdminCachePage() {
       <section className={`${panelClass} space-y-3`}>
         <h2 className="text-lg font-medium text-text-heading">Everything</h2>
         <p className="text-sm text-text-muted">
-          Removes every cached response. Pages may load slower for a while as
-          the cache fills again.
+          Removes every cached API response and every page Cloudflare has
+          cached. Pages load slower for a while as both caches fill again.
         </p>
         {confirmAll ? (
           <div className="flex flex-wrap items-center gap-3">

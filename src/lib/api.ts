@@ -1,7 +1,5 @@
 import { trackedFetch } from "@/lib/analytics";
-
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL?.trim() || "http://localhost:8000";
+import { API_BASE_URL, PUBLIC_API_BASE_URL } from "@/lib/api-base";
 
 /** Headers for authenticated API calls when frontend and API are on different origins (cookies won't be sent). */
 async function authHeaders(
@@ -459,7 +457,7 @@ export async function getHealthCheck(): Promise<{
     return await response.json();
   } catch (error) {
     console.error("Health check failed:", error);
-    throw new Error(`API server is not reachable at ${API_BASE_URL}`);
+    throw new Error(`API server is not reachable at ${PUBLIC_API_BASE_URL}`);
   }
 }
 

@@ -15,6 +15,8 @@
  */
 import { cache } from "react";
 import { memoTtl } from "@/lib/memo-ttl";
+// Over localhost on the VM when API_INTERNAL_URL is set (D-051).
+import { API_BASE_URL } from "@/lib/api-base";
 import {
   normalizeProfessorReviews,
   type CourseDetail,
@@ -25,9 +27,6 @@ import {
   type ProfessorReviews,
   type Term,
 } from "@/lib/api";
-
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL?.trim() || "http://localhost:8000";
 
 const REQUEST_TIMEOUT_MS = 10_000;
 const NOT_FOUND_STATUSES = new Set([400, 404, 410, 422]);

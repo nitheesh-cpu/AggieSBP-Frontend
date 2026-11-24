@@ -14,7 +14,12 @@ const UMAMI_PROXY_PATHS = [
   "/api/websites/:websiteId/recorder",
 ];
 
+const CDN_CACHE = "max-age=604800, stale-while-revalidate=2592000";
+
 const nextConfig: NextConfig = {
+  // Self-hosted on the backend VM: the deploy script copies the standalone
+  // server into a release folder (D-050). Vercel builds still work with it.
+  output: "standalone",
   async rewrites() {
     if (!UMAMI_PROXY) return [];
     return UMAMI_PROXY_PATHS.map((path) => ({
@@ -43,28 +48,19 @@ const nextConfig: NextConfig = {
         ],
       },
       // Pages are force-dynamic (no ISR writes); the CDN caches the HTML.
-      // Vercel-CDN-Cache-Control is read by Vercel's edge only and is not
-      // overwritten by Next's own Cache-Control for dynamic routes.
-      // 7 days, because crawlers walk every page and each edge miss is billed
-      // function CPU (D-048). Purge the CDN cache in Vercel after a data fix.
-      {
-        source: "/:section(course|professor|departments)/:path+",
+      // Each CDN reads only its own header, and neither is overwritten by
+      // Next's private Cache-Control for dynamic routes, so browsers still
+      // revalidate. 7 days, because crawlers walk every page (D-048).
+      // Cloudflare also needs a Cache Rule that makes these paths eligible
+      // and bypasses requests with an `rsc` header (D-050).
+      // After a data fix, purge the CDN cache in Vercel or Cloudflare.
+      ...["/:section(course|professor|departments)/:path+", "/browse"].map((source) => ({
+        source,
         headers: [
-          {
-            key: "Vercel-CDN-Cache-Control",
-            value: "max-age=604800, stale-while-revalidate=2592000",
-          },
+          { key: "Vercel-CDN-Cache-Control", value: CDN_CACHE },
+          { key: "Cloudflare-CDN-Cache-Control", value: CDN_CACHE },
         ],
-      },
-      {
-        source: "/browse",
-        headers: [
-          {
-            key: "Vercel-CDN-Cache-Control",
-            value: "max-age=604800, stale-while-revalidate=2592000",
-          },
-        ],
-      },
+      })),
     ];
   },
   async redirects() {

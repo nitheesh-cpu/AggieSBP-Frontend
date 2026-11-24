@@ -3,18 +3,16 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
-  AdminKeyError,
+  AdminAuthError,
   applyAiRejection,
   previewAiRejection,
   type AiRejectionPreview,
 } from "@/lib/admin-api";
 
 export function AiBulkRejection({
-  adminKey,
   onSignOut,
   onApplied,
 }: {
-  adminKey: string;
   onSignOut: () => void;
   onApplied: () => void;
 }) {
@@ -27,18 +25,18 @@ export function AiBulkRejection({
     setMessage(null);
     try {
       if (confirm && preview) {
-        const result = await applyAiRejection(adminKey, preview.token);
+        const result = await applyAiRejection(preview.token);
         setPreview(null);
         setMessage(
           `Rejected ${result.rejected.toLocaleString()} pending profiles.`,
         );
         onApplied();
       } else {
-        setPreview(await previewAiRejection(adminKey));
+        setPreview(await previewAiRejection());
       }
     } catch (error) {
       setPreview(null);
-      if (error instanceof AdminKeyError) onSignOut();
+      if (error instanceof AdminAuthError) onSignOut();
       else
         setMessage(
           error instanceof Error ? error.message : "Bulk rejection failed.",

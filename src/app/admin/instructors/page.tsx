@@ -29,7 +29,7 @@ import {
   subjectOf,
 } from "@/components/admin/compare-ui";
 import {
-  AdminKeyError,
+  AdminAuthError,
   AdminRequestError,
   type InstructorLinkResult,
   type InstructorLinks,
@@ -78,19 +78,17 @@ interface Notice {
 }
 
 export default function AdminInstructorLinksPage() {
-  const { adminKey, signOut } = useAdmin();
+  const { signOut } = useAdmin();
   return (
     <Suspense fallback={<p className="text-sm text-text-muted">Loading.</p>}>
-      <InstructorLinkReview adminKey={adminKey} onSignOut={signOut} />
+      <InstructorLinkReview onSignOut={signOut} />
     </Suspense>
   );
 }
 
 function InstructorLinkReview({
-  adminKey,
   onSignOut,
 }: {
-  adminKey: string;
   onSignOut: () => void;
 }) {
   const searchParams = useSearchParams();
@@ -125,7 +123,6 @@ function InstructorLinkReview({
     setLoading(true);
     setLoadError(null);
     getInstructorLinks(
-      adminKey,
       { tab, q, limit: PAGE_SIZE, offset },
       controller.signal,
     )
@@ -139,7 +136,7 @@ function InstructorLinkReview({
       })
       .catch((e: unknown) => {
         if (controller.signal.aborted) return;
-        if (e instanceof AdminKeyError) onSignOut();
+        if (e instanceof AdminAuthError) onSignOut();
         else if (e instanceof AdminRequestError && e.status === 409) {
           setMissingTable(e.message);
           setPage(null);
@@ -152,7 +149,7 @@ function InstructorLinkReview({
         if (!controller.signal.aborted) setLoading(false);
       });
     return () => controller.abort();
-  }, [adminKey, onSignOut, tab, q, offset, reloadToken]);
+  }, [onSignOut, tab, q, offset, reloadToken]);
 
   // The cleared-pages note goes away on its own.
   useEffect(() => {
@@ -205,26 +202,26 @@ function InstructorLinkReview({
         let request: Promise<InstructorLinkResult>;
         switch (action.type) {
           case "link":
-            request = linkInstructor(adminKey, key, action.professorIds);
+            request = linkInstructor(key, action.professorIds);
             break;
           case "reject":
-            request = rejectCandidates(adminKey, key, [action.professorId]);
+            request = rejectCandidates(key, [action.professorId]);
             break;
           case "reject-all":
-            request = rejectAllCandidates(adminKey, key);
+            request = rejectAllCandidates(key);
             break;
           case "no-profile":
-            request = markNoProfile(adminKey, key);
+            request = markNoProfile(key);
             break;
           case "undo":
-            request = undoInstructorLink(adminKey, key);
+            request = undoInstructorLink(key);
             break;
         }
         const res = await request;
         apply(res, instructor.tab);
         return true;
       } catch (e) {
-        if (e instanceof AdminKeyError) onSignOut();
+        if (e instanceof AdminAuthError) onSignOut();
         else if (e instanceof AdminRequestError && e.status === 409)
           setMissingTable(e.message);
         else
@@ -241,7 +238,7 @@ function InstructorLinkReview({
         });
       }
     },
-    [adminKey, apply, onSignOut],
+    [apply, onSignOut],
   );
 
   const changeTab = (next: string) => {
@@ -273,7 +270,6 @@ function InstructorLinkReview({
         <div className="flex flex-wrap items-center gap-3">
           <CompareLegend />
           <AiBulkRejection
-            adminKey={adminKey}
             onSignOut={onSignOut}
             onApplied={() => {
               setOffset(0);

@@ -44,7 +44,7 @@ Each rule below protects a deliberate choice. Details are in `docs/context/decis
 15. **Show honest data only.** Show a dash or "No data yet" instead of a made-up 0 or 3.0. No hard-coded demo numbers. (D-012)
 16. **The frontend must tolerate the old backend.** The site deploys separately from the backend, so validate response shapes. (G-007, G-035)
 17. **Weird-looking layout code is deliberate:** the 1100px hero cap (G-020), the zero-width compare column (G-027), planner `forceMount` (G-024), and the two launch paths of the installed app (G-021).
-18. **Admin pages:** the key lives in `sessionStorage` only, requests use plain `fetch` (never `trackedFetch`), and the pages are noindex. (D-034)
+18. **Admin pages:** Cloudflare Access signs admins in; the browser calls `/api/admin/*` on the site, which checks the Access token and adds the admin key on the server. Never send the admin key to the browser. Requests use plain `fetch` (never `trackedFetch`), and the pages are noindex. (D-034, D-052)
 
 ## Design rules (the owner's explicit choices)
 

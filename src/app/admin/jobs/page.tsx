@@ -11,7 +11,7 @@ import {
   timestamp,
 } from "@/components/admin/admin-ui";
 import {
-  AdminKeyError,
+  AdminAuthError,
   getSummaryJob,
   getSummaryJobs,
   retrySummaryJob,
@@ -19,7 +19,7 @@ import {
 } from "@/lib/admin-api";
 
 export default function AdminJobs() {
-  const { adminKey, signOut } = useAdmin();
+  const { signOut } = useAdmin();
   const [jobs, setJobs] = useState<SummaryJob[] | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<SummaryJob | null>(null);
@@ -35,12 +35,12 @@ export default function AdminJobs() {
   const load = useCallback(async () => {
     setBusy(true);
     try {
-      const data = await getSummaryJobs(adminKey);
+      const data = await getSummaryJobs();
       setJobs(data.jobs);
       setUpdatedAt(new Date().toISOString());
       setError(null);
     } catch (e) {
-      if (e instanceof AdminKeyError) signOut();
+      if (e instanceof AdminAuthError) signOut();
       else
         setError(
           e instanceof Error ? e.message : "Could not load run history.",
@@ -48,7 +48,7 @@ export default function AdminJobs() {
     } finally {
       setBusy(false);
     }
-  }, [adminKey, signOut]);
+  }, [signOut]);
   useEffect(() => {
     void load();
     const timer = window.setInterval(() => {
@@ -66,14 +66,14 @@ export default function AdminJobs() {
     setDetailError(null);
     const fetchDetail = async () => {
       try {
-        const data = await getSummaryJob(adminKey, selectedId);
+        const data = await getSummaryJob(selectedId);
         if (active) {
           setDetail(data.job);
           setDetailError(null);
         }
       } catch (e) {
         if (active) {
-          if (e instanceof AdminKeyError) signOut();
+          if (e instanceof AdminAuthError) signOut();
           else
             setDetailError(
               e instanceof Error ? e.message : "Could not load this run.",
@@ -89,7 +89,7 @@ export default function AdminJobs() {
       active = false;
       window.clearInterval(timer);
     };
-  }, [adminKey, selectedId, signOut]);
+  }, [selectedId, signOut]);
   const select = (id: string) => {
     setSelectedId(id);
     window.history.replaceState(
@@ -104,12 +104,12 @@ export default function AdminJobs() {
     setRetrying(true);
     setDetailError(null);
     try {
-      const data = await retrySummaryJob(adminKey, detail.id);
+      const data = await retrySummaryJob(detail.id);
       select(data.job.id);
       setDetail(data.job);
       await load();
     } catch (e) {
-      if (e instanceof AdminKeyError) signOut();
+      if (e instanceof AdminAuthError) signOut();
       else
         setDetailError(
           e instanceof Error ? e.message : "Could not retry this run.",

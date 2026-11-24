@@ -12,7 +12,7 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import {
-  AdminKeyError,
+  AdminAuthError,
   getSeatAlertHistory,
   type SeatAlertHistory,
   type SeatAlertPeriod,
@@ -144,7 +144,7 @@ function AlertHistoryChart({
 }
 
 export default function AdminSeatAlerts() {
-  const { adminKey, signOut } = useAdmin();
+  const { signOut } = useAdmin();
   const [period, setPeriod] = useState<SeatAlertPeriod>("week");
   const [history, setHistory] = useState<SeatAlertHistory | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -152,13 +152,13 @@ export default function AdminSeatAlerts() {
 
   useEffect(() => {
     const controller = new AbortController();
-    getSeatAlertHistory(adminKey, period, controller.signal)
+    getSeatAlertHistory(period, controller.signal)
       .then((data) => {
         if (!controller.signal.aborted) setHistory(data);
       })
       .catch((reason: unknown) => {
         if (controller.signal.aborted) return;
-        if (reason instanceof AdminKeyError) signOut();
+        if (reason instanceof AdminAuthError) signOut();
         else
           setError(
             reason instanceof Error
@@ -167,7 +167,7 @@ export default function AdminSeatAlerts() {
           );
       });
     return () => controller.abort();
-  }, [adminKey, attempt, period, signOut]);
+  }, [attempt, period, signOut]);
 
   return (
     <div className="space-y-4">

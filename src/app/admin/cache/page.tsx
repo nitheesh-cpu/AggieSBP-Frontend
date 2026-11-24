@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useAdmin } from "@/components/admin/admin-shell";
 import { AdminError, panelClass } from "@/components/admin/admin-ui";
 import {
-  AdminKeyError,
+  AdminAuthError,
   clearCache,
   type CacheClearResult,
 } from "@/lib/admin-api";
@@ -36,7 +36,7 @@ const splitCodes = (value: string) => [
 ];
 
 export default function AdminCachePage() {
-  const { adminKey, signOut } = useAdmin();
+  const { signOut } = useAdmin();
   const [professors, setProfessors] = useState("");
   const [courses, setCourses] = useState("");
   const [confirmAll, setConfirmAll] = useState(false);
@@ -44,15 +44,15 @@ export default function AdminCachePage() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<CacheClearResult | null>(null);
 
-  const run = async (target: Parameters<typeof clearCache>[1]) => {
+  const run = async (target: Parameters<typeof clearCache>[0]) => {
     setBusy(true);
     setError(null);
     setResult(null);
     try {
-      setResult(await clearCache(adminKey, target));
+      setResult(await clearCache(target));
       setConfirmAll(false);
     } catch (e) {
-      if (e instanceof AdminKeyError) signOut();
+      if (e instanceof AdminAuthError) signOut();
       else
         setError(e instanceof Error ? e.message : "Could not clear the cache.");
     } finally {

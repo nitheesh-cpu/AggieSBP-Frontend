@@ -7,14 +7,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useAdmin } from "@/components/admin/admin-shell";
 import { AdminError, panelClass, timestamp } from "@/components/admin/admin-ui";
 import {
-  AdminKeyError,
+  AdminAuthError,
   createSummaryJob,
   getPendingSummaries,
   type PendingSummary,
 } from "@/lib/admin-api";
 
 export default function AdminSummaries() {
-  const { adminKey, signOut } = useAdmin();
+  const { signOut } = useAdmin();
   const router = useRouter();
   const [professors, setProfessors] = useState<PendingSummary[] | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -27,7 +27,7 @@ export default function AdminSummaries() {
     setLoading(true);
     setError(null);
     try {
-      const data = await getPendingSummaries(adminKey);
+      const data = await getPendingSummaries();
       setProfessors(data.professors);
       const available = new Set(data.professors.map((p) => p.professorId));
       if (initialSelection.current) {
@@ -57,7 +57,7 @@ export default function AdminSummaries() {
             new Set([...previous].filter((id) => available.has(id))),
         );
     } catch (e) {
-      if (e instanceof AdminKeyError) signOut();
+      if (e instanceof AdminAuthError) signOut();
       else
         setError(
           e instanceof Error ? e.message : "Could not load pending summaries.",
@@ -65,7 +65,7 @@ export default function AdminSummaries() {
     } finally {
       setLoading(false);
     }
-  }, [adminKey, signOut]);
+  }, [signOut]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -76,10 +76,10 @@ export default function AdminSummaries() {
     setSubmitting(true);
     setError(null);
     try {
-      const result = await createSummaryJob(adminKey, [...selected]);
+      const result = await createSummaryJob([...selected]);
       router.push(`/admin/jobs?job=${encodeURIComponent(result.job.id)}`);
     } catch (e) {
-      if (e instanceof AdminKeyError) signOut();
+      if (e instanceof AdminAuthError) signOut();
       else
         setError(
           e instanceof Error ? e.message : "Could not queue the rebuild.",

@@ -25,7 +25,7 @@ import {
 } from "@/components/admin/compare-ui";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  AdminKeyError,
+  AdminAuthError,
   type MergeChangeResult,
   type MergeProfessor,
   type MergeStatus,
@@ -45,15 +45,13 @@ const rowColumns =
   "xl:grid-cols-[1.25rem_minmax(0,1fr)_1.25rem_minmax(0,1fr)_minmax(0,1.4fr)_8.5rem]";
 
 export default function AdminMergesPage() {
-  const { adminKey, signOut } = useAdmin();
-  return <MergeReview adminKey={adminKey} onSignOut={signOut} />;
+  const { signOut } = useAdmin();
+  return <MergeReview onSignOut={signOut} />;
 }
 
 function MergeReview({
-  adminKey,
   onSignOut,
 }: {
-  adminKey: string;
   onSignOut: () => void;
 }) {
   const [merges, setMerges] = useState<ProfessorMerge[] | null>(null);
@@ -66,12 +64,12 @@ function MergeReview({
   const load = useCallback(async () => {
     setError(null);
     try {
-      setMerges(await getProfessorMerges(adminKey));
+      setMerges(await getProfessorMerges());
     } catch (e) {
-      if (e instanceof AdminKeyError) onSignOut();
+      if (e instanceof AdminAuthError) onSignOut();
       else setError(e instanceof Error ? e.message : "Couldn't load merges.");
     }
-  }, [adminKey, onSignOut]);
+  }, [onSignOut]);
 
   useEffect(() => {
     void load();
@@ -114,12 +112,12 @@ function MergeReview({
     setBusy(true);
     setError(null);
     try {
-      const res = await setProfessorMergeStatus(adminKey, aliasIds, action);
+      const res = await setProfessorMergeStatus(aliasIds, action);
       setResult(res);
       setSelected(new Set());
       await load();
     } catch (e) {
-      if (e instanceof AdminKeyError) onSignOut();
+      if (e instanceof AdminAuthError) onSignOut();
       else setError(e instanceof Error ? e.message : "The change failed.");
     } finally {
       setBusy(false);

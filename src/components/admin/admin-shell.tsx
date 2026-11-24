@@ -9,16 +9,24 @@ import {
   useEffect,
   useState,
 } from "react";
-import { Lock } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ADMIN_KEY_STORAGE, checkAdminKey } from "@/lib/admin-api";
+import { AdminAuthError, checkAdminAccess } from "@/lib/admin-api";
 
 /** Pages that use the whole screen width; the rest keep a reading width. */
 const WIDE_PAGES = new Set(["/admin", "/admin/merges", "/admin/instructors"]);
 
+/** Cloudflare Access's sign-out endpoint on this site (D-052). */
+const ACCESS_LOGOUT_URL = "/cdn-cgi/access/logout";
+
+type Access =
+  | { state: "checking" }
+  | { state: "ok" }
+  | { state: "expired" }
+  | { state: "error"; message: string };
+
 const AdminContext = createContext<{
-  adminKey: string;
+  /** Pages call this when a request comes back 401/403: the Access sign-in expired. */
   signOut: () => void;
 } | null>(null);
 export function useAdmin() {
@@ -27,61 +35,47 @@ export function useAdmin() {
   return context;
 }
 
+/**
+ * Cloudflare Access signs admins in before this page loads (D-052); there is
+ * no key to type. This only confirms the server accepts the sign-in, and
+ * shows what to do when it has expired.
+ */
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [key, setKey] = useState<string | null>(null);
-  const [ready, setReady] = useState(false);
-  const [value, setValue] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [checking, setChecking] = useState(false);
-  const signOut = useCallback(() => {
-    try {
-      sessionStorage.removeItem(ADMIN_KEY_STORAGE);
-    } catch {
-      /* Storage may be disabled. */
-    }
-    setKey(null);
-    setValue("");
-  }, []);
+  const [access, setAccess] = useState<Access>({ state: "checking" });
+  const signOut = useCallback(() => setAccess({ state: "expired" }), []);
 
   useEffect(() => {
-    // A recorder already loaded on a public page must be removed before showing credentials.
+    // A recorder already loaded on a public page must be removed before showing admin data.
     if (document.querySelector('script[src*="recorder.js"]')) {
       window.location.reload();
       return;
     }
-    let stored: string | null = null;
-    try {
-      stored = sessionStorage.getItem(ADMIN_KEY_STORAGE);
-    } catch {
-      /* Tab-only fallback. */
-    }
-    if (!stored) {
-      setReady(true);
-      return;
-    }
     let active = true;
-    void checkAdminKey(stored)
+    void checkAdminAccess()
       .then(() => {
-        if (active) setKey(stored);
+        if (active) setAccess({ state: "ok" });
       })
-      .catch(() => {
-        if (active) signOut();
-      })
-      .finally(() => {
-        if (active) setReady(true);
+      .catch((e: unknown) => {
+        if (!active) return;
+        if (e instanceof AdminAuthError) setAccess({ state: "expired" });
+        else
+          setAccess({
+            state: "error",
+            message: e instanceof Error ? e.message : "Could not check admin access.",
+          });
       });
     return () => {
       active = false;
     };
-  }, [signOut]);
+  }, []);
 
-  const wide = key && WIDE_PAGES.has(pathname);
-
-  if (!ready)
+  if (access.state === "checking")
     return (
       <p className="p-8 text-sm text-text-muted">Checking admin access…</p>
     );
+
+  const wide = access.state === "ok" && WIDE_PAGES.has(pathname);
   return (
     <main
       className={
@@ -98,8 +92,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             : "mx-auto max-w-6xl space-y-6"
         }
       >
-        {key ? (
-          <AdminContext.Provider value={{ adminKey: key, signOut }}>
+        {access.state === "ok" ? (
+          <AdminContext.Provider value={{ signOut }}>
             <header className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
               <Link
                 href="/admin"
@@ -107,9 +101,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               >
                 AggieSB+ Admin
               </Link>
-              <Button variant="outline" size="sm" onClick={signOut}>
-                <Lock />
-                Lock admin
+              <Button variant="outline" size="sm" asChild>
+                {/* A full page load, so Cloudflare Access can end the session. */}
+                <a href={ACCESS_LOGOUT_URL}>
+                  <LogOut />
+                  Sign out
+                </a>
               </Button>
               <nav aria-label="Admin" className="flex w-full flex-wrap gap-2">
                 {[
@@ -135,62 +132,19 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             {children}
           </AdminContext.Provider>
         ) : (
-          <form
-            className="mx-auto mt-12 max-w-sm space-y-4 rounded-xl border border-border bg-card p-6"
-            onSubmit={async (event) => {
-              event.preventDefault();
-              const candidate = value.trim();
-              if (!candidate || checking) return;
-              setChecking(true);
-              setError(null);
-              try {
-                await checkAdminKey(candidate);
-                try {
-                  sessionStorage.setItem(ADMIN_KEY_STORAGE, candidate);
-                } catch {
-                  /* In-memory access still works. */
-                }
-                setKey(candidate);
-                setValue("");
-              } catch (e) {
-                setError(
-                  e instanceof Error
-                    ? e.message
-                    : "Could not check admin access.",
-                );
-              } finally {
-                setChecking(false);
-              }
-            }}
-          >
+          <section className="mx-auto mt-12 max-w-sm space-y-4 rounded-xl border border-border bg-card p-6">
             <h1 className="text-xl font-medium text-text-heading">
-              Admin access
+              {access.state === "expired" ? "Sign in again" : "Admin unavailable"}
             </h1>
-            <p className="text-sm text-text-muted">
-              Enter your admin key. Access is remembered for this browser tab
-              only.
+            <p role="alert" className="text-sm text-text-body">
+              {access.state === "expired"
+                ? "Your admin sign-in has expired. Reload the page and sign in through Cloudflare again."
+                : access.message}
             </p>
-            <label className="block space-y-2 text-sm text-text-body">
-              <span>Admin key</span>
-              <Input
-                type="password"
-                autoComplete="off"
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-              />
-            </label>
-            {error && (
-              <p
-                role="alert"
-                className="text-sm text-red-700 dark:text-red-300"
-              >
-                {error}
-              </p>
-            )}
-            <Button className="w-full" disabled={checking || !value.trim()}>
-              {checking ? "Checking…" : "Unlock admin"}
+            <Button className="w-full" onClick={() => window.location.reload()}>
+              Reload
             </Button>
-          </form>
+          </section>
         )}
       </div>
     </main>

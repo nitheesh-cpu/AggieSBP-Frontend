@@ -12,7 +12,7 @@ import {
   timestamp,
 } from "@/components/admin/admin-ui";
 import {
-  AdminKeyError,
+  AdminAuthError,
   AdminRequestError,
   getCronMonitors,
   getInstructorLinks,
@@ -20,10 +20,12 @@ import {
   getGpaRun,
   getOperationsHealth,
   getPendingSummaries,
+  getSiteStatus,
   type CronMonitor,
   type DataFreshness,
   type GpaRun,
   type MonitorResponse,
+  type SiteStatus,
 } from "@/lib/admin-api";
 
 const panel = "min-w-0 rounded-xl border border-border bg-card";
@@ -209,14 +211,15 @@ function ScheduledJobs({ data }: { data: MonitorResponse | undefined }) {
   );
 }
 
-async function fetchOverview(key: string) {
+async function fetchOverview() {
   return Promise.allSettled([
-    getCronMonitors(key),
-    getOperationsHealth(key),
-    getPendingSummaries(key),
-    getDataFreshness(key),
-    getGpaRun(key),
-    getInstructorLinks(key, { tab: "proposed", limit: 1 }),
+    getCronMonitors(),
+    getOperationsHealth(),
+    getPendingSummaries(),
+    getDataFreshness(),
+    getGpaRun(),
+    getInstructorLinks({ tab: "proposed", limit: 1 }),
+    getSiteStatus(),
   ]);
 }
 
@@ -345,12 +348,89 @@ function FreshnessPanel({
   );
 }
 
+/** systemd's ActiveState in the badge's words. */
+function serviceStatus(state: string) {
+  if (state === "active") return "healthy";
+  if (state === "failed") return "failed";
+  if (state === "inactive") return "stopped";
+  return state;
+}
+
+function ServerPanel({
+  result,
+}: {
+  result?: PromiseSettledResult<SiteStatus>;
+}) {
+  const status = result?.status === "fulfilled" ? result.value : undefined;
+  return (
+    <section className={panel} aria-labelledby="server-heading">
+      <h2
+        id="server-heading"
+        className="px-4 py-3 text-base font-semibold text-text-heading"
+      >
+        Server
+      </h2>
+      {status ? (
+        <dl className="divide-y divide-border border-t border-border">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5 px-4 py-2.5 text-sm">
+            <dt className="font-medium text-text-heading">Website release</dt>
+            <dd className="text-xs text-text-muted">
+              {status.release ? (
+                <>
+                  <a
+                    href={`https://github.com/nitheesh-cpu/AggieSBP-Frontend/commit/${status.release.commit}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-mono text-accent underline underline-offset-2"
+                  >
+                    {status.release.commit}
+                  </a>
+                  {" · "}
+                  <DashboardTime value={status.release.deployedAt} />
+                </>
+              ) : (
+                "Not running from a release folder"
+              )}
+            </dd>
+          </div>
+          {status.services ? (
+            status.services.map((service) => (
+              <div
+                key={service.unit}
+                className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-2.5 text-sm"
+              >
+                <dt className="text-text-body">{service.label}</dt>
+                <dd className="flex items-center gap-2 text-xs text-text-muted">
+                  {service.state === "active" && service.since && (
+                    <span>
+                      since <DashboardTime value={service.since} />
+                    </span>
+                  )}
+                  <StatusBadge status={serviceStatus(service.state)} />
+                </dd>
+              </div>
+            ))
+          ) : (
+            <p className="px-4 py-2.5 text-sm text-text-muted">
+              Service states are only available on the server.
+            </p>
+          )}
+        </dl>
+      ) : (
+        <p className="border-t border-border px-4 py-3 text-sm text-text-muted">
+          {result ? "Server status unavailable." : "Checking the server…"}
+        </p>
+      )}
+    </section>
+  );
+}
+
 function errorMessage(result: PromiseRejectedResult, fallback: string) {
   return result.reason instanceof Error ? result.reason.message : fallback;
 }
 
 export default function AdminOverview() {
-  const { adminKey, signOut } = useAdmin();
+  const { signOut } = useAdmin();
   const [snapshot, setSnapshot] =
     useState<Awaited<ReturnType<typeof fetchOverview>>>();
   const [busy, setBusy] = useState(false);
@@ -360,12 +440,12 @@ export default function AdminOverview() {
     inFlight.current = true;
     setBusy(true);
     try {
-      const results = await fetchOverview(adminKey);
+      const results = await fetchOverview();
       if (
         results.some(
           (result) =>
             result.status === "rejected" &&
-            result.reason instanceof AdminKeyError,
+            result.reason instanceof AdminAuthError,
         )
       ) {
         signOut();
@@ -376,7 +456,7 @@ export default function AdminOverview() {
       inFlight.current = false;
       setBusy(false);
     }
-  }, [adminKey, signOut]);
+  }, [signOut]);
 
   useEffect(() => {
     void load();
@@ -393,6 +473,7 @@ export default function AdminOverview() {
     freshnessResult,
     gpaResult,
     linksResult,
+    siteResult,
   ] = snapshot ?? [];
   const monitors =
     monitorResult?.status === "fulfilled" ? monitorResult.value : undefined;
@@ -522,6 +603,7 @@ export default function AdminOverview() {
         <div className="min-w-0 space-y-4">
           <GpaPanel result={gpaResult} />
           <FreshnessPanel result={freshnessResult} />
+          <ServerPanel result={siteResult} />
           <section className={panel} aria-labelledby="maintenance-heading">
             <h2
               id="maintenance-heading"

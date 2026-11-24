@@ -3,7 +3,7 @@
 ## What this is
 
 The website for AggieSB+ (Aggie Schedule Builder Plus), an unofficial companion to Texas A&M's Aggie Schedule Builder: grades, professor ratings, compare, seat alerts, Fit My Schedule, and the Schedule Builder (`/planner`).
-It is Next.js 16 (App Router) with React 19, Tailwind 4, shadcn/Radix, SuperTokens auth and Umami analytics, deployed on Vercel from `main`.
+It is Next.js 16 (App Router) with React 19, Tailwind 4, shadcn/Radix, SuperTokens auth and Umami analytics. It is self-hosted at `aggiesbp.com` on the backend VM behind Cloudflare (D-050); the old Vercel address redirects there. A push to `main` does not deploy: run `~/bin/deploy-aggiesbp-web.sh` on the VM (it builds, switches release, purges Cloudflare; `rollback` undoes). Steps and layout: the parent repo's `docs/self-host-plan.md`.
 It is the `frontend/` submodule of the parent `AggieSBP` repo (branch `master`). It talks to `backend/` (FastAPI, branch `develop`) over HTTP, and to `extension/` (Chrome/Firefox, branch `main`) only through links and URL hand-offs (`/planner#howdy=…`, `/discover/fit?importSchedule=…`).
 Next 16 differs from older Next.js versions. When unsure about an API, read `node_modules/next/dist/docs/`.
 
@@ -29,7 +29,7 @@ Each rule below protects a deliberate choice. Details are in `docs/context/decis
 
 1. **Never derive the site origin from `VERCEL_URL`.** Use `SITE_URL` from `src/lib/site-url.ts`. Preview hosts got about 11,900 sitemap URLs rejected. (D-027)
 2. **Never send `X-Frame-Options: DENY`.** Framing is controlled by an enforced CSP `frame-ancestors 'self' <umami host>`. DENY turns the Umami heatmaps black. (D-033)
-3. **Course, professor and reviews pages stay server components.** Client-rendered versions caused 116 soft-404s. API 404 means `notFound()`; 5xx or a timeout means "temporarily unavailable", never "Not Found". (D-026). They render per request with CDN caching, not ISR, because the Vercel ISR write quota ran out. Don't add `revalidate` back. (D-044)
+3. **Course, professor and reviews pages stay server components.** Client-rendered versions caused 116 soft-404s. API 404 means `notFound()`; 5xx or a timeout means "temporarily unavailable", never "Not Found". (D-026). They render per request with CDN caching, not ISR, because the Vercel ISR write quota ran out. Don't add `revalidate` back without a decision record: self-hosting removed that quota, but Cloudflare caching (D-050) now does the job. (D-044)
 4. **Do not re-filter `/courses` search results on the client.** A text check dropped "ACCT327"-style matches. (D-031)
 5. **Track only with `track()` in `onClick`. Never put `data-umami-event` on a link,** because it forces full page loads. Keep the `pending` queue and `keepalive`. (D-038)
 6. **Keep the inline `<head>` scripts in `layout.tsx` before the tracker.** They scrub `#howdy=` grades and OAuth codes from analytics URLs. (D-040, G-023)
@@ -42,7 +42,7 @@ Each rule below protects a deliberate choice. Details are in `docs/context/decis
 13. **Parked planner components (`requirements`, `watchlist`, `prereq-check`, `flowchart`) are not dead code.** Do not delete them or wire them back in without asking the owner. (D-021)
 14. **Easiness is per professor.** Never fall back to the course-wide score, and never make an unknown professor look safe. (D-019, D-020)
 15. **Show honest data only.** Show a dash or "No data yet" instead of a made-up 0 or 3.0. No hard-coded demo numbers. (D-012)
-16. **The frontend must tolerate the old backend.** Vercel deploys before the backend is updated, so validate response shapes. (G-007, G-035)
+16. **The frontend must tolerate the old backend.** The site deploys separately from the backend, so validate response shapes. (G-007, G-035)
 17. **Weird-looking layout code is deliberate:** the 1100px hero cap (G-020), the zero-width compare column (G-027), planner `forceMount` (G-024), and the two launch paths of the installed app (G-021).
 18. **Admin pages:** the key lives in `sessionStorage` only, requests use plain `fetch` (never `trackedFetch`), and the pages are noindex. (D-034)
 
@@ -73,7 +73,7 @@ A redesign is the most likely way to undo these. Most come straight from the own
 - **Code:** TypeScript, `@/` path alias, shadcn components in `src/components/ui/`. Pages are in `src/app/`. Route-specific client code goes in `*-page-client.tsx` next to a server `page.tsx`. The API client is `src/lib/api.ts` (every call goes through `trackedFetch`). Server reads go through `src/lib/server-api.ts` (never import it from a `"use client"` module).
 - **Analytics:** event names and data shapes live in `AnalyticsEvents` in `src/lib/analytics.ts`. The reasoning for each event is in the parent repo's `docs/umami-analytics-plan.md` (`../docs/umami-analytics-plan.md` from a parent checkout); update it when you add events. Events carry low-cardinality data only: no emails, ids, names or free text (D-039). Traffic reviews use the parent's `.claude/skills/umami-traffic-review/`.
 - **Tests:** pure logic goes in a lib module with a `*.test.ts` next to it (Node's test runner, no jsdom). Before finishing, run `npx tsc --noEmit -p .` and `npm test`, plus `npm run build` for routing, metadata or config changes. For UI changes, check in a browser (G-043 covers analytics testing).
-- **Git:** work on `main` (small changes go straight to `main` when the owner says so; Vercel deploys every push). Commit only when asked, and push only when asked as a separate step. Stage only your own files, because other sessions often have uncommitted work in the tree. Commit messages have a short imperative subject (a conventional prefix like `fix:`, `feat:` or `perf:` is common) and a body explaining why. **No AI attribution:** no `Co-Authored-By: Claude…` trailers, no "Generated with Claude Code" footers, in commits or PRs. After pushing, the parent repo needs a separate commit that bumps only the `frontend` pointer.
+- **Git:** work on `main` (small changes go straight to `main` when the owner says so; deploying is a separate step on the VM). Commit only when asked, and push only when asked as a separate step. Stage only your own files, because other sessions often have uncommitted work in the tree. Commit messages have a short imperative subject (a conventional prefix like `fix:`, `feat:` or `perf:` is common) and a body explaining why. **No AI attribution:** no `Co-Authored-By: Claude…` trailers, no "Generated with Claude Code" footers, in commits or PRs. After pushing, the parent repo needs a separate commit that bumps only the `frontend` pointer.
 - **Reports to the owner** state plainly what was and was not verified, committed or deployed.
 - **Cross-repo contracts** (special-topic section titles, `hasGradeData`, nullable ratings, admin endpoints): change the backend shape and the frontend tolerance together, and record it in the parent's `docs/context/`.
 - **Secrets:** never in code or docs. This repo is public.

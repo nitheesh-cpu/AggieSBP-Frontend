@@ -2,7 +2,7 @@
 
 Grade distributions, professor reviews, seat alerts and a schedule builder for Texas A&M students, all in one place.
 
-**Live:** https://aggieschedulebuilderplus.vercel.app
+**Live:** https://aggiesbp.com
 
 **Backend:** [AggieSBP-Backend](https://github.com/nitheesh-cpu/AggieSBP-Backend) · **Extension:** [AggieSBP-Extension](https://github.com/nitheesh-cpu/AggieSBP-Extension)
 
@@ -17,7 +17,7 @@ Grade distributions, professor reviews, seat alerts and a schedule builder for T
 
 ## Stack
 
-Next.js 16, React 19, TypeScript, Tailwind v4, Radix UI, SuperTokens, deployed on Vercel.
+Next.js 16, React 19, TypeScript, Tailwind v4, Radix UI, SuperTokens, self-hosted on the backend VM behind Cloudflare.
 
 ## Run it locally
 

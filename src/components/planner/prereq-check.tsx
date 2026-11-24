@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/app-link";
 import {
   AlertTriangle,
   CheckCircle2,

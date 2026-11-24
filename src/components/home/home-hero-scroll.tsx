@@ -1,7 +1,7 @@
 "use client";
 
 import { getImageProps } from "next/image";
-import Link from "next/link";
+import Link from "@/components/app-link";
 import { ArrowRight, BellRing, CheckCircle2 } from "lucide-react";
 
 import { GlobalOmnibar } from "@/components/home/global-omnibar";

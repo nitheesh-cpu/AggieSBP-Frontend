@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { User, LogOut, Bell } from "lucide-react";
-import Link from "next/link";
+import Link from "@/components/app-link";
 import { redirectToAuth } from "supertokens-auth-react";
 import { removePushSubscription } from "@/lib/api";
 import { pageFrom, track } from "@/lib/analytics";

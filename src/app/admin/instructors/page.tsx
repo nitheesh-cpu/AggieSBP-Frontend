@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useCallback, useEffect, useId, useMemo, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/app-link";
 import { useSearchParams } from "next/navigation";
 import { AiBulkRejection } from "./ai-bulk-rejection";
 import {

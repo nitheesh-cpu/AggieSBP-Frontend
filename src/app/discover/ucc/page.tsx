@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import Link from "next/link";
+import Link from "@/components/app-link";
 import { useSearchParams } from "next/navigation";
 import { motion, MotionConfig, useReducedMotion } from "motion/react";
 import { Navigation } from "@/components/navigation";

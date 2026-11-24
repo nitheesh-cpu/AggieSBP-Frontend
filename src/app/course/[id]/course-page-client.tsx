@@ -50,7 +50,7 @@ import {
   ScrollText,
   MessageSquareText,
 } from "lucide-react";
-import Link from "next/link";
+import Link from "@/components/app-link";
 import { useComparison } from "@/contexts/ComparisonContext";
 import { useProfessorComparison } from "@/contexts/ProfessorComparisonContext";
 import { ComparisonWidget } from "@/components/comparison-widget";

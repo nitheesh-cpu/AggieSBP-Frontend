@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import Link from "next/link";
+import Link from "@/components/app-link";
 
 import { useEligibility } from "@/hooks/use-eligibility";
 import { activeWatchlist, addToWatchlist, type DegreePlan } from "@/lib/planner/plan";

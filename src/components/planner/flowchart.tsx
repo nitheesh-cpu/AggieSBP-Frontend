@@ -2,7 +2,7 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/app-link";
 import { AlertTriangle, ExternalLink, Maximize2, Minus, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";

@@ -23,7 +23,7 @@ import {
   ThumbsUp,
   ThumbsDown,
 } from "lucide-react";
-import Link from "next/link";
+import Link from "@/components/app-link";
 import { professorNamesMatch } from "@/lib/name-matching";
 import { track } from "@/lib/analytics";
 import {

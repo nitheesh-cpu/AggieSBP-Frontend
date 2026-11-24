@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/app-link";
 import { Bell, ChevronsUpDown, Loader2 } from "lucide-react";
 
 import { EasinessLegend } from "@/components/easiness";

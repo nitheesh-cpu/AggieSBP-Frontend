@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/app-link";
 import { Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";

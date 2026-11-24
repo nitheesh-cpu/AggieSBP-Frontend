@@ -61,7 +61,7 @@ import {
   ChevronDown,
   Filter,
 } from "lucide-react";
-import Link from "next/link";
+import Link from "@/components/app-link";
 import { useAcademicRecord } from "@/hooks/use-academic-record";
 import { useCoursePrereqs } from "@/hooks/use-course-prereqs";
 import { buildContext, evaluateCourse, type Eligibility } from "@/lib/planner/prereqs";

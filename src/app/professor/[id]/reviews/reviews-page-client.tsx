@@ -31,7 +31,7 @@ import {
   Calendar,
   MessageSquareText,
 } from "lucide-react";
-import Link from "next/link";
+import Link from "@/components/app-link";
 
 interface ReviewsPageClientProps {
   /** Loaded on the server (page.tsx); unknown professors never get here. */

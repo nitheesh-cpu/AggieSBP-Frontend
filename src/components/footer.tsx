@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
+import Link from "@/components/app-link";
 import { track } from "@/lib/analytics";
 
 /** `item` is the nav-click slug reported to analytics. */

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/app-link";
 import { Card } from "@/components/ui/card";
 import { searchInstructors, type InstructorMatch } from "@/lib/api";
 import { track } from "@/lib/analytics";

@@ -52,7 +52,7 @@ import {
   ChevronUp,
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import Link from "next/link";
+import Link from "@/components/app-link";
 import { Suspense } from "react";
 import { track } from "@/lib/analytics";
 import { useSearchTracking } from "@/lib/analytics-hooks";

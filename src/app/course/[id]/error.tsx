@@ -1,7 +1,7 @@
 "use client";
 
 import { startTransition } from "react";
-import Link from "next/link";
+import Link from "@/components/app-link";
 import { useRouter } from "next/navigation";
 import { RefreshCw } from "lucide-react";
 import { Navigation } from "@/components/navigation";

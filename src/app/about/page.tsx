@@ -25,7 +25,7 @@ import {
   Eye,
   TrendingDown,
 } from "lucide-react";
-import Link from "next/link";
+import Link from "@/components/app-link";
 
 type AnimatedSectionProps = {
   children: React.ReactNode;

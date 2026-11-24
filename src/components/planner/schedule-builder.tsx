@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/app-link";
 import { AlertTriangle, Check, Copy, Loader2, Sparkles, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";

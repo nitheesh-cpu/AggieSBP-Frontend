@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import Link from "@/components/app-link";
 import { AnimatePresence, motion } from "motion/react";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";

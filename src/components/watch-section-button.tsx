@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
+import Link from "@/components/app-link";
 import { useSessionContext } from "supertokens-auth-react/recipe/session";
 import { redirectToAuth } from "supertokens-auth-react";
 import { Bell, BellRing, Loader2 } from "lucide-react";

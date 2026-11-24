@@ -12,7 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import Link from "next/link";
+import Link from "@/components/app-link";
 import { useAdmin } from "@/components/admin/admin-shell";
 import {
   CompareLegend,

@@ -14,7 +14,7 @@ import { useProfessorComparison } from "@/contexts/ProfessorComparisonContext";
 import { getProfessors, type Professor } from "@/lib/api";
 import { X, Star, Users, ArrowRight } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import Link from "next/link";
+import Link from "@/components/app-link";
 
 export function ProfessorComparisonWidget() {
   const { selectedProfessors, removeProfessor, clearAll } =

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
+import Link from "@/components/app-link";
 import { ChevronDown, Loader2 } from "lucide-react";
 import type { CourseDetail } from "@/lib/api";
 import { lastName } from "@/lib/planner/schedule-data";

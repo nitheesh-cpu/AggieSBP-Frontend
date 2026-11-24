@@ -17,7 +17,7 @@ import {
 } from "@/lib/api";
 import { User, Bell, Mail, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import Link from "next/link";
+import Link from "@/components/app-link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";

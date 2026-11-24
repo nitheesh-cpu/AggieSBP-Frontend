@@ -50,7 +50,7 @@ Backend and extension items live in those repos' `docs/context/open-items.md`. M
 - **Service-worker events start new Umami sessions**, so compare totals, not per-session funnels. (M10 2026-11-17)
 - **Search Console:** 13 mobile URLs "need improvement" on Core Web Vitals; many courses get impressions and no clicks (for example MSEN 325). Nothing beyond the SSR and title work is confirmed. Removing the old sitemap entries in Search Console (D-027) was a manual step for the owner and is not confirmed. (M3/M11)
 - **Full subject-name searches** ("accounting 327") returned 0 results in a review. `classifyQuery` now classifies them, but the backend fix is unconfirmed. "Did you mean professor X?" for name searches typed into `/courses` was proposed, not built (`/professors` has the instructor fallback). [unverified] (M9/M10)
-- **Vercel bot traffic:** check Observability → Bot Name after `dc26bcc`. Decide on unknown bots, and on a firewall rule if `meta-externalagent` ignores robots.txt. (M8 2026-11-16)
+- **Vercel bot traffic:** check Observability → Bot Name after `dc26bcc`. Decide on unknown bots, and on a firewall rule if `meta-externalagent` ignores robots.txt. (M8 2026-11-16) 2026-11-24: meta-externalagent gone; Amazonbot and meta-webindexer added to robots (D-028 update). Recheck Bot Name around 2026-11-26.
 
 ## Deferred ideas
 

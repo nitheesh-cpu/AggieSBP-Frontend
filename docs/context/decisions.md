@@ -192,6 +192,7 @@ Dates are when the decision was made (or first recorded). Backend counterparts l
 **Decision:** `src/app/robots.ts` `BLOCKED_BOTS` (meta-externalagent, SemrushBot, CCBot, GPTBot, ClaudeBot, Bytespider, Google-Extended, Applebot-Extended) get `disallow: /`. Everyone else may crawl except `/api/` and `/admin/`. `/_next/` is deliberately NOT blocked. Googlebot, Bingbot, Applebot, facebookexternalhit, OAI-SearchBot and PerplexityBot stay allowed. `app/robots.ts` replaced `public/robots.txt`.
 **Why:** meta-externalagent alone was over half of CDN requests and sends no visitors. Google needs `/_next/` JS/CSS to render pages.
 **Where:** `src/app/robots.ts`
+**Update 2026-11-24:** meta-externalagent stopped after the block. In the next 12h window (22K CDN requests) Amazonbot made 5.4K (2% cached) and meta-webindexer 5K (17% cached), and the Hobby CDN quota ran out. Both, plus SERankingBacklinksBot (SEO tool), were added to `BLOCKED_BOTS`. Crawlers re-read robots.txt only every day or so, so a Vercel Firewall user-agent rule was suggested for immediate effect. See also D-049.
 **Status:** active
 
 ### D-029: Titles match searches; account pages are noindex  (2026-11-16)
@@ -330,3 +331,10 @@ Event names and data shapes are in `AnalyticsEvents` in `src/lib/analytics.ts` (
 **Rejected:** going back to client rendering (brings back the D-026 soft-404s and loses per-page titles, D-045); `unstable_cache` for the shared lists (data-cache entries are ISR writes, D-044); 30-day `max-age` (`/api/revalidate` doesn't purge this cache, so a bad page would stay up to a month).
 **Where:** `next.config.ts`, `src/lib/server-api.ts`, `src/lib/memo-ttl.ts`
 **Status:** active, unmeasured. After a data fix, pages can be stale up to 7 days unless the CDN cache is purged in the Vercel dashboard. Check the Vercel Usage graph for Active CPU a week after deploy. If it still trends past the free tier, the next step is self-hosting behind Cloudflare or Vercel Pro (see open-items).
+
+### D-049: Links do not prefetch on viewport; the 404 image is a small file  (2026-11-24)
+**Decision:** every `<Link>` imports `@/components/app-link`, a wrapper around `next/link` with `prefetch={false}` by default. A link can opt back in by passing `prefetch` explicitly. `public/sad-rev.png` (served `unoptimized` on every 404) was resized from 2863px, 3.7 MB, to 768px, 31 KB.
+**Why:** the Vercel Hobby CDN quota ran out on 2026-11-23 and the account was due to be paused. In a browser, one view of `/departments/CSCE` made 95 requests to Vercel, 67 of them RSC prefetches for links the visitor never clicked. The home page made 14 and `/professors` 12. Every prefetch is a billed edge request, and D-047 added about 160 pages that are long lists of links.
+**Rejected:** adding `prefetch={false}` to each of the 96 tags by hand (new links would forget it); hover-only prefetch (each hover is still a billed request).
+**Where:** `src/components/app-link.tsx`, every file that imported `next/link`, `public/sad-rev.png`
+**Status:** active, unmeasured. Clicking a link now fetches the page on click, which can feel slightly slower. Check Edge Requests on the Vercel Usage page a few days after deploy.

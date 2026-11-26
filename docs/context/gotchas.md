@@ -262,3 +262,9 @@ Event names: `AnalyticsEvents` in `src/lib/analytics.ts`. The "why" for each eve
 **Looks like:** `admin-api.ts` skips the shared `trackedFetch`.
 **Actually:** Admin calls must never reach analytics (D-034). `AdminRequestError` carries the HTTP status. A 409 from the instructor-link endpoints means the backend table is missing ("run migration 005"), and the page shows that instead of a generic error.
 **Where:** `src/lib/admin-api.ts`, `src/app/admin/instructors/page.tsx`
+
+### G-045: Professor course codes come from RMP reviewers, not the catalog
+**Looks like:** every course in a professor's `courses` list has a course page, so each card can link to `/course/<code>`.
+**Actually:** the codes are what reviewers typed on RateMyProfessors ("HST226", "TXHISTORY", "207"). Linking them all gave Google about 250 404s (Search Console, 2026-11). The backend's `course_name` comes from a join with the catalog and is null for unknown codes, so the card links only when `course_name` is set and otherwise says the code is not in the catalog. Checked on live data (2026-11-26): 58 of 58 named codes had a page; 11 of 12 unnamed ones 404'd (the exception, PSYC107, resolves through an old subject alias the professor query does not use).
+**If you change it:** don't link codes without a catalog match. If the backend ever maps old subject aliases in that join, those links come back on their own.
+**Where:** `src/app/professor/[id]/professor-page-client.tsx` (course cards).

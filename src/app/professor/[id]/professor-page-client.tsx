@@ -949,14 +949,21 @@ export default function ProfessorPageClient({
 
                         <SummaryTips tips={course.tips} className="mb-4" />
 
-                        {/* Pinned to the bottom so buttons line up across the row */}
-                        <Button asChild variant="outline" className="mt-auto w-full">
-                          <Link
-                            href={`/course/${course.course_id?.replace(/\s+/g, "") || ""}`}
-                          >
-                            View course
-                          </Link>
-                        </Button>
+                        {/* Pinned to the bottom so buttons line up across the row.
+                            No catalog name means the code came from an RMP review
+                            ("HST226", "207") and has no course page: linking it
+                            gave Google hundreds of 404s. */}
+                        {course.course_name ? (
+                          <Button asChild variant="outline" className="mt-auto w-full">
+                            <Link href={`/course/${course.course_id.replace(/\s+/g, "")}`}>
+                              View course
+                            </Link>
+                          </Button>
+                        ) : (
+                          <p className="mt-auto py-2 text-center text-xs text-text-muted">
+                            Course code as written by reviewers, not in the TAMU catalog
+                          </p>
+                        )}
                       </CardContent>
                     </Card>
                   ) : null,

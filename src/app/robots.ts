@@ -1,23 +1,22 @@
 import { MetadataRoute } from 'next'
 import { SITE_URL } from '@/lib/site-url'
 
-// Crawlers that take pages for AI training or SEO tools and send no visitors
-// back. meta-externalagent alone was over half of all CDN requests; after it
-// stopped, Amazonbot and meta-webindexer were about half (D-028).
-// Google-Extended and Applebot-Extended only opt out of AI training; normal
-// Google and Apple search crawling (Googlebot, Applebot) is unaffected.
+// Crawlers for products students don't use to find classes, and SEO tools.
+// They send no visitors back. meta-externalagent alone was over half of all
+// CDN requests; after it stopped, Amazonbot and meta-webindexer were about
+// half (D-028).
+// Training crawlers for the assistants students do ask (GPTBot, ClaudeBot,
+// Google-Extended, Applebot-Extended, CCBot) are allowed since the move off
+// Vercel's CDN quota, so those models can learn the site exists (D-055).
+// Search and on-demand bots (OAI-SearchBot, ChatGPT-User, PerplexityBot,
+// Claude-User, Googlebot) were never blocked.
 const BLOCKED_BOTS = [
   'meta-externalagent',
   'meta-webindexer',
   'Amazonbot',
   'SERankingBacklinksBot',
   'SemrushBot',
-  'CCBot',
-  'GPTBot',
-  'ClaudeBot',
   'Bytespider',
-  'Google-Extended',
-  'Applebot-Extended',
 ]
 
 export default function robots(): MetadataRoute.Robots {

@@ -10,6 +10,7 @@ import { UmamiRecorder } from "@/components/umami-recorder";
 import { AnalyticsSessionTags } from "@/components/analytics-session-tags";
 import { SITE_URL } from "@/lib/site-url";
 import { UMAMI_BASE } from "@/lib/analytics";
+import { UMAMI_BEFORE_SEND_SCRIPT } from "@/lib/umami-before-send";
 
 const ibmPlexSans = IBM_Plex_Sans({
   subsets: ["latin"],
@@ -90,10 +91,11 @@ export default function RootLayout({
         />
         {/* Sign-in callbacks (/auth/callback/google?code=...) carry one-time
             OAuth codes in the query; drop it from the URL and referrer
-            before Umami sends anything. */}
+            before Umami sends anything. The hook also cancels /admin
+            events and plain pageviews on the callback (see the lib file). */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `window.umamiBeforeSend=function(t,p){function c(u){if(typeof u!=="string"||u.indexOf("/auth/callback")<0)return u;var i=u.search(/[?#]/);return i<0?u:u.slice(0,i)}if(p){p.url=c(p.url);p.referrer=c(p.referrer)}return p};`,
+            __html: UMAMI_BEFORE_SEND_SCRIPT,
           }}
         />
         {/* Umami (self-hosted). Only counts the production host, so local

@@ -268,3 +268,9 @@ Event names: `AnalyticsEvents` in `src/lib/analytics.ts`. The "why" for each eve
 **Actually:** the codes are what reviewers typed on RateMyProfessors ("HST226", "TXHISTORY", "207"). Linking them all gave Google about 250 404s (Search Console, 2026-11). The backend's `course_name` comes from a join with the catalog and is null for unknown codes, so the card links only when `course_name` is set and otherwise says the code is not in the catalog. Checked on live data (2026-11-26): 58 of 58 named codes had a page; 11 of 12 unnamed ones 404'd (the exception, PSYC107, resolves through an old subject alias the professor query does not use).
 **If you change it:** don't link codes without a catalog match. If the backend ever maps old subject aliases in that join, those links come back on their own.
 **Where:** `src/app/professor/[id]/professor-page-client.tsx` (course cards).
+
+### G-046: Fonts are committed files, not `next/font/google`
+**Looks like:** `next/font/local` with woff2 files in the repo is extra work when `next/font/google` does the same in three lines.
+**Actually:** `next/font/google` downloads the fonts during every build. On the VM that download failed now and then ("next/font/google queries have exactly one entry", Module not found for the font URL), which failed the autodeploy build of `cd0305a` (2026-11-26) while the same commit built locally and in CI. The files in `src/app/fonts/` are the latin subsets from Fontsource 5.3.0 (the same Google Fonts files, SIL OFL; licences next to them), at the weights the site uses: Plex Sans 400/500/600, Plex Mono 400/500, Press Start 2P 400.
+**If you change it:** don't go back to `next/font/google`. A new weight needs its woff2 added and listed in `layout.tsx` (D-004 caps weights at 600).
+**Where:** `src/app/layout.tsx`, `src/app/fonts/`.

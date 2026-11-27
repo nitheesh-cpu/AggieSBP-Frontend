@@ -4,7 +4,7 @@ import { SupertokensProvider } from "@/components/providers/SupertokensProvider"
 import { ComparisonProvider } from "@/contexts/ComparisonContext";
 import { ProfessorComparisonProvider } from "@/contexts/ProfessorComparisonContext";
 import { ThemeProvider } from "@/components/theme-provider";
-import { IBM_Plex_Mono, IBM_Plex_Sans, Press_Start_2P } from "next/font/google";
+import localFont from "next/font/local";
 import { SWRegister } from "@/components/sw-register";
 import { UmamiRecorder } from "@/components/umami-recorder";
 import { AnalyticsSessionTags } from "@/components/analytics-session-tags";
@@ -12,23 +12,32 @@ import { SITE_URL } from "@/lib/site-url";
 import { UMAMI_BASE } from "@/lib/analytics";
 import { UMAMI_BEFORE_SEND_SCRIPT } from "@/lib/umami-before-send";
 
-const ibmPlexSans = IBM_Plex_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+// Fonts are committed (latin subset, OFL, from Fontsource) instead of
+// next/font/google, which downloads them during every build and kept failing
+// VM builds (G-046).
+const ibmPlexSans = localFont({
+  src: [
+    { path: "./fonts/ibm-plex-sans-latin-400-normal.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/ibm-plex-sans-latin-500-normal.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/ibm-plex-sans-latin-600-normal.woff2", weight: "600", style: "normal" },
+  ],
   display: "swap",
   variable: "--font-plex-sans",
 });
 
-const ibmPlexMono = IBM_Plex_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500"],
+const ibmPlexMono = localFont({
+  src: [
+    { path: "./fonts/ibm-plex-mono-latin-400-normal.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/ibm-plex-mono-latin-500-normal.woff2", weight: "500", style: "normal" },
+  ],
   display: "swap",
   variable: "--font-plex-mono",
 });
 
-const pressStart2P = Press_Start_2P({
-  subsets: ["latin"],
+const pressStart2P = localFont({
+  src: "./fonts/press-start-2p-latin-400-normal.woff2",
   weight: "400",
+  style: "normal",
   display: "swap",
   variable: "--font-press-start-2p",
 });

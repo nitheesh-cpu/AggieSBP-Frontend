@@ -11,6 +11,7 @@ export const AUTODEPLOY_STATES = [
   "up_to_date",
   "deployed",
   "waiting_ci",
+  "waiting_api",
   "ci_failed",
   "held",
   "needs_attention",

@@ -132,6 +132,9 @@ export type AnalyticsEvents = {
   "app-installed": { platform: AppPlatform };
   "app-first-launch": { platform: AppPlatform };
   "install-guide-open": { from: string };
+  // The old address's Home Screen app, redirected to /moved (D-053)
+  "old-app-open": { platform: AppPlatform };
+  "old-app-reinstall-click": { platform: AppPlatform };
 };
 
 export type AppPlatform = "ios" | "android" | "desktop";

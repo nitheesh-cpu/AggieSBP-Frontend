@@ -1,10 +1,17 @@
 import { Badge } from "@/components/ui/badge";
 
 export function StatusBadge({ status }: { status: string }) {
-  const good = ["healthy", "succeeded"].includes(status);
-  const bad = ["failed", "failing", "unavailable", "quota_exhausted"].includes(
+  const good = ["healthy", "succeeded", "up_to_date", "deployed"].includes(
     status,
   );
+  const bad = [
+    "failed",
+    "failing",
+    "unavailable",
+    "quota_exhausted",
+    "ci_failed",
+    "needs_attention",
+  ].includes(status);
   return (
     <Badge
       variant="outline"

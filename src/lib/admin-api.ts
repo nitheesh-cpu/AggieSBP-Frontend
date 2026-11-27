@@ -6,6 +6,10 @@
  * so nothing about admin requests reaches analytics.
  */
 
+import type { AutodeployStatus } from "./autodeploy-status";
+
+export type { AutodeploySide, AutodeployStatus } from "./autodeploy-status";
+
 export type MergeStatus = "proposed" | "confirmed" | "rejected";
 
 export interface MergeProfessor {
@@ -203,12 +207,14 @@ export interface GpaRun {
   retryAt: string | null;
 }
 
-/** What runs on the VM: site release and systemd services (src/app/api/admin/site-status). */
+/** What runs on the VM: site release, systemd services and autodeploy (src/app/api/admin/site-status). */
 export interface SiteStatus {
   release: { commit: string; deployedAt: string } | null;
   services:
     | { unit: string; label: string; state: string; since: string | null }[]
     | null;
+  /** Missing from a site built before autodeploy reporting. */
+  autodeploy?: AutodeployStatus | null;
 }
 export const getSiteStatus = () => adminFetch<SiteStatus>("/admin/site-status");
 

@@ -2,6 +2,12 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "redirects": [
     {
+      "source": "/alerts",
+      "has": [{ "type": "query", "key": "source", "value": "pwa" }],
+      "destination": "https://aggiesbp.com/moved?source=pwa",
+      "permanent": false
+    },
+    {
       "source": "/((?!googlea75cc1ec8def39f3\\.html).*)",
       "destination": "https://aggiesbp.com/$1",
       "permanent": true

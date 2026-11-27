@@ -21,6 +21,7 @@ import {
   getOperationsHealth,
   getPendingSummaries,
   getSiteStatus,
+  type AutodeployStatus,
   type CronMonitor,
   type DataFreshness,
   type GpaRun,
@@ -356,6 +357,107 @@ function serviceStatus(state: string) {
   return state;
 }
 
+const REPO_URLS = {
+  frontend: "https://github.com/nitheesh-cpu/AggieSBP-Frontend",
+  backend: "https://github.com/nitheesh-cpu/AggieSBP-Backend",
+} as const;
+
+function CommitLink({
+  repo,
+  commit,
+}: {
+  repo: keyof typeof REPO_URLS;
+  commit: string;
+}) {
+  return (
+    <a
+      href={`${REPO_URLS[repo]}/commit/${commit}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="font-mono text-accent underline underline-offset-2"
+    >
+      {commit}
+    </a>
+  );
+}
+
+/** What the VM's autodeploy job did last (D-024). Old sites send no field. */
+function AutodeployRows({ status }: { status: AutodeployStatus | null }) {
+  if (!status) {
+    return (
+      <p className="px-4 py-2.5 text-sm text-text-muted">
+        Autodeploy has not reported yet.
+      </p>
+    );
+  }
+  const sides = [
+    ["Site deploys", "frontend", status.frontend],
+    ["API deploys", "backend", status.backend],
+  ] as const;
+  return (
+    <>
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-2.5 text-sm">
+        <dt className="font-medium text-text-heading">Autodeploy</dt>
+        <dd className="flex items-center gap-2 text-xs text-text-muted">
+          <span>
+            checked <DashboardTime value={status.checkedAt} />
+          </span>
+          {status.paused ? (
+            <StatusBadge status="paused" />
+          ) : status.stale ? (
+            <StatusBadge status="stale" />
+          ) : null}
+        </dd>
+      </div>
+      {status.stale && (
+        <p className="px-4 py-2.5 text-xs text-amber-800 dark:text-amber-300">
+          No run in the last 15 minutes. Check the cron job on the VM.
+        </p>
+      )}
+      {sides.map(([label, repo, side]) => (
+        <div
+          key={repo}
+          className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-2.5 text-sm"
+        >
+          <dt className="text-text-body">{label}</dt>
+          <dd className="flex items-center gap-2 text-xs text-text-muted">
+            {side?.live && <CommitLink repo={repo} commit={side.live} />}
+            <StatusBadge status={side?.state ?? "unknown"} />
+          </dd>
+          {side && (
+            <dd className="basis-full space-y-0.5 text-xs text-text-muted">
+              {side.commit &&
+                side.commit !== side.live &&
+                !["up_to_date", "deployed"].includes(side.state) && (
+                  <p>
+                    Newest commit <CommitLink repo={repo} commit={side.commit} />
+                    {side.since && (
+                      <>
+                        {" "}
+                        · since <DashboardTime value={side.since} />
+                      </>
+                    )}
+                  </p>
+                )}
+              {side.message &&
+                !["up_to_date", "deployed"].includes(side.state) && (
+                  <p className="text-text-body">{side.message}</p>
+                )}
+              {side.lastDeploy && (
+                <p>
+                  Last deploy{" "}
+                  <CommitLink repo={repo} commit={side.lastDeploy.commit} /> ·{" "}
+                  <DashboardTime value={side.lastDeploy.at} />
+                </p>
+              )}
+            </dd>
+          )}
+        </div>
+      ))}
+    </>
+  );
+}
+
 function ServerPanel({
   result,
 }: {
@@ -377,14 +479,10 @@ function ServerPanel({
             <dd className="text-xs text-text-muted">
               {status.release ? (
                 <>
-                  <a
-                    href={`https://github.com/nitheesh-cpu/AggieSBP-Frontend/commit/${status.release.commit}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-mono text-accent underline underline-offset-2"
-                  >
-                    {status.release.commit}
-                  </a>
+                  <CommitLink
+                    repo="frontend"
+                    commit={status.release.commit}
+                  />
                   {" · "}
                   <DashboardTime value={status.release.deployedAt} />
                 </>
@@ -414,6 +512,9 @@ function ServerPanel({
             <p className="px-4 py-2.5 text-sm text-text-muted">
               Service states are only available on the server.
             </p>
+          )}
+          {status.services && (
+            <AutodeployRows status={status.autodeploy ?? null} />
           )}
         </dl>
       ) : (

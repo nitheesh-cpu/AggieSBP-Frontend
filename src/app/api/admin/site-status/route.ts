@@ -1,14 +1,18 @@
 import { execFile } from "node:child_process";
-import { basename } from "node:path";
+import { open } from "node:fs/promises";
+import { homedir } from "node:os";
+import { basename, join } from "node:path";
 import { promisify } from "node:util";
 import { NextResponse } from "next/server";
 import { authorizeAdmin } from "@/lib/admin-gate";
+import { MAX_STATUS_BYTES, parseAutodeployStatus, type AutodeployStatus } from "@/lib/autodeploy-status";
 
 /**
  * What is running on the VM, for the admin overview (D-052): the site release
  * (the deploy script names each release folder `<sha>-<UTC yyyymmddHHMMSS>`
- * and server.js runs inside it) and the systemd services. Read-only; nothing
- * here can change the server. Off the VM both come back null.
+ * and server.js runs inside it), the systemd services, and the autodeploy
+ * status file (D-024; the site runs as the same user as the cron job).
+ * Read-only; nothing here can change the server. Off the VM all come back null.
  */
 export const dynamic = "force-dynamic";
 
@@ -24,6 +28,28 @@ const SERVICES = [
 export interface SiteStatus {
   release: { commit: string; deployedAt: string } | null;
   services: { unit: string; label: string; state: string; since: string | null }[] | null;
+  autodeploy: AutodeployStatus | null;
+}
+
+const AUTODEPLOY_STATUS_FILE =
+  process.env.AUTODEPLOY_STATUS_FILE || join(homedir(), ".local/state/aggiesbp-autodeploy/status.json");
+
+async function autodeployStatus(): Promise<SiteStatus["autodeploy"]> {
+  if (process.platform !== "linux") return null;
+  let file;
+  try {
+    file = await open(AUTODEPLOY_STATUS_FILE, "r");
+    const buffer = Buffer.alloc(MAX_STATUS_BYTES + 1);
+    const { bytesRead } = await file.read(buffer, 0, buffer.length, 0);
+    return parseAutodeployStatus(buffer.subarray(0, bytesRead).toString("utf8"));
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+      console.error("[admin] autodeploy status unreadable:", error);
+    }
+    return null;
+  } finally {
+    await file?.close();
+  }
 }
 
 function currentRelease(): SiteStatus["release"] {
@@ -68,6 +94,7 @@ export async function GET(request: Request) {
   if (!gate.ok) {
     return NextResponse.json({ detail: gate.message }, { status: gate.status, headers: { "Cache-Control": "no-store" } });
   }
-  const status: SiteStatus = { release: currentRelease(), services: await serviceStates() };
+  const [services, autodeploy] = await Promise.all([serviceStates(), autodeployStatus()]);
+  const status: SiteStatus = { release: currentRelease(), services, autodeploy };
   return NextResponse.json(status, { headers: { "Cache-Control": "no-store" } });
 }

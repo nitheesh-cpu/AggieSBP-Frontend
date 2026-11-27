@@ -14,6 +14,7 @@ import {
   Smartphone,
   Share2,
 } from "lucide-react";
+import Link from "@/components/app-link";
 import { Button } from "@/components/ui/button";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import {
@@ -512,11 +513,24 @@ function MyAlertsContent() {
                           <CheckCircle2 className="h-4 w-4" /> You&apos;re all set!
                         </p>
                       )}
-                      {error && (
+                      {error === "Permission denied" ? (
+                        // An app installed from the old address lands here
+                        // outside its window, where notifications can't be
+                        // allowed (D-053).
+                        <p className="mt-3 text-red-500 dark:text-red-400 text-sm">
+                          Notifications are blocked for aggiesbp.com. If you opened an AggieSB+
+                          icon added before the move,{" "}
+                          <Link href="/moved" className="underline underline-offset-2">
+                            add the app again
+                          </Link>
+                          . Otherwise allow notifications for this site in your browser or phone
+                          settings.
+                        </p>
+                      ) : error ? (
                         <p className="mt-3 text-red-500 dark:text-red-400 text-sm">
                           {error}
                         </p>
-                      )}
+                      ) : null}
                     </div>
                   </div>
                 </div>
